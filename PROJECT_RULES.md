@@ -1,0 +1,257 @@
+# PROJECT_RULES.md — 하루투두 개발 규칙
+
+## 기술 스택
+
+| 영역 | 기술 | 선택 이유 |
+|---|---|---|
+| 프레임워크 | Next.js 15 (App Router) | PWA, SSR, 파일 기반 라우팅 |
+| 언어 | TypeScript | 타입 안전성, Supabase 타입 자동 생성 |
+| 스타일링 | Tailwind CSS v4 | 모바일 퍼스트, 유틸리티 클래스 |
+| 상태 관리 | Zustand | 경량, 단순, 보일러플레이트 최소 |
+| 백엔드/DB | Supabase | 실시간 동기화, 인증, PostgreSQL |
+| PWA | @ducanh2912/next-pwa | Next.js 15 호환, Service Worker 관리 |
+| UI 컴포넌트 | shadcn/ui | 접근성, Radix 기반, 커스터마이징 용이 |
+| 폼 | React Hook Form + Zod | 유효성 검사, 타입 안전 |
+
+## 폴더 구조 원칙
+
+```
+harutodo/
+├── app/
+│   ├── (auth)/                # 인증 레이아웃 (탭바 없음)
+│   │   ├── login/page.tsx
+│   │   ├── signup/page.tsx
+│   │   └── couple/
+│   │       └── connect/page.tsx
+│   ├── (main)/                # 메인 레이아웃 (하단 탭바 포함)
+│   │   ├── layout.tsx         # 탭바 레이아웃
+│   │   ├── page.tsx           # 홈 (오늘의 투두)
+│   │   ├── calendar/page.tsx
+│   │   └── mypage/page.tsx
+│   ├── api/                   # API Routes
+│   │   └── ...
+│   ├── layout.tsx             # 루트 레이아웃 (메타, PWA 메타 태그)
+│   └── globals.css
+├── components/
+│   ├── ui/                    # shadcn/ui 기본 컴포넌트 (수정 금지)
+│   ├── todo/                  # 투두 관련 컴포넌트
+│   ├── calendar/              # 캘린더 관련 컴포넌트
+│   ├── layout/                # 탭바, 헤더 등 레이아웃 컴포넌트
+│   └── common/                # 공통 컴포넌트
+├── lib/
+│   ├── supabase/              # Supabase 클라이언트, 쿼리 함수
+│   └── utils/                 # 유틸 함수
+├── store/                     # Zustand 스토어 (도메인별 분리)
+├── types/                     # TypeScript 타입 정의
+│   ├── supabase.ts            # Supabase CLI 자동 생성 타입
+│   ├── todo.ts
+│   └── couple.ts
+├── hooks/                     # 커스텀 훅
+└── public/
+    ├── icons/                 # PWA 아이콘 (192px, 512px)
+    └── manifest.json
+```
+
+- 파일 200줄 이하 유지 (초과 시 분리 검토)
+- 기능 단위로 폴더를 묶는다 (레이어 기준 X, 도메인 기준 O)
+
+## 컴포넌트 분리 원칙
+
+계층 구조: Page → Section → Component → Primitive
+
+- Page: 라우팅 단위, 데이터 패칭 담당
+- Section: 화면 내 의미 있는 영역 분리
+- Component: 재사용 가능한 단위
+- Primitive: shadcn/ui 또는 HTML 기본 요소
+
+props drilling 3단계 초과 시 Zustand 또는 Context 활용.
+`components/ui/`는 shadcn/ui 원본 유지, 커스텀은 `components/common/`에 작성.
+
+## 상태 관리 원칙
+
+| 상태 종류 | 관리 방법 |
+|---|---|
+| 서버 상태 (DB 데이터) | Supabase 쿼리 + Realtime 구독 |
+| 전역 클라이언트 상태 | Zustand |
+| URL 상태 | useSearchParams, useRouter |
+| 로컬 UI 상태 | useState |
+| 폼 상태 | React Hook Form |
+
+Zustand 스토어는 도메인별로 분리:
+- `store/useTodoStore.ts`
+- `store/useCalendarStore.ts`
+- `store/useCoupleStore.ts`
+
+서버 상태를 Zustand로 복제하지 않는다. Supabase Realtime 구독을 직접 사용한다.
+
+## 타입 정의 원칙
+
+- `types/` 폴더에 중앙 관리
+- Supabase CLI로 DB 스키마 기반 타입 자동 생성 → `types/supabase.ts`
+- 도메인 타입은 `supabase.ts` 타입을 기반으로 확장
+- `any` 사용 금지, `unknown` + 타입 가드 사용
+- DB 응답 타입은 Supabase 자동 생성 타입을 1차 기준으로 사용
+
+## PWA 설정 원칙
+
+PWA 설정은 초기 레이아웃 구성과 함께 반드시 완료한다. 추후 추가 항목이 아니다.
+
+### 초기 설정 필수 항목 (스캐폴딩 시 완료)
+
+- `public/manifest.json`: `name`, `short_name`, `start_url: "/"`, `display: "standalone"`, `theme_color: "#ffffff"`, `background_color: "#ffffff"`, 아이콘(192px/512px)
+- `next.config.ts`: `@ducanh2912/next-pwa` withPWA 래핑, `dest: "public"`, 개발 환경 disable
+- `app/layout.tsx` — Next.js Metadata API 활용:
+  - `manifest: "/manifest.json"`
+  - `appleWebApp: { capable: true, statusBarStyle: "default", title: "하루투두" }`
+  - `icons: { apple: "/icons/apple-touch-icon.png" }`
+- `app/layout.tsx` — Viewport 설정:
+  - `themeColor: "#ffffff"`
+  - `viewportFit: "cover"` ← safe-area-inset 적용의 전제 조건, 반드시 포함
+- `display: "standalone"`: iOS/Android 홈화면 앱 모드로 실행
+- `viewport-fit=cover`: `env(safe-area-inset-*)` 사용 가능 조건
+- PWA 생성 파일(`sw.js`, `workbox-*.js`)은 `.gitignore`에 포함
+
+### 홈화면 추가 유도
+
+- 첫 방문 + PWA 미설치 시 배너 표시 (추후 구현)
+
+## 모바일 반응형 원칙
+
+- 기준 뷰포트: 375px (iPhone SE / 소형 안드로이드 기준)
+- Tailwind 기본 breakpoint: `sm:` 이상은 태블릿/데스크톱 보정용
+- 하단 탭바: `fixed bottom-0 left-0 right-0`, `padding-bottom: env(safe-area-inset-bottom)` 적용
+- 콘텐츠 영역: 탭바 높이(56px) + safe-area 만큼 `pb-` 여백 확보
+- 터치 타겟: 최소 44×44px
+- `overscroll-behavior-y: contain`으로 iOS bounce 제어
+- 스크롤은 각 섹션 내부에서 처리 (전체 페이지 스크롤 최소화)
+
+## 네이밍 규칙
+
+| 대상 | 규칙 | 예시 |
+|---|---|---|
+| 컴포넌트 파일 | PascalCase | `TodoItem.tsx`, `MonthCalendar.tsx` |
+| 페이지 파일 | Next.js 고정 | `page.tsx`, `layout.tsx` |
+| 훅 | camelCase + `use` 접두어 | `useTodoList.ts`, `useCouple.ts` |
+| 유틸 함수 파일 | camelCase | `formatDate.ts`, `generateInviteCode.ts` |
+| 상수 | UPPER_SNAKE_CASE | `MAX_TODO_TITLE_LENGTH` |
+| Zustand 스토어 훅 | `use` + PascalCase + `Store` | `useTodoStore`, `useCoupleStore` |
+| Supabase 테이블 | snake_case | `todo_items`, `couple_groups`, `invite_codes` |
+| CSS 클래스 | Tailwind 유틸리티만 사용 | 커스텀 클래스 최소화 |
+
+## 오프라인 캐시 정책
+
+투두/캘린더 데이터는 개인/커플 공유 데이터이므로 캐시 전략에 보안 기준을 명시한다.
+
+### 캐시 허용 대상
+
+| 대상 | 전략 | 설명 |
+|---|---|---|
+| 정적 자산 (JS/CSS/폰트/아이콘) | CacheFirst | 버전 변경 시 자동 갱신 |
+| 페이지 쉘 (HTML) | NetworkFirst | 오프라인 시 캐시 fallback |
+| 투두 목록 API 응답 | NetworkFirst + 10분 TTL | 오프라인 시 마지막 성공 응답 표시 |
+
+### 캐시 절대 금지
+
+- 인증 관련 API (`/api/auth/**`, Supabase Auth 엔드포인트): 캐시 금지
+- Supabase 세션/토큰 응답: 캐시 금지
+- 개인 식별 정보(이메일, 이름) 포함 응답: 캐시 금지
+
+### 사용자별 캐시 분리
+
+- 캐시 키에 사용자 ID를 포함하여 디바이스 공유 시 데이터 혼재 방지
+- 패턴: `harutodo-todo-${userId}-v1`
+
+### 로그아웃 시 캐시 삭제
+
+- 로그아웃 시 해당 사용자의 데이터 캐시 전체 삭제
+- 구현: Service Worker에 `CLEAR_USER_CACHE` 메시지 이벤트 → `caches.keys()` 순회 후 사용자 ID 포함 캐시 삭제
+
+### 캐시 버전 관리
+
+- 캐시 이름에 버전 suffix 포함: `harutodo-static-v1`, `harutodo-pages-v1`
+- 새 Service Worker 활성화 시 이전 버전 캐시 자동 삭제 (`activate` 이벤트에서 처리)
+
+## 바텀시트 / 모달 / 키보드 대응
+
+투두 추가/수정 화면은 바텀시트로 제공한다. 모달 전체화면 대체는 사용하지 않는다.
+
+### 바텀시트 기준
+
+- 최대 높이: `max-h-[90dvh]` — `dvh`(dynamic viewport height) 사용, iOS 키보드 팝업 시 자동 재계산
+- 내부 스크롤: 콘텐츠 영역에 `overflow-y-auto` + `flex-1` 적용
+- Safe area: 하단 `padding-bottom: env(safe-area-inset-bottom, 0px)` 적용
+- 배경 딤: `bg-black/40`, 클릭 시 닫힘
+- 닫기 방식: 상단 핸들 드래그 다운 + 배경 클릭 + 닫기 버튼 (3가지 모두 지원)
+- 포커스 트랩: 바텀시트 열린 동안 외부 요소 Tab 이동 차단
+
+### 키보드 대응
+
+- `dvh` 단위 사용으로 iOS/Android 키보드 팝업 시 뷰포트 자동 조정
+- 저장/확인 버튼: `position: sticky; bottom: 0` + `padding-bottom: env(safe-area-inset-bottom, 0px)` — 키보드 위에 버튼이 항상 노출되어야 함
+- `visualViewport` API: `dvh`로 해결되지 않는 엣지 케이스에서만 사용 (폴리필 불필요)
+- 인풋 포커스 시 바텀시트가 키보드 위로 올라오지 않으면 `scrollIntoView({ block: "nearest" })` 적용
+
+### 확인/삭제 다이얼로그
+
+- 중앙 팝업 허용, `max-w-sm`, 배경 딤 동일
+- 바텀시트 내부에서 다이얼로그 열릴 경우 z-index 계층 관리 필수
+
+## Supabase Realtime 구독 관리
+
+### 구독 원칙
+
+- 구독은 컴포넌트/커스텀 훅 단위로 생성 및 관리
+- 페이지 레벨(`page.tsx`)에서 직접 구독 생성 금지 — 반드시 훅으로 추출
+- 동일 채널 중복 구독 방지: 구독 생성 전 채널 존재 여부 확인 또는 훅 deps 배열로 제어
+- `useEffect` cleanup 함수에서 반드시 `supabase.removeChannel(channel)` 호출
+
+```typescript
+useEffect(() => {
+  const channel = supabase
+    .channel(`todos:couple_id=${coupleId}`)
+    .on("postgres_changes", { event: "*", schema: "public", table: "todo_items" }, handler)
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [coupleId]);
+```
+
+### Route 이동 시 처리
+
+- 페이지 이동 시 해당 페이지의 Realtime 구독은 `useEffect` cleanup으로 자동 해제
+- 전역 구독(커플 데이터 수신)은 루트 레이아웃에서 관리, 로그인 시 생성 / 로그아웃 시 해제
+
+### Optimistic Update 정책
+
+| 동작 | Optimistic Update | 실패 시 |
+|---|---|---|
+| 투두 완료 체크/해제 | 사용 (즉각 UI 반영) | 이전 상태로 롤백 |
+| 투두 제목 수정 | 사용 | 롤백 + 오류 토스트 |
+| 투두 생성 | 사용 (임시 ID 부여) | 삭제 + 오류 토스트 |
+| 투두 삭제 | 사용 | 복원 + 오류 토스트 |
+
+- 롤백 패턴: 변경 전 상태를 `const prev = useTodoStore.getState().todos` 로 저장 → 오류 시 `setTodos(prev)` 복원
+
+### 오류 및 재연결 처리
+
+- Supabase 오류 시 Optimistic update 롤백 필수
+- 사용자에게 오류 토스트 표시 (재시도 버튼 선택 포함)
+- `online`/`offline` 이벤트 감지 → 네트워크 복구 시 Realtime 재연결 시도
+
+### 2개 탭 동기화 검수 기준
+
+- 탭 A에서 투두 생성 → 탭 B에서 1초 이내 반영 확인
+- 탭 A에서 완료 체크 → 탭 B에서 즉시 반영 확인
+- 커플 연결 완료 후 파트너 투두가 즉시 표시되는지 확인
+
+## 테스트/검수 기준
+
+- 기능 구현 후 모바일 Chrome DevTools 375px 기준 시각적 검수 필수
+- 탭바, 헤더, 스크롤 영역 겹침 없는지 확인
+- 투두 CRUD 전체 플로우 수동 검수 (생성 → 완료 체크 → 수정 → 삭제)
+- 커플 공유 실시간 동기화: 2개 탭(또는 2개 디바이스)으로 확인
+- 초대 코드 플로우 수동 검수 (코드 생성 → 입력 → 연결 확인)
+- TypeScript 컴파일 에러 0개 유지 (`tsc --noEmit` 통과)
+- Lighthouse PWA 점수 90+ (주요 릴리즈 기준)
