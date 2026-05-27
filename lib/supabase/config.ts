@@ -1,13 +1,13 @@
-function requireEnv(key: string): string {
-  const value = process.env[key];
-  if (!value) {
-    throw new Error(
-      `Missing required environment variable: ${key}\n` +
-        `Copy .env.local.example to .env.local and fill in the values.`
-    );
-  }
-  return value;
+const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const rawSupabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!rawSupabaseUrl) {
+  throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
 }
 
-export const supabaseUrl = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
-export const supabaseAnonKey = requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+if (!rawSupabaseAnonKey) {
+  throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY");
+}
+
+export const supabaseUrl = rawSupabaseUrl;
+export const supabaseAnonKey = rawSupabaseAnonKey;

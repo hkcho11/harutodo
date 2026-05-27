@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseUrl, supabaseAnonKey } from "@/lib/supabase/config";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/couple/connect"];
+const AUTH_PAGES = ["/login", "/signup"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -22,19 +22,25 @@ export async function middleware(request: NextRequest) {
   });
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  const isAuthPage = AUTH_PAGES.some((p) => pathname.startsWith(p));
+  const isCoupleConnect = pathname.startsWith("/couple/connect");
 
-  // 비로그인 → (main) 접근 시 로그인 페이지로
-  if (!session && !isPublicPath) {
+  // /login, /signup: 로그인 상태면 홈으로
+  if (isAuthPage && user) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // /couple/connect: 세션 없으면 로그인으로, 있으면 통과
+  if (isCoupleConnect && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 로그인 상태 → (auth) 접근 시 홈으로
-  if (session && isPublicPath) {
-    return NextResponse.redirect(new URL("/", request.url));
+  // (main) 경로: 세션 없으면 로그인으로 (커플 체크는 레이아웃에서)
+  if (!isAuthPage && !isCoupleConnect && !user) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   return response;

@@ -1,5 +1,37 @@
 @import "tailwindcss";
 
+@theme {
+  /* 배경 */
+  --color-haru-bg: #FFF7ED;
+  --color-haru-surface: #FFFFFF;
+  --color-haru-surface-soft: #FFFDF8;
+
+  /* 프라이머리 (코랄) */
+  --color-haru-primary: #FF7A5C;
+  --color-haru-primary-hover: #FF6647;
+  --color-haru-primary-active: #E5603F;
+  --color-haru-primary-soft: #FFE1D6;
+
+  /* 세컨더리 (따뜻한 노랑) */
+  --color-haru-secondary: #FFB84D;
+  --color-haru-secondary-soft: #FFF0CC;
+
+  /* 텍스트 */
+  --color-haru-text: #3D2C24;
+  --color-haru-muted: #8A7468;
+
+  /* 보더 */
+  --color-haru-border: #F3D8C8;
+
+  /* 상태 */
+  --color-haru-success: #64C987;
+  --color-haru-danger: #EF6A5A;
+
+  /* 그림자 */
+  --shadow-card: 0 2px 16px 0 rgba(61, 44, 36, 0.08);
+  --shadow-tab: 0 -1px 0 0 #F3D8C8;
+}
+
 *,
 *::before,
 *::after {
@@ -15,4 +47,6 @@ body {
   overscroll-behavior-y: contain;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #FFF7ED;
+  color: #3D2C24;
 }
