@@ -15,8 +15,11 @@ export default function BottomTabBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-haru-surface border-t border-haru-border"
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      className="fixed bottom-0 left-0 right-0 bg-haru-surface border-t border-haru-border"
+      style={{
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        zIndex: 40,
+      }}
     >
       <div className="flex h-14">
         {tabs.map(({ href, label, icon: Icon }) => {

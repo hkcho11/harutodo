@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import BottomTabBar from "@/components/layout/BottomTabBar";
+import CoupleProvider from "@/components/providers/CoupleProvider";
+import ProfileErrorScreen from "@/components/common/ProfileErrorScreen";
+import ToastContainer from "@/components/common/ToastContainer";
 
 export default async function MainLayout({
   children,
@@ -18,7 +21,7 @@ export default async function MainLayout({
 
   const { data: couple } = await supabase
     .from("couples")
-    .select("id")
+    .select("id, user1_id, user2_id")
     .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
     .maybeSingle();
 
@@ -26,12 +29,35 @@ export default async function MainLayout({
     redirect("/couple/connect");
   }
 
+  const partnerId =
+    couple.user1_id === user.id ? couple.user2_id : couple.user1_id;
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("*")
+    .in("id", [user.id, partnerId]);
+
+  const me = profiles?.find((p) => p.id === user.id) ?? null;
+  const partner = profiles?.find((p) => p.id === partnerId) ?? null;
+
+  // 프로필 누락은 데이터 오류 — /couple/connect로 보내면 핑퐁 루프가 발생하므로
+  // 인라인 에러 화면을 렌더링한다.
+  if (!me) {
+    return <ProfileErrorScreen missing="me" userId={user.id} />;
+  }
+  if (!partner) {
+    return <ProfileErrorScreen missing="partner" userId={user.id} />;
+  }
+
   return (
-    <div className="flex flex-col min-h-dvh">
-      <main className="flex-1 overflow-y-auto pb-[calc(56px+env(safe-area-inset-bottom,0px))]">
-        {children}
-      </main>
-      <BottomTabBar />
-    </div>
+    <CoupleProvider coupleId={couple.id} me={me} partner={partner}>
+      <div className="flex flex-col min-h-dvh">
+        <main className="flex-1 overflow-y-auto pb-[calc(56px+env(safe-area-inset-bottom,0px))]">
+          {children}
+        </main>
+        <BottomTabBar />
+        <ToastContainer />
+      </div>
+    </CoupleProvider>
   );
 }

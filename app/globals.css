@@ -1,35 +1,70 @@
 @import "tailwindcss";
 
 @theme {
-  /* 배경 */
-  --color-haru-bg: #FFF7ED;
-  --color-haru-surface: #FFFFFF;
-  --color-haru-surface-soft: #FFFDF8;
+  /* ── 배경 ────────────────────────────────── */
+  --color-haru-bg: #F8F6F0;            /* 아이보리 */
+  --color-haru-surface: #FFFFFF;       /* 카드 */
+  --color-haru-surface-soft: #FBFAF5;  /* 미세하게 따뜻한 표면 */
 
-  /* 프라이머리 (코랄) */
-  --color-haru-primary: #FF7A5C;
-  --color-haru-primary-hover: #FF6647;
-  --color-haru-primary-active: #E5603F;
-  --color-haru-primary-soft: #FFE1D6;
+  /* ── 프라이머리 (세이지 그린) ────────────── */
+  --color-haru-primary: #5F7D5F;       /* 딥 세이지 (버튼 fill, white text 가독성) */
+  --color-haru-primary-hover: #527053;
+  --color-haru-primary-active: #455F46;
+  --color-haru-primary-soft: #DBE5D6;  /* 라이트 세이지 (배경/포커스링) */
 
-  /* 세컨더리 (따뜻한 노랑) */
-  --color-haru-secondary: #FFB84D;
-  --color-haru-secondary-soft: #FFF0CC;
+  /* ── 세컨더리 (웜 우드) ──────────────────── */
+  --color-haru-secondary: #E8C9A0;
+  --color-haru-secondary-soft: #F5E5C8;
 
-  /* 텍스트 */
-  --color-haru-text: #3D2C24;
-  --color-haru-muted: #8A7468;
+  /* ── 포인트 (더스티 테라코타) ────────────── */
+  --color-haru-accent: #D4B4A8;
+  --color-haru-accent-soft: #EDDDD4;
 
-  /* 보더 */
-  --color-haru-border: #F3D8C8;
+  /* ── 텍스트 ──────────────────────────────── */
+  --color-haru-text: #2F3B2C;          /* 딥 모스 */
+  --color-haru-muted: #7A7F6F;         /* 그레이시 모스 */
 
-  /* 상태 */
-  --color-haru-success: #64C987;
-  --color-haru-danger: #EF6A5A;
+  /* ── 보더 ────────────────────────────────── */
+  --color-haru-border: #E5E0D4;
 
-  /* 그림자 */
-  --shadow-card: 0 2px 16px 0 rgba(61, 44, 36, 0.08);
-  --shadow-tab: 0 -1px 0 0 #F3D8C8;
+  /* ── 상태 ────────────────────────────────── */
+  --color-haru-success: #6B9F7A;       /* 더 비비드한 그린 — primary와 구분 */
+  --color-haru-danger: #C97264;        /* 테라코타 레드 (sage 톤과 어울림) */
+
+  /* ── 그림자 ──────────────────────────────── */
+  /* 이중 그림자 — 더 확산되고 부드러운 느낌 */
+  --shadow-card: 0 4px 24px 0 rgba(58, 63, 54, 0.05), 0 1px 3px 0 rgba(58, 63, 54, 0.04);
+  --shadow-tab: 0 -1px 0 0 #E5E0D4;
+
+  /* ── 애니메이션 ──────────────────────────── */
+  --animate-haru-fade-up: haru-fade-up 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-haru-pop: haru-pop 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes haru-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes haru-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 *,
@@ -47,6 +82,6 @@ body {
   overscroll-behavior-y: contain;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #FFF7ED;
-  color: #3D2C24;
+  background-color: #F8F6F0;
+  color: #2F3B2C;
 }

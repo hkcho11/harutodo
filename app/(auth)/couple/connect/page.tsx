@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -36,6 +36,13 @@ export default function CoupleConnectPage() {
   const [connectError, setConnectError] = useState("");
 
   const [isCheckingCouple, setIsCheckingCouple] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   useEffect(() => {
     const checkCouple = async () => {
@@ -122,6 +129,18 @@ export default function CoupleConnectPage() {
 
   return (
     <div className="flex min-h-dvh flex-col px-4 py-8">
+      {/* 우상단 로그아웃 */}
+      <button
+        type="button"
+        onClick={handleLogout}
+        disabled={isLoggingOut}
+        className="absolute right-4 top-4 flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium text-haru-muted active:bg-haru-primary-soft disabled:opacity-50"
+        aria-label="로그아웃"
+      >
+        <LogOut className="h-4 w-4" />
+        로그아웃
+      </button>
+
       {/* 헤더 */}
       <div className="mb-8 text-center">
         <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-haru-secondary-soft text-2xl">
