@@ -2,39 +2,38 @@
 
 @theme {
   /* ── 배경 ────────────────────────────────── */
-  --color-haru-bg: #F8F6F0;            /* 아이보리 */
-  --color-haru-surface: #FFFFFF;       /* 카드 */
-  --color-haru-surface-soft: #FBFAF5;  /* 미세하게 따뜻한 표면 */
+  --color-haru-bg: #FAFCF5;            /* 연한 크림 그린 */
+  --color-haru-surface: #FFFFFF;       /* 순백 카드 */
+  --color-haru-surface-soft: #F4F8EB;  /* 미세하게 따뜻한 표면 */
 
-  /* ── 프라이머리 (세이지 그린) ────────────── */
-  --color-haru-primary: #5F7D5F;       /* 딥 세이지 (버튼 fill, white text 가독성) */
-  --color-haru-primary-hover: #527053;
-  --color-haru-primary-active: #455F46;
-  --color-haru-primary-soft: #DBE5D6;  /* 라이트 세이지 (배경/포커스링) */
+  /* ── 프라이머리 (애플 연두) ──────────────── */
+  --color-haru-primary: #B9DFA7;       /* 주요 버튼/완료 */
+  --color-haru-primary-hover: #A5D193;
+  --color-haru-primary-active: #8FBB7E;
+  --color-haru-primary-soft: #EDF8E8;  /* 연두 베일 */
 
-  /* ── 세컨더리 (웜 우드) ──────────────────── */
-  --color-haru-secondary: #E8C9A0;
-  --color-haru-secondary-soft: #F5E5C8;
+  /* ── 세컨더리 (살구 크림) ────────────────── */
+  --color-haru-secondary: #F2C6A0;     /* 함께 할 일 */
+  --color-haru-secondary-soft: #FFF0E2;
 
-  /* ── 포인트 (더스티 테라코타) ────────────── */
-  --color-haru-accent: #D4B4A8;
-  --color-haru-accent-soft: #EDDDD4;
+  /* ── 액센트 (파스텔 스카이 블루) ─────────── */
+  --color-haru-accent: #B8DCE8;        /* 알림/캘린더 포인트 */
+  --color-haru-accent-soft: #E8F4F8;   /* 스카이 베일 */
 
   /* ── 텍스트 ──────────────────────────────── */
-  --color-haru-text: #2F3B2C;          /* 딥 모스 */
-  --color-haru-muted: #7A7F6F;         /* 그레이시 모스 */
+  --color-haru-text: #334033;          /* 딥 올리브 */
+  --color-haru-muted: #72806C;         /* muted 올리브 그레이 */
 
   /* ── 보더 ────────────────────────────────── */
-  --color-haru-border: #E5E0D4;
+  --color-haru-border: #E3ECD9;        /* 연한 그린 베이지 */
 
   /* ── 상태 ────────────────────────────────── */
-  --color-haru-success: #6B9F7A;       /* 더 비비드한 그린 — primary와 구분 */
-  --color-haru-danger: #C97264;        /* 테라코타 레드 (sage 톤과 어울림) */
+  --color-haru-success: #6B9F7A;
+  --color-haru-danger: #C97264;
 
   /* ── 그림자 ──────────────────────────────── */
-  /* 이중 그림자 — 더 확산되고 부드러운 느낌 */
-  --shadow-card: 0 4px 24px 0 rgba(58, 63, 54, 0.05), 0 1px 3px 0 rgba(58, 63, 54, 0.04);
-  --shadow-tab: 0 -1px 0 0 #E5E0D4;
+  --shadow-card: 0 4px 24px 0 rgba(51, 64, 51, 0.05), 0 1px 3px 0 rgba(51, 64, 51, 0.04);
+  --shadow-tab: 0 -1px 0 0 #E3ECD9;
 
   /* ── 애니메이션 ──────────────────────────── */
   --animate-haru-fade-up: haru-fade-up 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -82,6 +81,6 @@ body {
   overscroll-behavior-y: contain;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #F8F6F0;
-  color: #2F3B2C;
+  background-color: #FAFCF5;
+  color: #334033;
 }

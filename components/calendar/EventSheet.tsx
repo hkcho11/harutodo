@@ -205,7 +205,7 @@ export default function EventSheet({
               <button
                 type="button"
                 onClick={clearTimes}
-                className="text-xs text-haru-muted active:text-haru-primary"
+                className="text-xs text-haru-muted active:text-haru-text"
               >
                 종일로 변경
               </button>
@@ -245,7 +245,7 @@ export default function EventSheet({
               className={cn(
                 "min-h-[40px] flex-1 rounded-full border px-3 text-sm font-medium transition-colors",
                 participant === "together"
-                  ? "bg-haru-primary text-white border-haru-primary"
+                  ? "bg-haru-secondary text-haru-text border-haru-secondary"
                   : "bg-haru-surface text-haru-text border-haru-border"
               )}
             >
@@ -258,7 +258,7 @@ export default function EventSheet({
                 className={cn(
                   "min-h-[40px] flex-1 rounded-full border px-3 text-sm font-medium transition-colors truncate",
                   participant === "me"
-                    ? "bg-haru-secondary text-haru-text border-haru-secondary"
+                    ? "bg-haru-primary text-haru-text border-haru-primary"
                     : "bg-haru-surface text-haru-text border-haru-border"
                 )}
               >

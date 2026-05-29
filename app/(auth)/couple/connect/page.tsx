@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, Check, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { signOut } from "@/lib/services/authService";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
@@ -40,8 +41,13 @@ export default function CoupleConnectPage() {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    await supabase.auth.signOut();
-    router.push("/login");
+    try {
+      await signOut();
+      router.push("/login");
+    } catch {
+      // 실패 시 입력 차단만 풀고 머무름 — 사용자가 재시도 가능
+      setIsLoggingOut(false);
+    }
   };
 
   useEffect(() => {
@@ -163,7 +169,7 @@ export default function CoupleConnectPage() {
               </span>
               <button
                 onClick={copyCode}
-                className="ml-auto flex items-center gap-1.5 rounded-xl bg-haru-primary-soft px-3 py-2 text-sm font-semibold text-haru-primary active:scale-95 transition-transform"
+                className="ml-auto flex items-center gap-1.5 rounded-xl bg-haru-primary-soft px-3 py-2 text-sm font-semibold text-haru-text active:scale-95 transition-transform"
               >
                 {copied ? (
                   <Check className="h-4 w-4 text-haru-success" />

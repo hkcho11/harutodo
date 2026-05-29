@@ -6,12 +6,14 @@ Claude Code는 UI 작업 전 이 문서를 반드시 확인하고, 정의된 토
 
 ## 디자인 컨셉
 
-**"따뜻한 하루 카드"** — 세이지 정원(Sage Garden)
+**"따뜻한 하루 카드"** — 애플 크림(Apple Cream) 팔레트
 
+- 연두/살구/스카이의 부드러운 파스텔 톤으로 산뜻한 일상감
 - 따뜻하지만 과하게 귀엽지 않은 톤
-- 식물·생활 무드를 차분하게 표현
 - 커플 앱 감성은 은근하게만 표현. 데이팅/SNS/캐릭터 앱처럼 보이지 않게.
 - 실용적인 공유 투두/캘린더 경험에 어울리는 차분한 분위기
+
+**가독성 정책**: 파스텔 톤이므로 흰 텍스트는 거의 모든 fill 색상 위에서 WCAG AA(4.5:1)에 미달한다. **fill 버튼/칩의 텍스트는 항상 `text-haru-text`(딥 올리브)**를 기본으로 한다. white text는 `danger`처럼 충분히 어두운 fill 위에만 제한적으로 사용.
 
 원칙: 화면을 예쁘게 만드는 것보다 사용 흐름을 명확하게 만드는 것이 우선.
 
@@ -25,36 +27,41 @@ Claude Code는 UI 작업 전 이 문서를 반드시 확인하고, 정의된 토
 
 | 토큰 | 값 | 용도 |
 |---|---|---|
-| `haru-bg` | `#F8F6F0` | 페이지 배경 (아이보리) |
+| `haru-bg` | `#FAFCF5` | 페이지 배경 (연한 크림 그린) |
 | `haru-surface` | `#FFFFFF` | 카드, 입력창, 시트 배경 |
-| `haru-surface-soft` | `#FBFAF5` | 미세하게 따뜻한 표면 (디버그 박스 등) |
-| `haru-primary` | `#5F7D5F` | **딥 세이지** — 버튼 fill, 체크박스 active |
-| `haru-primary-hover` | `#527053` | primary hover |
-| `haru-primary-active` | `#455F46` | primary active/pressed |
-| `haru-primary-soft` | `#DBE5D6` | 라이트 세이지 — soft 배경, 포커스링, 칩 |
-| `haru-secondary` | `#E8C9A0` | 웜 우드 — 보조 강조 (담당자 칩 등) |
-| `haru-secondary-soft` | `#F5E5C8` | 웜 우드 soft |
-| `haru-accent` | `#D4B4A8` | 더스티 테라코타 — 작은 포인트 (필요 시) |
-| `haru-accent-soft` | `#EDDDD4` | 테라코타 soft |
-| `haru-text` | `#2F3B2C` | 본문 (딥 모스) |
-| `haru-muted` | `#7A7F6F` | 보조 텍스트 (그레이시 모스) |
-| `haru-border` | `#E5E0D4` | 보더, 구분선 |
-| `haru-success` | `#6B9F7A` | 성공 상태 (primary와 구분되는 비비드 그린) |
-| `haru-danger` | `#C97264` | 에러/위험 (테라코타 레드 — sage 톤과 어울림) |
+| `haru-surface-soft` | `#F4F8EB` | 미세하게 따뜻한 표면 |
+| `haru-primary` | `#B9DFA7` | **애플 연두** — 주요 버튼/완료 체크 fill |
+| `haru-primary-hover` | `#A5D193` | primary hover |
+| `haru-primary-active` | `#8FBB7E` | primary active/pressed, 강조 underline |
+| `haru-primary-soft` | `#EDF8E8` | 연두 베일 — 본인 컬럼/소프트 배경 |
+| `haru-secondary` | `#F2C6A0` | 살구 크림 — **함께 할 일** fill |
+| `haru-secondary-soft` | `#FFF0E2` | 살구 베일 |
+| `haru-accent` | `#B8DCE8` | 파스텔 스카이 — 그 외/파트너/알림 포인트 |
+| `haru-accent-soft` | `#E8F4F8` | 스카이 베일 — 파트너 컬럼 |
+| `haru-text` | `#334033` | 본문 (딥 올리브) — **모든 fill 위 텍스트의 기본** |
+| `haru-muted` | `#72806C` | 보조 텍스트 (muted 올리브 그레이) |
+| `haru-border` | `#E3ECD9` | 보더, 구분선 (연한 그린 베이지) |
+| `haru-success` | `#6B9F7A` | 성공 상태 |
+| `haru-danger` | `#C97264` | 에러/위험 |
 
-**가독성**: `haru-primary` + white 텍스트는 WCAG AA 통과(>4.5:1). 다른 페어링도 본문 4.5:1 이상을 유지한다.
+**가독성 검증**:
+- `haru-text` on `haru-primary` (#334033 on #B9DFA7) ≈ 7.2:1 → AA 통과
+- `haru-text` on `haru-secondary` (#334033 on #F2C6A0) ≈ 6.5:1 → AA 통과
+- `haru-text` on `haru-accent` (#334033 on #B8DCE8) ≈ 7.8:1 → AA 통과
+- `haru-muted` on `haru-bg` ≈ 4.6:1 → AA 통과
+- white on `haru-primary` ≈ 1.5:1 → **불가** (사용 금지)
 
 ### 그룹 색상 매핑 (할 일)
 
-홈 화면 등에서 투두 그룹을 시각적으로 구분할 때 사용. `lib/utils/group.ts`의 `GROUP_COLOR_CLASS`를 통해서만 호출 — 임의 색 하드코딩 금지.
+홈 등에서 투두 그룹을 시각적으로 구분할 때 사용. `lib/utils/group.ts`의 `GROUP_COLOR_CLASS`를 통해서만 호출 — 임의 색 하드코딩 금지.
 
 | 그룹 | 클래스 | 의미 |
 |---|---|---|
-| `together` | `bg-haru-primary text-white` | 함께 — 세이지 (가장 강조) |
-| `individual` | `bg-haru-secondary text-haru-text` | 사람별 — 웜 우드 |
-| `other` / `custom` | `bg-haru-accent text-haru-text` | 그 외 — 더스티 테라코타 |
+| `together` | `bg-haru-secondary text-haru-text` | 함께 — 살구 |
+| `individual` | `bg-haru-primary text-haru-text` | 사람별 — 연두 |
+| `other` / `custom` | `bg-haru-accent text-haru-text` | 그 외 — 스카이 |
 
-본인/파트너 구분은 `IndividualSection`의 좌우 컬럼 배경(primary-soft / secondary-soft)으로 표현.
+본인/파트너 구분은 `IndividualSection`의 좌우 컬럼 배경(primary-soft / accent-soft)으로 표현 — 본인 컬럼=연두 베일, 파트너 컬럼=스카이 베일. 살구 톤은 "함께" 의미에 보존.
 
 ### 참여자 색상 매핑 (일정)
 
@@ -62,11 +69,11 @@ Claude Code는 UI 작업 전 이 문서를 반드시 확인하고, 정의된 토
 
 | 참여자 | 클래스 | 의미 |
 |---|---|---|
-| 함께 (`assignee_id` null) | `bg-haru-primary text-white` | 세이지 (가장 강조) |
-| 본인 (`assignee_id` = me) | `bg-haru-secondary text-haru-text` | 웜 우드 |
-| 파트너 | `bg-haru-accent text-haru-text` | 더스티 테라코타 |
+| 함께 (`assignee_id` null) | `bg-haru-secondary text-haru-text` | 살구 — 함께(group together)와 일관 |
+| 본인 (`assignee_id` = me) | `bg-haru-primary text-haru-text` | 연두 — 본인 컬럼/사람별과 일관 |
+| 파트너 | `bg-haru-accent text-haru-text` | 스카이 — 파트너 컬럼과 일관 |
 
-**할 일과 일정의 모델/UX는 분리되어 있다** — 같은 색을 다른 의미로 쓰지 않는다(할 일은 group 기준, 일정은 참여자 기준이지만 시각적 일관성을 위해 같은 토큰 사용).
+**할 일과 일정의 모델은 분리되어 있지만 색 의미는 통일** — 살구=함께 / 연두=주요·본인 / 스카이=기타·파트너로 일관 사용해서 사용자가 색만 봐도 의미를 추론할 수 있게 한다.
 
 ### 그림자
 
@@ -196,7 +203,9 @@ rounded-2xl bg-haru-surface p-5 shadow-card
 ### 마이페이지 (`/mypage`)
 
 - 설정 앱 스타일 — 세로 카드 리스트
-- 항목: 프로필, 커플 연결 상태, 로그아웃 등
+- 항목: 프로필, 커스텀 그룹 관리, 로그아웃
+- 커스텀 그룹: 리스트 + 휴지통 버튼 + 점선 "+ 새 그룹" 버튼 → 인라인 입력
+- 커스텀 그룹은 **커플당 최대 5개**(`MAX_CUSTOM_GROUPS_PER_COUPLE`) — 도달 시 추가 버튼 자리에 "최대 N개까지 만들 수 있어요" 안내
 - 한 화면에 정보 과적재 금지
 
 ### 인증 (`/login`, `/signup`, `/couple/connect`)

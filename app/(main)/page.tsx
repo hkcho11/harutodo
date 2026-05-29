@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { Plus } from "lucide-react";
 import { useTodayTodos, type TodoFormValues } from "@/hooks/useTodayTodos";
+import { useCustomGroups } from "@/hooks/useCustomGroups";
 import { useToastStore } from "@/store/useToastStore";
 import TodoSection from "@/components/todo/TodoSection";
 import IndividualSection from "@/components/todo/IndividualSection";
@@ -12,6 +13,7 @@ import type { Todo } from "@/types/todo";
 
 export default function HomePage() {
   const { todos, loading, add, update, toggle, remove } = useTodayTodos();
+  const { groups: customGroups } = useCustomGroups();
   const showToast = useToastStore((s) => s.show);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
@@ -30,7 +32,6 @@ export default function HomePage() {
     setEditingTodo(null);
   };
 
-  // 모든 변이 액션은 실패 시 토스트로 사용자에게 알린다.
   const handleSubmit = async (values: TodoFormValues) => {
     try {
       if (editingTodo) {
@@ -40,7 +41,7 @@ export default function HomePage() {
       }
     } catch {
       showToast("저장에 실패했어요. 잠시 후 다시 시도해주세요");
-      throw new Error("submit_failed"); // TodoSheet의 onClose 막기
+      throw new Error("submit_failed");
     }
   };
 
@@ -66,9 +67,21 @@ export default function HomePage() {
 
   const togetherTodos = todos.filter((t) => t.group === "together");
   const individualTodos = todos.filter((t) => t.group === "individual");
+  // "그 외" — group=other + (group=custom이지만 그룹이 삭제됐거나 매칭되는 그룹이 없는 todo)
+  const customGroupIds = new Set(customGroups.map((g) => g.id));
   const otherTodos = todos.filter(
-    (t) => t.group === "other" || t.group === "custom"
+    (t) =>
+      t.group === "other" ||
+      (t.group === "custom" &&
+        (!t.custom_group_id || !customGroupIds.has(t.custom_group_id)))
   );
+  // 커스텀 그룹별 분류
+  const customGroupTodos = customGroups.map((g) => ({
+    group: g,
+    todos: todos.filter(
+      (t) => t.group === "custom" && t.custom_group_id === g.id
+    ),
+  }));
 
   return (
     <div className="px-4 py-6">
@@ -110,6 +123,15 @@ export default function HomePage() {
             onToggle={handleToggle}
             onItemClick={openEdit}
           />
+          {customGroupTodos.map(({ group, todos: gTodos }) => (
+            <TodoSection
+              key={group.id}
+              label={group.name}
+              todos={gTodos}
+              onToggle={handleToggle}
+              onItemClick={openEdit}
+            />
+          ))}
         </>
       )}
 
@@ -117,7 +139,7 @@ export default function HomePage() {
         type="button"
         onClick={openAdd}
         aria-label="할 일 추가"
-        className="fixed right-5 bottom-[calc(56px+1.25rem+env(safe-area-inset-bottom,0px))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-haru-primary text-white shadow-card active:bg-haru-primary-active"
+        className="fixed right-5 bottom-[calc(56px+1.25rem+env(safe-area-inset-bottom,0px))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-haru-primary text-haru-text shadow-card active:bg-haru-primary-active"
       >
         <Plus className="h-7 w-7" strokeWidth={2.5} />
       </button>

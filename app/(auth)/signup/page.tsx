@@ -69,7 +69,7 @@ export default function SignupPage() {
           </p>
           <Link
             href="/login"
-            className="mt-6 inline-block text-sm font-semibold text-haru-primary"
+            className="mt-6 inline-block text-sm font-semibold text-haru-text underline underline-offset-2 decoration-haru-primary-active"
           >
             로그인으로 이동
           </Link>
@@ -127,7 +127,7 @@ export default function SignupPage() {
 
         <p className="mt-5 text-center text-sm text-haru-muted">
           이미 계정이 있나요?{" "}
-          <Link href="/login" className="font-semibold text-haru-primary">
+          <Link href="/login" className="font-semibold text-haru-text underline underline-offset-2 decoration-haru-primary-active">
             로그인
           </Link>
         </p>

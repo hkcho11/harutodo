@@ -142,7 +142,7 @@ export default function CalendarPage() {
         type="button"
         onClick={openAdd}
         aria-label="일정 추가"
-        className="fixed right-5 bottom-[calc(56px+1.25rem+env(safe-area-inset-bottom,0px))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-haru-primary text-white shadow-card active:bg-haru-primary-active"
+        className="fixed right-5 bottom-[calc(56px+1.25rem+env(safe-area-inset-bottom,0px))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-haru-primary text-haru-text shadow-card active:bg-haru-primary-active"
       >
         <Plus className="h-7 w-7" strokeWidth={2.5} />
       </button>

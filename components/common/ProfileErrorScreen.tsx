@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { signOut } from "@/lib/services/authService";
 import Button from "@/components/ui/Button";
 
 interface Props {
@@ -16,9 +16,13 @@ export default function ProfileErrorScreen({ missing, userId }: Props) {
 
   const handleLogout = async () => {
     setLoading(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    window.location.href = "/login";
+    try {
+      await signOut();
+    } finally {
+      // 실패해도 어차피 사용자가 다시 로그인하도록 이동 — 풀 페이지 네비게이션으로
+      // 어떤 잔여 상태든 깨끗하게 초기화.
+      window.location.href = "/login";
+    }
   };
 
   return (

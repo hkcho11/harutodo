@@ -55,7 +55,7 @@ export default function DayCell({
         className={cn(
           "block text-center text-xs leading-tight",
           isToday || isSelected
-            ? "font-bold text-haru-primary"
+            ? "font-bold text-haru-text"
             : isSunday
             ? "text-haru-danger"
             : "text-haru-text"

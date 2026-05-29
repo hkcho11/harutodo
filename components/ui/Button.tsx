@@ -9,9 +9,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-haru-primary text-white hover:bg-haru-primary-hover active:bg-haru-primary-active",
+          "bg-haru-primary text-haru-text hover:bg-haru-primary-hover active:bg-haru-primary-active",
         ghost:
-          "bg-transparent text-haru-primary hover:bg-haru-primary-soft active:bg-haru-primary-soft",
+          "bg-transparent text-haru-text hover:bg-haru-primary-soft active:bg-haru-primary-soft",
       },
       size: {
         default: "h-12 px-6 text-base w-full",

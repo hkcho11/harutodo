@@ -42,7 +42,7 @@ export default function CalendarHeader({
         type="button"
         onClick={onToday}
         aria-label="오늘로 이동"
-        className="ml-1 min-h-[44px] rounded-xl px-3 text-sm font-semibold text-haru-primary active:bg-haru-primary-soft"
+        className="ml-1 min-h-[44px] rounded-xl px-3 text-sm font-semibold text-haru-text active:bg-haru-primary-soft"
       >
         오늘
       </button>
