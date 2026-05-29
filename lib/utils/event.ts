@@ -1,15 +1,15 @@
 import type { Event } from "@/types/event";
 
 // 일정 색상은 참여자(assignee_id) 기준으로 분기.
-// 함께(null) = primary / 본인 = secondary / 파트너 = accent
+// 함께(null) = secondary(살구) / 본인 = primary(연두) / 파트너 = accent(스카이)
 // 컴포넌트에서 임의 색상 하드코딩 금지 — 항상 이 함수를 통해 호출.
 export function eventColorClass(
   event: Pick<Event, "assignee_id">,
   meId: string | null
 ): string {
-  if (event.assignee_id === null) return "bg-haru-primary text-white";
+  if (event.assignee_id === null) return "bg-haru-secondary text-haru-text";
   if (meId && event.assignee_id === meId)
-    return "bg-haru-secondary text-haru-text";
+    return "bg-haru-primary text-haru-text";
   return "bg-haru-accent text-haru-text";
 }
 

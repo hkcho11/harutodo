@@ -40,7 +40,7 @@ export default function TodoItem({
         className={cn(
           "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200",
           todo.is_completed
-            ? "bg-haru-primary border-haru-primary text-white"
+            ? "bg-haru-primary border-haru-primary text-haru-text"
             : "border-haru-border bg-transparent"
         )}
       >

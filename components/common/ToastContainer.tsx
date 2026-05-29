@@ -28,7 +28,7 @@ export default function ToastContainer() {
             "pointer-events-auto max-w-sm rounded-2xl px-4 py-3 text-sm shadow-card animate-haru-fade-up",
             t.type === "error"
               ? "bg-haru-danger text-white"
-              : "bg-haru-primary text-white"
+              : "bg-haru-primary text-haru-text"
           )}
         >
           {t.message}

@@ -95,11 +95,12 @@ function Column({
   onToggle,
   onItemClick,
 }: ColumnProps) {
-  // 컬럼 배경: 본인은 sage soft, 파트너는 wood soft — 두 톤 대비로 시각 분리
+  // 컬럼 배경: 본인 = primary-soft(연두 베일), 파트너 = accent-soft(스카이 베일).
+  // 의미 매핑과 일관 — 살구는 "함께" 의미에 보존.
   const wrapperClass =
     variant === "me"
       ? "bg-haru-primary-soft"
-      : "bg-haru-secondary-soft";
+      : "bg-haru-accent-soft";
 
   const label = variant === "me" ? "내 할 일" : person?.display_name ?? fallbackLabel;
 

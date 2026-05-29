@@ -74,10 +74,10 @@ export default function ConfirmDialog({
             onClick={onConfirm}
             disabled={isLoading}
             className={cn(
-              "h-12 flex-1 rounded-2xl text-base font-semibold text-white transition-colors disabled:opacity-40",
+              "h-12 flex-1 rounded-2xl text-base font-semibold transition-colors disabled:opacity-40",
               variant === "danger"
-                ? "bg-haru-danger active:opacity-90"
-                : "bg-haru-primary hover:bg-haru-primary-hover active:bg-haru-primary-active"
+                ? "bg-haru-danger text-white active:opacity-90"
+                : "bg-haru-primary text-haru-text hover:bg-haru-primary-hover active:bg-haru-primary-active"
             )}
           >
             {isLoading ? "..." : confirmLabel}

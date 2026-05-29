@@ -4,17 +4,23 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus, Check, X } from "lucide-react";
 import BottomSheet from "@/components/common/BottomSheet";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useCoupleStore } from "@/store/useCoupleStore";
+import { useCustomGroups } from "@/hooks/useCustomGroups";
+import {
+  MAX_CUSTOM_GROUPS_PER_COUPLE,
+  ERR_GROUP_LIMIT_EXCEEDED,
+} from "@/lib/services/customGroupService";
+import { useToastStore } from "@/store/useToastStore";
 import { cn } from "@/lib/utils/cn";
 import type { Todo } from "@/types/todo";
 import type { TodoFormValues, TodoFormGroup } from "@/hooks/useTodayTodos";
 
-// group이 individual일 땐 assignee_id가 반드시 있어야 함.
+// group이 individual일 땐 assignee_id, custom일 땐 custom_group_id가 반드시 있어야 함.
 const schema = z
   .object({
     title: z
@@ -23,8 +29,9 @@ const schema = z
       .min(1, "할 일을 입력해주세요")
       .max(200, "200자 이하로 입력해주세요"),
     date: z.string().min(1, "날짜를 선택해주세요"),
-    group: z.enum(["together", "individual", "other"]),
+    group: z.enum(["together", "individual", "other", "custom"]),
     assignee_id: z.string().nullable(),
+    custom_group_id: z.string().nullable(),
   })
   .refine(
     (data) => data.group !== "individual" || data.assignee_id !== null,
@@ -32,11 +39,18 @@ const schema = z
       message: "담당자를 선택해주세요",
       path: ["assignee_id"],
     }
+  )
+  .refine(
+    (data) => data.group !== "custom" || data.custom_group_id !== null,
+    {
+      message: "그룹을 선택해주세요",
+      path: ["custom_group_id"],
+    }
   );
 
 type FormValues = z.infer<typeof schema>;
 
-const GROUPS: { value: TodoFormGroup; label: string }[] = [
+const BASE_GROUPS: { value: Exclude<TodoFormGroup, "custom">; label: string }[] = [
   { value: "together", label: "함께" },
   { value: "individual", label: "사람별" },
   { value: "other", label: "그 외" },
@@ -61,6 +75,16 @@ export default function TodoSheet({
 }: Props) {
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
+  const { groups: customGroups, add: addCustomGroup } = useCustomGroups();
+  const showToast = useToastStore((s) => s.show);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // 그룹 인라인 추가 UI 상태
+  const [addingGroup, setAddingGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [creatingGroup, setCreatingGroup] = useState(false);
 
   const {
     register,
@@ -76,23 +100,24 @@ export default function TodoSheet({
       date: defaultDate,
       group: "other",
       assignee_id: null,
+      custom_group_id: null,
     },
   });
 
-  // useWatch — useForm.watch 대신 control 기반. React Compiler 메모이제이션 호환.
   const group = useWatch({ control, name: "group" });
   const assigneeId = useWatch({ control, name: "assignee_id" });
+  const customGroupId = useWatch({ control, name: "custom_group_id" });
 
   useEffect(() => {
     if (!open) return;
     if (todo) {
-      const safeGroup: TodoFormGroup =
-        todo.group === "custom" ? "other" : (todo.group as TodoFormGroup);
+      const safeGroup = todo.group as TodoFormGroup;
       reset({
         title: todo.title,
         date: todo.date ?? defaultDate,
         group: safeGroup,
         assignee_id: todo.assignee_id,
+        custom_group_id: todo.custom_group_id,
       });
     } else {
       reset({
@@ -100,29 +125,58 @@ export default function TodoSheet({
         date: defaultDate,
         group: "other",
         assignee_id: null,
+        custom_group_id: null,
       });
     }
   }, [open, todo, defaultDate, reset]);
-
-  // 삭제 확인 다이얼로그 — 모바일 실수 방지
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // 인라인 그룹 추가 UI는 사용자의 명시적 액션(취소/완료)으로만 닫힘.
+  // 시트 close 시 자동 reset은 안 함 — 사용자가 다시 열 때 같은 상태 유지.
 
   const onValid = async (values: FormValues) => {
     const payload: TodoFormValues = {
       title: values.title.trim(),
       date: values.date,
       group: values.group,
-      // 그룹이 사람별이 아닌 경우 담당자 null 강제
       assignee_id: values.group === "individual" ? values.assignee_id : null,
+      custom_group_id:
+        values.group === "custom" ? values.custom_group_id : null,
     };
     await onSubmit(payload);
     onClose();
   };
 
-  const openDeleteConfirm = () => {
-    setConfirmOpen(true);
+  const selectBaseGroup = (g: Exclude<TodoFormGroup, "custom">) => {
+    setValue("group", g, { shouldValidate: true });
+    setValue("custom_group_id", null);
   };
+  const selectCustomGroup = (id: string) => {
+    setValue("group", "custom", { shouldValidate: true });
+    setValue("custom_group_id", id, { shouldValidate: true });
+  };
+
+  const submitNewGroup = async () => {
+    const trimmed = newGroupName.trim();
+    if (!trimmed) return;
+    setCreatingGroup(true);
+    try {
+      const created = await addCustomGroup(trimmed);
+      selectCustomGroup(created.id);
+      setAddingGroup(false);
+      setNewGroupName("");
+    } catch (e) {
+      const msg =
+        (e as Error).message === ERR_GROUP_LIMIT_EXCEEDED
+          ? `커스텀 그룹은 최대 ${MAX_CUSTOM_GROUPS_PER_COUPLE}개까지만 만들 수 있어요`
+          : "그룹 생성에 실패했어요. 다시 시도해주세요";
+      showToast(msg);
+    } finally {
+      setCreatingGroup(false);
+    }
+  };
+
+  const canAddGroup = customGroups.length < MAX_CUSTOM_GROUPS_PER_COUPLE;
+
+  const openDeleteConfirm = () => setConfirmOpen(true);
 
   const confirmDelete = async () => {
     if (!todo || !onDelete) return;
@@ -132,12 +186,16 @@ export default function TodoSheet({
       setConfirmOpen(false);
       onClose();
     } catch {
-      // 토스트는 호출 측에서 띄움. 다이얼로그만 닫고 시트는 유지.
       setConfirmOpen(false);
     } finally {
       setIsDeleting(false);
     }
   };
+
+  const chipBase =
+    "min-h-[40px] rounded-full border px-4 text-sm font-medium transition-colors";
+  const chipInactive = "bg-haru-surface text-haru-text border-haru-border";
+  const chipActive = "bg-haru-primary text-haru-text border-haru-primary";
 
   return (
     <BottomSheet
@@ -174,25 +232,110 @@ export default function TodoSheet({
 
         <div className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-haru-text">그룹</span>
-          <div className="flex gap-2">
-            {GROUPS.map((g) => (
+          <div className="flex flex-wrap gap-2">
+            {BASE_GROUPS.map((g) => (
               <button
                 key={g.value}
                 type="button"
-                onClick={() =>
-                  setValue("group", g.value, { shouldValidate: true })
-                }
+                onClick={() => selectBaseGroup(g.value)}
                 className={cn(
-                  "min-h-[40px] flex-1 rounded-full border px-4 text-sm font-medium transition-colors",
-                  group === g.value
-                    ? "bg-haru-primary text-white border-haru-primary"
-                    : "bg-haru-surface text-haru-text border-haru-border"
+                  chipBase,
+                  group === g.value ? chipActive : chipInactive
                 )}
               >
                 {g.label}
               </button>
             ))}
+            {customGroups.map((cg) => (
+              <button
+                key={cg.id}
+                type="button"
+                onClick={() => selectCustomGroup(cg.id)}
+                className={cn(
+                  chipBase,
+                  "max-w-[160px] truncate",
+                  group === "custom" && customGroupId === cg.id
+                    ? chipActive
+                    : chipInactive
+                )}
+              >
+                {cg.name}
+              </button>
+            ))}
+            {!addingGroup ? (
+              <button
+                type="button"
+                onClick={() => setAddingGroup(true)}
+                disabled={!canAddGroup}
+                aria-label={
+                  canAddGroup
+                    ? "새 그룹 추가"
+                    : `최대 ${MAX_CUSTOM_GROUPS_PER_COUPLE}개까지 만들 수 있어요`
+                }
+                title={
+                  canAddGroup
+                    ? undefined
+                    : `최대 ${MAX_CUSTOM_GROUPS_PER_COUPLE}개까지 만들 수 있어요`
+                }
+                className={cn(
+                  chipBase,
+                  "flex items-center gap-1 border-dashed text-haru-muted disabled:opacity-40"
+                )}
+              >
+                <Plus className="h-4 w-4" />
+                <span>새 그룹</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-1">
+                <input
+                  type="text"
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void submitNewGroup();
+                    }
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      setAddingGroup(false);
+                      setNewGroupName("");
+                    }
+                  }}
+                  placeholder="그룹 이름"
+                  maxLength={50}
+                  autoFocus
+                  disabled={creatingGroup}
+                  className="min-h-[40px] w-32 rounded-full border border-haru-primary bg-haru-surface px-3 text-sm text-haru-text outline-none focus:ring-2 focus:ring-haru-primary-soft"
+                />
+                <button
+                  type="button"
+                  onClick={submitNewGroup}
+                  disabled={creatingGroup || !newGroupName.trim()}
+                  aria-label="그룹 만들기"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-haru-primary text-haru-text active:bg-haru-primary-active disabled:opacity-40"
+                >
+                  <Check className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAddingGroup(false);
+                    setNewGroupName("");
+                  }}
+                  aria-label="취소"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-haru-border text-haru-muted active:bg-haru-primary-soft"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
+          {errors.custom_group_id && (
+            <p className="text-sm text-haru-danger">
+              {errors.custom_group_id.message}
+            </p>
+          )}
         </div>
 
         {group === "individual" && (
@@ -207,9 +350,7 @@ export default function TodoSheet({
                   }
                   className={cn(
                     "min-h-[40px] flex-1 rounded-full border px-4 text-sm font-medium transition-colors",
-                    assigneeId === me.id
-                      ? "bg-haru-primary text-white border-haru-primary"
-                      : "bg-haru-surface text-haru-text border-haru-border"
+                    assigneeId === me.id ? chipActive : chipInactive
                   )}
                 >
                   나 ({me.display_name})
@@ -225,9 +366,7 @@ export default function TodoSheet({
                   }
                   className={cn(
                     "min-h-[40px] flex-1 rounded-full border px-4 text-sm font-medium transition-colors",
-                    assigneeId === partner.id
-                      ? "bg-haru-primary text-white border-haru-primary"
-                      : "bg-haru-surface text-haru-text border-haru-border"
+                    assigneeId === partner.id ? chipActive : chipInactive
                   )}
                 >
                   {partner.display_name}
@@ -242,7 +381,6 @@ export default function TodoSheet({
           </div>
         )}
 
-        {/* sticky 액션 영역 — 시트 본문 스크롤 시에도 항상 하단에 노출 */}
         <div className="sticky bottom-0 -mx-5 mt-2 flex gap-2 border-t border-haru-border bg-haru-surface px-5 pt-3 pb-1">
           {todo && onDelete && (
             <button

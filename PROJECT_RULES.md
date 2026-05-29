@@ -39,12 +39,23 @@ harutodo/
 │   ├── layout/                # 탭바, 헤더 등 레이아웃 컴포넌트
 │   └── common/                # 공통 컴포넌트
 ├── lib/
-│   ├── supabase/              # Supabase 클라이언트, 쿼리 함수
-│   └── utils/                 # 유틸 함수
+│   ├── services/              # 도메인 서비스 — UI에서 호출하는 유일한 데이터 진입점
+│   │   ├── mappers/           # schema row ↔ 도메인 타입 변환
+│   │   ├── authService.ts
+│   │   ├── coupleService.ts
+│   │   ├── todoService.ts
+│   │   ├── eventService.ts
+│   │   └── customGroupService.ts
+│   ├── supabase/              # Supabase 클라이언트 팩토리만 (직접 호출은 service 안에서만)
+│   └── utils/                 # 플랫폼 의존 없는 순수 유틸 함수
 ├── store/                     # Zustand 스토어 (도메인별 분리)
 ├── types/                     # TypeScript 타입 정의
-│   ├── supabase.ts            # Supabase CLI 자동 생성 타입
-│   ├── todo.ts
+│   ├── supabase.ts            # Supabase CLI 자동 생성 (수정 금지)
+│   ├── domain/                # 도메인 타입 — UI/서비스 인터페이스 (camelCase)
+│   │   ├── todo.ts
+│   │   ├── event.ts
+│   │   └── couple.ts
+│   ├── todo.ts                # (기존 — 점진적으로 domain/ 으로 이관)
 │   └── couple.ts
 ├── hooks/                     # 커스텀 훅
 └── public/
@@ -245,6 +256,133 @@ useEffect(() => {
 - 탭 A에서 투두 생성 → 탭 B에서 1초 이내 반영 확인
 - 탭 A에서 완료 체크 → 탭 B에서 즉시 반영 확인
 - 커플 연결 완료 후 파트너 투두가 즉시 표시되는지 확인
+
+## 서비스 계층 원칙 (`lib/services/`)
+
+도메인 로직을 UI/플랫폼에서 분리해 향후 React Native 전환과 백엔드 교체에 대비한다. UI 컴포넌트는 절대 Supabase 클라이언트를 직접 호출하지 않는다.
+
+### 원칙
+
+1. UI 컴포넌트(`app/*/page.tsx`, `components/*`)는 `@supabase/*` 또는 `lib/supabase/{client,server}`를 직접 import 하지 않는다.
+2. 모든 도메인 액션(인증/투두/일정/커플/커스텀 그룹)은 `lib/services/<domain>Service.ts` 함수를 통해 호출한다.
+3. service 함수는 **순수 함수** — React/Next 의존 X. `useState`, `useEffect`, `next/*` import 금지.
+4. service는 도메인 타입(`types/domain/*`)을 받고 반환. supabase row를 그대로 노출하지 않는다.
+5. 데이터 hook(`hooks/use*`)은 service 호출 + React state 관리만 담당 (얇은 adapter).
+6. service는 throw로 에러를 전파한다. 호출 측(hook 또는 page)이 catch 후 토스트/메시지로 사용자에게 전달.
+7. service는 supabase 클라이언트를 모듈 import로 사용하거나, 함수 인자로 주입받는다. 후자가 테스트/이식에 유리.
+
+### 인터페이스 패턴
+
+```ts
+// lib/services/todoService.ts
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
+import type { Todo, TodoCreateInput, TodoUpdateInput } from "@/types/domain/todo";
+import { toTodo } from "./mappers/todoMapper";
+
+export async function listTodosByDate(
+  supabase: SupabaseClient<Database>,
+  args: { coupleId: string; date: string }
+): Promise<Todo[]> {
+  const { data, error } = await supabase
+    .from("todo_items")
+    .select("*")
+    .eq("couple_id", args.coupleId)
+    .eq("date", args.date)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map(toTodo);
+}
+```
+
+### 동일 패턴 함수명
+
+각 service는 다음 동작을 표준 이름으로 노출:
+
+| 동작 | 함수명 |
+|---|---|
+| 단건/리스트 조회 | `find...`, `list...` |
+| 생성 | `insert...` 또는 `create...` |
+| 부분 수정 | `update...` |
+| 삭제 | `remove...` |
+| 도메인 RPC | RPC 이름과 동일 (`createInviteCode`, `useInviteCode`) |
+
+## 도메인 타입 vs Schema 타입 분리
+
+타입은 두 층으로 관리한다.
+
+| 층 | 위치 | 역할 |
+|---|---|---|
+| Schema 타입 | `types/supabase.ts` (자동 생성) | DB row 그대로 (`snake_case`, DB 메타 포함) |
+| 도메인 타입 | `types/domain/*.ts` | UI/서비스 인터페이스 (`camelCase`, 의미 명확, DB 메타 제외) |
+
+### 원칙
+
+- UI 컴포넌트와 hook은 **도메인 타입만** 사용. `Tables<"...">`를 직접 props/state 타입으로 쓰지 않는다.
+- service의 mapper(`lib/services/mappers/`)에서 schema row ↔ 도메인 변환.
+- snake_case 컬럼명을 camelCase 도메인 필드로 매핑 (예: `created_by` → `createdBy`, `is_completed` → `isCompleted`).
+- DB 메타 컬럼(`created_by`, `created_at`, `updated_at`, `couple_id` 등)은 도메인 타입에 노출하지 않는다(서비스 내부 전용).
+- schema 변경 시 mapper만 수정하면 UI/도메인은 영향 없도록 한다.
+
+### 예시
+
+```ts
+// types/domain/todo.ts
+export type TodoGroup = "together" | "individual" | "other" | "custom";
+
+export interface Todo {
+  id: string;
+  title: string;
+  date: string | null;
+  group: TodoGroup;
+  assigneeId: string | null;
+  customGroupId: string | null;
+  isCompleted: boolean;
+  // schema의 created_by/couple_id/created_at/updated_at은 노출하지 않음
+}
+
+export interface TodoCreateInput {
+  title: string;
+  date: string;
+  group: TodoGroup;
+  assigneeId: string | null;
+  customGroupId: string | null;
+}
+
+export type TodoUpdateInput = Partial<TodoCreateInput> & {
+  isCompleted?: boolean;
+};
+```
+
+## 플랫폼 이식성 원칙 (Next.js → Expo/RN 대비)
+
+현재는 Next.js + PWA만 운영하지만, 모든 도메인/유틸/타입/스토어는 향후 React Native에서도 import 가능한 구조로 유지한다.
+
+### 강결합 vs 공통 분류
+
+| 강결합 (Next 전용 — 한정) | 공통 (이식 가능 — 확장 가능) |
+|---|---|
+| `app/*/page.tsx`, `layout.tsx` | `lib/services/*` |
+| `middleware.ts` | `lib/utils/*` |
+| `lib/supabase/server.ts` (`next/headers` 의존) | `types/domain/*` |
+| 서버 컴포넌트의 게이트 로직 | `store/*` (zustand는 RN 호환) |
+| `next/navigation`, `next/server`, `next/headers` | `hooks/*` (service 분리된 한도 내) |
+
+### 원칙
+
+1. 공통 영역(`lib/services`, `lib/utils`, `types/domain`, `store`, `hooks`)에는 `next/*` import를 넣지 않는다.
+2. Next 전용 API(`useRouter`, `redirect`, `cookies()`, 서버 컴포넌트 자체)는 `app/*`, `middleware.ts`, `lib/supabase/server.ts`에만 사용.
+3. 새 도메인 로직은 항상 공통 영역(`lib/services/`)에 먼저 작성하고, page에서는 호출만 한다.
+4. `createPortal(document.body)`에 의존하는 컴포넌트(`BottomSheet`, `ConfirmDialog`, `ToastContainer`)는 향후 RN의 `Modal`로 교체 가능하도록 **props 인터페이스를 안정 유지**한다.
+5. 라우팅·세션 가드처럼 Next 의존이 불가피한 로직도, 그 내부에서 호출하는 도메인 로직은 service로 분리해 RN의 라우터 가드에서 동일 함수를 재사용할 수 있게 한다.
+
+### MVP 단계의 점진 적용 전략
+
+전체 마이그레이션은 한 번에 하지 않는다. **새 기능 / 손대는 파일부터 service 패턴으로 옮기는 방식**으로 점진 적용.
+
+- 신규 도메인 추가 시: 무조건 service + domain type 부터 작성.
+- 기존 코드 수정 시 (auth/couple/todo/event/customGroup): 그 흐름이 닿는 부분을 service로 이관.
+- 안 손대는 파일은 그대로 둔다 — CLAUDE.md "최소 수정 / 작업 범위 외 리팩토링 X" 원칙 유지.
 
 ## UX/UI 구현 규칙
 

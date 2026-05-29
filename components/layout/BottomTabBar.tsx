@@ -29,11 +29,11 @@ export default function BottomTabBar() {
               key={href}
               href={href}
               className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-xs transition-colors min-h-[44px] ${
-                isActive ? "text-haru-primary" : "text-haru-muted"
+                isActive ? "text-haru-text" : "text-haru-muted"
               }`}
             >
               <Icon size={22} strokeWidth={isActive ? 2.5 : 1.5} />
-              <span className={`font-medium ${isActive ? "font-semibold" : ""}`}>
+              <span className={`${isActive ? "font-bold" : "font-medium"}`}>
                 {label}
               </span>
             </Link>
