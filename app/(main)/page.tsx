@@ -1,23 +1,34 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Plus } from "lucide-react";
-import { useTodayTodos, type TodoFormValues } from "@/hooks/useTodayTodos";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { useDateTodos, type TodoFormValues } from "@/hooks/useDateTodos";
 import { useCustomGroups } from "@/hooks/useCustomGroups";
 import { useToastStore } from "@/store/useToastStore";
 import TodoSection from "@/components/todo/TodoSection";
 import IndividualSection from "@/components/todo/IndividualSection";
 import TodoSheet from "@/components/todo/TodoSheet";
-import { todayISO, formatTodayLabel } from "@/lib/utils/date";
+import { todayISO, addDays, formatDateNavLabel } from "@/lib/utils/date";
+import DatePickerSheet from "@/components/common/DatePickerSheet";
 import type { Todo } from "@/types/todo";
 
 export default function HomePage() {
-  const { todos, loading, add, update, toggle, remove } = useTodayTodos();
+  const todayStr = todayISO();
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+
+  const { todos, loading, add, update, toggle, remove } =
+    useDateTodos(selectedDate);
   const { groups: customGroups } = useCustomGroups();
   const showToast = useToastStore((s) => s.show);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
-  const today = todayISO();
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const isToday = selectedDate === todayStr;
+
+  const goPrev = () => setSelectedDate((d) => addDays(d, -1));
+  const goNext = () => setSelectedDate((d) => addDays(d, 1));
+  const goToday = () => setSelectedDate(todayStr);
 
   const openAdd = () => {
     setEditingTodo(null);
@@ -67,7 +78,6 @@ export default function HomePage() {
 
   const togetherTodos = todos.filter((t) => t.group === "together");
   const individualTodos = todos.filter((t) => t.group === "individual");
-  // "그 외" — group=other + (group=custom이지만 그룹이 삭제됐거나 매칭되는 그룹이 없는 todo)
   const customGroupIds = new Set(customGroups.map((g) => g.id));
   const otherTodos = todos.filter(
     (t) =>
@@ -75,7 +85,6 @@ export default function HomePage() {
       (t.group === "custom" &&
         (!t.custom_group_id || !customGroupIds.has(t.custom_group_id)))
   );
-  // 커스텀 그룹별 분류
   const customGroupTodos = customGroups.map((g) => ({
     group: g,
     todos: todos.filter(
@@ -85,11 +94,53 @@ export default function HomePage() {
 
   return (
     <div className="px-4 py-6">
+      {/* 날짜 네비게이션 */}
       <header className="mb-5">
-        <p className="text-sm text-haru-muted">오늘</p>
-        <h1 className="text-2xl font-bold text-haru-text">
-          {formatTodayLabel()}
-        </h1>
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={goPrev}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-haru-muted active:bg-haru-primary-soft"
+            aria-label="이전 날"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+
+          <div className="flex flex-col items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="rounded-2xl px-4 py-1 active:bg-haru-primary-soft"
+              aria-label="날짜 선택"
+            >
+              <h1 className="text-xl font-bold text-haru-text">
+                {formatDateNavLabel(selectedDate)}
+              </h1>
+            </button>
+            {isToday ? (
+              <span className="rounded-full bg-haru-primary px-3 py-0.5 text-xs font-semibold text-white">
+                오늘
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={goToday}
+                className="rounded-full bg-haru-primary-soft px-3 py-0.5 text-xs font-semibold text-haru-primary"
+              >
+                오늘로
+              </button>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={goNext}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-haru-muted active:bg-haru-primary-soft"
+            aria-label="다음 날"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
       </header>
 
       {loading ? (
@@ -99,7 +150,7 @@ export default function HomePage() {
       ) : todos.length === 0 ? (
         <div className="rounded-3xl bg-haru-surface p-8 text-center shadow-card">
           <div className="mb-2 text-3xl">🌤️</div>
-          <p className="text-sm text-haru-text">오늘 할 일이 없어요</p>
+          <p className="text-sm text-haru-text">할 일이 없어요</p>
           <p className="mt-1 text-xs text-haru-muted">
             우하단 + 버튼으로 추가해보세요
           </p>
@@ -147,10 +198,17 @@ export default function HomePage() {
       <TodoSheet
         open={sheetOpen}
         todo={editingTodo}
-        defaultDate={today}
+        defaultDate={selectedDate}
         onClose={closeSheet}
         onSubmit={handleSubmit}
         onDelete={editingTodo ? handleRemove : undefined}
+      />
+
+      <DatePickerSheet
+        open={pickerOpen}
+        selectedDate={selectedDate}
+        onSelect={setSelectedDate}
+        onClose={() => setPickerOpen(false)}
       />
     </div>
   );

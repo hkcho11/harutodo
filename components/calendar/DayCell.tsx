@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils/cn";
-import { eventColorClass, formatEventLabel } from "@/lib/utils/event";
+import { eventColorClassSoft } from "@/lib/utils/event";
 import type { Event } from "@/types/event";
 
 const MAX_LABELS = 2;
@@ -69,10 +69,10 @@ export default function DayCell({
             key={e.id}
             className={cn(
               "block truncate rounded-sm px-1 text-[10px] leading-tight",
-              eventColorClass(e, meId)
+              eventColorClassSoft(e, meId)
             )}
           >
-            {formatEventLabel(e)}
+            {e.title}
           </span>
         ))}
         {overflow > 0 && (

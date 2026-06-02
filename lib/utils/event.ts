@@ -13,6 +13,17 @@ export function eventColorClass(
   return "bg-haru-accent text-haru-text";
 }
 
+// 캘린더 셀 전용 — 반투명 버전 (배경이 비치는 좁은 공간에 사용)
+export function eventColorClassSoft(
+  event: Pick<Event, "assignee_id">,
+  meId: string | null
+): string {
+  if (event.assignee_id === null) return "bg-haru-secondary/60 text-haru-text";
+  if (meId && event.assignee_id === meId)
+    return "bg-haru-primary/60 text-haru-text";
+  return "bg-haru-accent/60 text-haru-text";
+}
+
 // 'HH:MM:SS' → 'HH:MM' (DB에서 오는 time 값을 표시용으로 자름)
 export function formatTime(t: string | null): string | null {
   if (!t) return null;

@@ -4,20 +4,19 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Trash2 } from "lucide-react";
+import { Trash2, CalendarDays, Clock } from "lucide-react";
 import BottomSheet from "@/components/common/BottomSheet";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import DatePickerSheet from "@/components/common/DatePickerSheet";
+import TimePickerSheet from "@/components/ui/TimePickerSheet";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { cn } from "@/lib/utils/cn";
-import { formatTime } from "@/lib/utils/event";
+import { formatTime, formatEventTimeRange } from "@/lib/utils/event";
+import { formatDateNavLabel } from "@/lib/utils/date";
 import type { Event, EventFormValues } from "@/types/event";
 
-// 일정 검증:
-// - title 1~200자
-// - date 필수
-// - start/end는 옵션이지만, end만 있고 start 없는 경우 금지 + end >= start
 const schema = z
   .object({
     title: z
@@ -30,13 +29,10 @@ const schema = z
     end_time: z.string().nullable(),
     assignee_id: z.string().nullable(),
   })
-  .refine(
-    (d) => !(d.end_time && !d.start_time),
-    {
-      message: "시작 시간을 먼저 선택해주세요",
-      path: ["end_time"],
-    }
-  )
+  .refine((d) => !(d.end_time && !d.start_time), {
+    message: "시작 시간을 먼저 선택해주세요",
+    path: ["end_time"],
+  })
   .refine(
     (d) => !d.start_time || !d.end_time || d.end_time >= d.start_time,
     {
@@ -56,8 +52,14 @@ interface Props {
   onDelete?: (id: string) => Promise<void>;
 }
 
-// 참여자 선택 칩 — 함께 / 나 / 파트너 3-way
 type Participant = "together" | "me" | "partner";
+type TimePicking = "start" | "end" | null;
+
+function addOneHour(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const totalMinutes = Math.min(h * 60 + m + 60, 23 * 60 + 30);
+  return `${String(Math.floor(totalMinutes / 60)).padStart(2, "0")}:${String(totalMinutes % 60).padStart(2, "0")}`;
+}
 
 export default function EventSheet({
   open,
@@ -72,6 +74,8 @@ export default function EventSheet({
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [timePicking, setTimePicking] = useState<TimePicking>(null);
 
   const {
     register,
@@ -87,15 +91,15 @@ export default function EventSheet({
       date: defaultDate,
       start_time: null,
       end_time: null,
-      assignee_id: null, // 기본: 함께
+      assignee_id: null,
     },
   });
 
   const assigneeId = useWatch({ control, name: "assignee_id" });
   const startTime = useWatch({ control, name: "start_time" });
   const endTime = useWatch({ control, name: "end_time" });
+  const date = useWatch({ control, name: "date" });
 
-  // 현재 폼의 참여자 선택을 chip 종류로 매핑
   const participant: Participant =
     assigneeId === null
       ? "together"
@@ -126,10 +130,8 @@ export default function EventSheet({
 
   const setParticipant = (p: Participant) => {
     if (p === "together") setValue("assignee_id", null, { shouldValidate: true });
-    else if (p === "me" && me)
-      setValue("assignee_id", me.id, { shouldValidate: true });
-    else if (p === "partner" && partner)
-      setValue("assignee_id", partner.id, { shouldValidate: true });
+    else if (p === "me" && me) setValue("assignee_id", me.id, { shouldValidate: true });
+    else if (p === "partner" && partner) setValue("assignee_id", partner.id, { shouldValidate: true });
   };
 
   const onValid = async (values: FormValues) => {
@@ -143,8 +145,6 @@ export default function EventSheet({
     await onSubmit(payload);
     onClose();
   };
-
-  const openDeleteConfirm = () => setConfirmOpen(true);
 
   const confirmDelete = async () => {
     if (!event || !onDelete) return;
@@ -160,144 +160,221 @@ export default function EventSheet({
     }
   };
 
+  const handleTimeConfirm = (v: string | null) => {
+    if (timePicking === "start") {
+      setValue("start_time", v, { shouldValidate: true });
+      if (!v) {
+        setValue("end_time", null, { shouldValidate: true });
+      } else if (!endTime) {
+        setValue("end_time", addOneHour(v), { shouldValidate: true });
+      }
+    } else if (timePicking === "end") {
+      setValue("end_time", v, { shouldValidate: true });
+    }
+  };
+
   const clearTimes = () => {
     setValue("start_time", null, { shouldValidate: true });
     setValue("end_time", null, { shouldValidate: true });
   };
 
+  const timeDisplayLabel =
+    !startTime && !endTime
+      ? "종일"
+      : formatEventTimeRange({
+          start_time: startTime,
+          end_time: endTime,
+        } as Event);
+
   return (
-    <BottomSheet
-      open={open}
-      onClose={onClose}
-      title={event ? "일정 편집" : "일정 추가"}
-    >
-      <form onSubmit={handleSubmit(onValid)} className="flex flex-col gap-4">
-        <Input
-          id="event-title"
-          placeholder="일정 제목"
-          autoFocus
-          {...register("title")}
-          error={errors.title?.message}
-        />
-
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="event-date"
-            className="text-sm font-medium text-haru-text"
-          >
-            날짜
-          </label>
-          <input
-            id="event-date"
-            type="date"
-            {...register("date")}
-            className="min-h-[44px] w-full rounded-2xl border border-haru-border bg-haru-surface px-4 py-3 text-base text-haru-text outline-none transition-colors focus:border-haru-primary focus:ring-2 focus:ring-haru-primary-soft"
+    <>
+      <BottomSheet
+        open={open}
+        onClose={onClose}
+        title={event ? "일정 편집" : "일정 추가"}
+      >
+        <form onSubmit={handleSubmit(onValid)} className="flex flex-col gap-4">
+          <Input
+            id="event-title"
+            placeholder="일정 제목"
+            autoFocus
+            {...register("title")}
+            error={errors.title?.message}
           />
-          {errors.date && (
-            <p className="text-sm text-haru-danger">{errors.date.message}</p>
-          )}
-        </div>
 
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-baseline justify-between">
-            <span className="text-sm font-medium text-haru-text">시간</span>
-            {(startTime || endTime) && (
-              <button
-                type="button"
-                onClick={clearTimes}
-                className="text-xs text-haru-muted active:text-haru-text"
-              >
-                종일로 변경
-              </button>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="time"
-              {...register("start_time")}
-              className="min-h-[44px] flex-1 rounded-2xl border border-haru-border bg-haru-surface px-3 py-3 text-base text-haru-text outline-none focus:border-haru-primary focus:ring-2 focus:ring-haru-primary-soft"
-              aria-label="시작 시간"
-            />
-            <span className="text-haru-muted">–</span>
-            <input
-              type="time"
-              {...register("end_time")}
-              className="min-h-[44px] flex-1 rounded-2xl border border-haru-border bg-haru-surface px-3 py-3 text-base text-haru-text outline-none focus:border-haru-primary focus:ring-2 focus:ring-haru-primary-soft"
-              aria-label="종료 시간"
-            />
-          </div>
-          {errors.end_time && (
-            <p className="text-sm text-haru-danger">
-              {errors.end_time.message}
-            </p>
-          )}
-          {!startTime && !endTime && (
-            <p className="text-xs text-haru-muted">시간을 비우면 종일 일정이에요</p>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-haru-text">참여</span>
-          <div className="flex gap-2">
+          {/* 날짜 */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-haru-text">날짜</span>
             <button
               type="button"
-              onClick={() => setParticipant("together")}
-              className={cn(
-                "min-h-[40px] flex-1 rounded-full border px-3 text-sm font-medium transition-colors",
-                participant === "together"
-                  ? "bg-haru-secondary text-haru-text border-haru-secondary"
-                  : "bg-haru-surface text-haru-text border-haru-border"
+              onClick={() => setDatePickerOpen(true)}
+              className="flex min-h-[44px] w-full items-center gap-3 rounded-2xl border border-haru-border bg-haru-surface px-4 py-3 text-left text-base text-haru-text transition-colors active:bg-haru-primary-soft"
+            >
+              <CalendarDays className="h-4 w-4 shrink-0 text-haru-muted" />
+              <span>{date ? formatDateNavLabel(date) : "날짜 선택"}</span>
+            </button>
+            {errors.date && (
+              <p className="text-sm text-haru-danger">{errors.date.message}</p>
+            )}
+          </div>
+
+          {/* 시간 */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-medium text-haru-text">시간</span>
+              {(startTime || endTime) && (
+                <button
+                  type="button"
+                  onClick={clearTimes}
+                  className="text-xs text-haru-muted active:text-haru-text"
+                >
+                  종일로 변경
+                </button>
               )}
-            >
-              함께
-            </button>
-            {me && (
+            </div>
+
+            <div className="flex gap-2">
+              {/* 시작 시간 */}
               <button
                 type="button"
-                onClick={() => setParticipant("me")}
+                onClick={() => setTimePicking("start")}
                 className={cn(
-                  "min-h-[40px] flex-1 rounded-full border px-3 text-sm font-medium transition-colors truncate",
-                  participant === "me"
-                    ? "bg-haru-primary text-haru-text border-haru-primary"
-                    : "bg-haru-surface text-haru-text border-haru-border"
+                  "flex flex-1 min-h-[44px] items-center justify-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium transition-colors",
+                  startTime
+                    ? "border-haru-primary bg-haru-primary-soft text-haru-text"
+                    : "border-haru-border bg-haru-surface text-haru-muted"
                 )}
               >
-                나
+                <Clock className="h-4 w-4 shrink-0" />
+                {startTime ?? "시작"}
               </button>
+
+              <span className="flex items-center text-haru-muted">–</span>
+
+              {/* 종료 시간 */}
+              <button
+                type="button"
+                onClick={() => setTimePicking("end")}
+                disabled={!startTime}
+                className={cn(
+                  "flex flex-1 min-h-[44px] items-center justify-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium transition-colors",
+                  endTime
+                    ? "border-haru-primary bg-haru-primary-soft text-haru-text"
+                    : "border-haru-border bg-haru-surface text-haru-muted",
+                  !startTime && "opacity-40 pointer-events-none"
+                )}
+              >
+                <Clock className="h-4 w-4 shrink-0" />
+                {endTime ?? "종료"}
+              </button>
+            </div>
+
+            {/* 종일 표시 */}
+            {!startTime && !endTime && (
+              <p className="text-xs text-haru-muted">
+                시간을 선택하지 않으면 종일 일정이에요
+              </p>
             )}
-            {partner && (
-              <button
-                type="button"
-                onClick={() => setParticipant("partner")}
-                className={cn(
-                  "min-h-[40px] flex-1 rounded-full border px-3 text-sm font-medium transition-colors truncate",
-                  participant === "partner"
-                    ? "bg-haru-accent text-haru-text border-haru-accent"
-                    : "bg-haru-surface text-haru-text border-haru-border"
-                )}
-              >
-                {partner.display_name}
-              </button>
+            {/* 현재 시간 범위 뱃지 */}
+            {(startTime || endTime) && (
+              <div className="flex items-center gap-1.5">
+                <span className="rounded-full bg-haru-secondary-soft px-3 py-0.5 text-xs font-semibold text-haru-text">
+                  {timeDisplayLabel}
+                </span>
+              </div>
+            )}
+
+            {errors.end_time && (
+              <p className="text-sm text-haru-danger">
+                {errors.end_time.message}
+              </p>
             )}
           </div>
-        </div>
 
-        <div className="sticky bottom-0 -mx-5 mt-2 flex gap-2 border-t border-haru-border bg-haru-surface px-5 pt-3 pb-1">
-          {event && onDelete && (
-            <button
-              type="button"
-              onClick={openDeleteConfirm}
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-haru-border text-haru-danger active:bg-haru-primary-soft"
-              aria-label="삭제"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
-          )}
-          <Button type="submit" isLoading={isSubmitting}>
-            {event ? "저장" : "추가"}
-          </Button>
-        </div>
-      </form>
+          {/* 참여 */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-haru-text">참여</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setParticipant("together")}
+                className={cn(
+                  "min-h-[40px] flex-1 rounded-full border px-3 text-sm font-medium transition-colors",
+                  participant === "together"
+                    ? "bg-haru-secondary text-haru-text border-haru-secondary"
+                    : "bg-haru-surface text-haru-text border-haru-border"
+                )}
+              >
+                함께
+              </button>
+              {me && (
+                <button
+                  type="button"
+                  onClick={() => setParticipant("me")}
+                  className={cn(
+                    "min-h-[40px] flex-1 rounded-full border px-3 text-sm font-medium transition-colors truncate",
+                    participant === "me"
+                      ? "bg-haru-primary text-haru-text border-haru-primary"
+                      : "bg-haru-surface text-haru-text border-haru-border"
+                  )}
+                >
+                  나
+                </button>
+              )}
+              {partner && (
+                <button
+                  type="button"
+                  onClick={() => setParticipant("partner")}
+                  className={cn(
+                    "min-h-[40px] flex-1 rounded-full border px-3 text-sm font-medium transition-colors truncate",
+                    participant === "partner"
+                      ? "bg-haru-accent text-haru-text border-haru-accent"
+                      : "bg-haru-surface text-haru-text border-haru-border"
+                  )}
+                >
+                  {partner.display_name}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="sticky bottom-0 -mx-5 mt-2 flex gap-2 border-t border-haru-border bg-haru-surface px-5 pt-3 pb-1">
+            {event && onDelete && (
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(true)}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-haru-border text-haru-danger active:bg-haru-primary-soft"
+                aria-label="삭제"
+              >
+                <Trash2 className="h-5 w-5" />
+              </button>
+            )}
+            <Button type="submit" isLoading={isSubmitting}>
+              {event ? "저장" : "추가"}
+            </Button>
+          </div>
+        </form>
+      </BottomSheet>
+
+      {/* 날짜 피커 */}
+      <DatePickerSheet
+        open={datePickerOpen}
+        selectedDate={date || defaultDate}
+        onSelect={(iso) => {
+          setValue("date", iso, { shouldValidate: true });
+          setDatePickerOpen(false);
+        }}
+        onClose={() => setDatePickerOpen(false)}
+      />
+
+      {/* 시간 피커 */}
+      <TimePickerSheet
+        open={timePicking !== null}
+        value={timePicking === "start" ? startTime : endTime}
+        title={timePicking === "start" ? "시작 시간" : "종료 시간"}
+        onConfirm={handleTimeConfirm}
+        onClose={() => setTimePicking(null)}
+      />
 
       <ConfirmDialog
         open={confirmOpen}
@@ -309,6 +386,6 @@ export default function EventSheet({
         onConfirm={confirmDelete}
         onClose={() => setConfirmOpen(false)}
       />
-    </BottomSheet>
+    </>
   );
 }
