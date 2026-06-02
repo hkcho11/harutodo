@@ -19,7 +19,7 @@ export default function MyPage() {
   const router = useRouter();
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
-  const { groups, loading, error, add, remove } = useCustomGroups();
+  const { groups, loading, error, refetch, add, remove } = useCustomGroups();
   const showToast = useToastStore((s) => s.show);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -118,8 +118,15 @@ export default function MyPage() {
               그룹을 불러오지 못했어요
             </p>
             <p className="mt-1 text-xs text-haru-muted">
-              네트워크 또는 권한 문제일 수 있어요
+              네트워크 상태를 확인하고 다시 시도해주세요
             </p>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className="mt-3 rounded-xl border border-haru-border px-4 py-2 text-sm font-medium text-haru-text active:bg-haru-primary-soft"
+            >
+              다시 시도
+            </button>
           </div>
         ) : groups.length === 0 && !addingGroup ? (
           <p className="py-4 text-center text-xs text-haru-muted">

@@ -4,8 +4,8 @@
   "description": "커플/부부 공유 투두 + 캘린더",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#FAFCF5",
+  "theme_color": "#FAFCF5",
   "orientation": "portrait",
   "lang": "ko",
   "icons": [
