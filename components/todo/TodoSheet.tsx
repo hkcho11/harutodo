@@ -7,8 +7,10 @@ import { z } from "zod";
 import { Trash2, Plus, Check, X } from "lucide-react";
 import BottomSheet from "@/components/common/BottomSheet";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import DatePickerSheet from "@/components/common/DatePickerSheet";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { formatDateNavLabel } from "@/lib/utils/date";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { useCustomGroups } from "@/hooks/useCustomGroups";
 import {
@@ -80,6 +82,7 @@ export default function TodoSheet({
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   // 그룹 인라인 추가 UI 상태
   const [addingGroup, setAddingGroup] = useState(false);
@@ -107,6 +110,7 @@ export default function TodoSheet({
   const group = useWatch({ control, name: "group" });
   const assigneeId = useWatch({ control, name: "assignee_id" });
   const customGroupId = useWatch({ control, name: "custom_group_id" });
+  const dateValue = useWatch({ control, name: "date" });
 
   useEffect(() => {
     if (!open) return;
@@ -213,18 +217,14 @@ export default function TodoSheet({
         />
 
         <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="date"
-            className="text-sm font-medium text-haru-text"
+          <span className="text-sm font-medium text-haru-text">날짜</span>
+          <button
+            type="button"
+            onClick={() => setDatePickerOpen(true)}
+            className="min-h-[44px] w-full rounded-2xl border border-haru-border bg-haru-surface px-4 py-3 text-left text-base text-haru-text transition-colors active:border-haru-primary"
           >
-            날짜
-          </label>
-          <input
-            id="date"
-            type="date"
-            {...register("date")}
-            className="min-h-[44px] w-full rounded-2xl border border-haru-border bg-haru-surface px-4 py-3 text-base text-haru-text outline-none transition-colors focus:border-haru-primary focus:ring-2 focus:ring-haru-primary-soft"
-          />
+            {dateValue ? formatDateNavLabel(dateValue) : "날짜 선택"}
+          </button>
           {errors.date && (
             <p className="text-sm text-haru-danger">{errors.date.message}</p>
           )}
@@ -397,6 +397,13 @@ export default function TodoSheet({
           </Button>
         </div>
       </form>
+
+      <DatePickerSheet
+        open={datePickerOpen}
+        selectedDate={dateValue || defaultDate}
+        onSelect={(iso) => setValue("date", iso, { shouldValidate: true })}
+        onClose={() => setDatePickerOpen(false)}
+      />
 
       <ConfirmDialog
         open={confirmOpen}

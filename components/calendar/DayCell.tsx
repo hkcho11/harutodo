@@ -15,6 +15,7 @@ interface Props {
   isSunday: boolean;
   events: Event[];
   meId: string | null;
+  hasMark?: boolean;
   onClick: () => void;
 }
 
@@ -29,6 +30,7 @@ export default function DayCell({
   isSunday,
   events,
   meId,
+  hasMark = false,
   onClick,
 }: Props) {
   const dayNum = date.getDate();
@@ -64,6 +66,11 @@ export default function DayCell({
         {dayNum}
       </span>
       <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
+        {hasMark && visible.length === 0 && (
+          <div className="flex justify-center pt-0.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-haru-primary" />
+          </div>
+        )}
         {visible.map((e) => (
           <span
             key={e.id}

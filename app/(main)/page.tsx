@@ -9,7 +9,7 @@ import TodoSection from "@/components/todo/TodoSection";
 import IndividualSection from "@/components/todo/IndividualSection";
 import TodoSheet from "@/components/todo/TodoSheet";
 import { todayISO, addDays, formatDateNavLabel } from "@/lib/utils/date";
-import DatePickerSheet from "@/components/common/DatePickerSheet";
+import CalendarPickerSheet from "@/components/common/CalendarPickerSheet";
 import type { Todo } from "@/types/todo";
 
 export default function HomePage() {
@@ -204,7 +204,7 @@ export default function HomePage() {
         onDelete={editingTodo ? handleRemove : undefined}
       />
 
-      <DatePickerSheet
+      <CalendarPickerSheet
         open={pickerOpen}
         selectedDate={selectedDate}
         onSelect={setSelectedDate}

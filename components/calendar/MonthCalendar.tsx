@@ -15,6 +15,7 @@ interface Props {
   todayISO: string;
   eventsByDate: Record<string, Event[]>;
   meId: string | null;
+  markedDates?: Set<string>;
   onSelectDate: (iso: string) => void;
 }
 
@@ -25,6 +26,7 @@ export default function MonthCalendar({
   todayISO,
   eventsByDate,
   meId,
+  markedDates,
   onSelectDate,
 }: Props) {
   const cells = useMemo(() => getMonthDays(year, month), [year, month]);
@@ -56,6 +58,7 @@ export default function MonthCalendar({
             isSunday={idx % 7 === 0}
             events={eventsByDate[c.iso] ?? []}
             meId={meId}
+            hasMark={markedDates?.has(c.iso) ?? false}
             onClick={() => onSelectDate(c.iso)}
           />
         ))}
