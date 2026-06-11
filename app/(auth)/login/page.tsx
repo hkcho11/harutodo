@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -48,9 +49,14 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* 로고 */}
         <div className="mb-8 text-center">
-          <div className="mb-3 inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-haru-primary-soft text-3xl shadow-card">
-            🗓️
-          </div>
+          <Image
+            src="/icons/icon-192x192.png"
+            alt="하루투두"
+            width={72}
+            height={72}
+            className="mb-3 rounded-3xl shadow-card"
+            priority
+          />
           <h1 className="text-2xl font-bold text-haru-text">하루투두</h1>
           <p className="mt-1 text-sm text-haru-muted">커플의 하루를 함께</p>
         </div>
