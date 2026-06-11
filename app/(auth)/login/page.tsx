@@ -10,6 +10,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import LoadingScreen from "@/components/common/LoadingScreen";
 
 const schema = z.object({
   email: z.string().email("올바른 이메일을 입력해주세요"),
@@ -43,6 +44,8 @@ export default function LoginPage() {
 
     router.push("/");
   };
+
+  if (isSubmitting) return <LoadingScreen />;
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8">
