@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "하루투두",
+  title: "Harutodo",
   description: "커플/부부 공유 투두 + 캘린더",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "하루투두",
+    title: "Harutodo",
   },
   formatDetection: {
     telephone: false,

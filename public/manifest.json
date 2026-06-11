@@ -1,6 +1,6 @@
 {
-  "name": "하루투두",
-  "short_name": "하루투두",
+  "name": "Harutodo",
+  "short_name": "Harutodo",
   "description": "커플/부부 공유 투두 + 캘린더",
   "start_url": "/",
   "display": "standalone",

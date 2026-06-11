@@ -84,7 +84,7 @@ export default function SignupPage() {
         {/* 헤더 */}
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-haru-text">회원가입</h1>
-          <p className="mt-1 text-sm text-haru-muted">하루투두와 함께 시작해요</p>
+          <p className="mt-1 text-sm text-haru-muted">Harutodo와 함께 시작해요</p>
         </div>
 
         {/* 카드 */}
