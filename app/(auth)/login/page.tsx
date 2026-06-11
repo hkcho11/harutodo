@@ -1,16 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 import { createClient } from "@/lib/supabase/client";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import LoadingScreen from "@/components/common/LoadingScreen";
+
+const REMEMBER_KEY = "harutodo_saved_email";
 
 const schema = z.object({
   email: z.string().email("올바른 이메일을 입력해주세요"),
@@ -22,15 +26,33 @@ type FormValues = z.infer<typeof schema>;
 export default function LoginPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [rememberEmail, setRememberEmail] = useState(false);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
+  useEffect(() => {
+    const saved = localStorage.getItem(REMEMBER_KEY);
+    if (saved) {
+      setValue("email", saved);
+      setRememberEmail(true);
+    }
+  }, [setValue]);
+
   const onSubmit = async (values: FormValues) => {
     setServerError("");
+
+    if (rememberEmail) {
+      localStorage.setItem(REMEMBER_KEY, values.email);
+    } else {
+      localStorage.removeItem(REMEMBER_KEY);
+    }
+
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({
       email: values.email,
@@ -42,10 +64,11 @@ export default function LoginPage() {
       return;
     }
 
+    setIsNavigating(true);
     router.push("/");
   };
 
-  if (isSubmitting) return <LoadingScreen />;
+  if (isSubmitting || isNavigating) return <LoadingScreen />;
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8">
@@ -85,6 +108,30 @@ export default function LoginPage() {
               {...register("password")}
               error={errors.password?.message}
             />
+
+            {/* 이메일 기억하기 */}
+            <label className="flex cursor-pointer items-center gap-2.5 self-start">
+              <div
+                className={cn(
+                  "flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors",
+                  rememberEmail
+                    ? "border-haru-primary-active bg-haru-primary-active"
+                    : "border-haru-border bg-transparent"
+                )}
+              >
+                {rememberEmail && (
+                  <Check className="h-3 w-3 stroke-[3] text-white" />
+                )}
+              </div>
+              <input
+                type="checkbox"
+                checked={rememberEmail}
+                onChange={(e) => setRememberEmail(e.target.checked)}
+                className="sr-only"
+              />
+              <span className="text-sm text-haru-muted">이메일 기억하기</span>
+            </label>
+
             {serverError && (
               <p className="text-sm text-haru-danger">{serverError}</p>
             )}
