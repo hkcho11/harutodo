@@ -52,12 +52,12 @@ export default function LoginPage() {
           <Image
             src="/icons/icon-192x192.png"
             alt="하루투두"
-            width={72}
-            height={72}
-            className="mb-3 rounded-3xl shadow-card"
+            width={80}
+            height={80}
+            className="mb-3 mx-auto"
             priority
           />
-          <h1 className="text-2xl font-bold text-haru-text">Harutodo</h1>
+          <h1 className="text-2xl font-bold text-haru-text">하루투두</h1>
           <p className="mt-1 text-sm text-haru-muted">커플의 하루를 함께</p>
         </div>
 
