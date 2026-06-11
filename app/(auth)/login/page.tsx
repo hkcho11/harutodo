@@ -50,7 +50,7 @@ export default function LoginPage() {
         {/* 로고 */}
         <div className="mb-8 text-center">
           <Image
-            src="/icons/icon-192x192.png"
+            src="/icons/icon-logo.png"
             alt="하루투두"
             width={80}
             height={80}
