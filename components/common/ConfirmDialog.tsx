@@ -58,7 +58,9 @@ export default function ConfirmDialog({
       <div className="relative w-full max-w-sm rounded-3xl bg-haru-surface p-6 shadow-card animate-haru-fade-up">
         <h2 className="mb-1 text-base font-bold text-haru-text">{title}</h2>
         {description && (
-          <p className="mb-5 text-sm text-haru-muted">{description}</p>
+          <p className="mb-5 whitespace-pre-line text-sm text-haru-muted">
+            {description}
+          </p>
         )}
         <div className="flex gap-2">
           <button

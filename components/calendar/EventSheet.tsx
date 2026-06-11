@@ -14,7 +14,7 @@ import Input from "@/components/ui/Input";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { cn } from "@/lib/utils/cn";
 import { formatTime, formatEventTimeRange } from "@/lib/utils/event";
-import { formatDateNavLabel } from "@/lib/utils/date";
+import { formatDateShort, addDays } from "@/lib/utils/date";
 import type { Event, EventFormValues } from "@/types/event";
 
 const schema = z
@@ -25,9 +25,14 @@ const schema = z
       .min(1, "일정 제목을 입력해주세요")
       .max(200, "200자 이하로 입력해주세요"),
     date: z.string().min(1, "날짜를 선택해주세요"),
+    end_date: z.string().nullable(),
     start_time: z.string().nullable(),
     end_time: z.string().nullable(),
     assignee_id: z.string().nullable(),
+  })
+  .refine((d) => !d.end_date || d.end_date >= d.date, {
+    message: "종료 날짜는 시작 날짜 이후여야 해요",
+    path: ["end_date"],
   })
   .refine((d) => !(d.end_time && !d.start_time), {
     message: "시작 시간을 먼저 선택해주세요",
@@ -61,6 +66,17 @@ function addOneHour(time: string): string {
   return `${String(Math.floor(totalMinutes / 60)).padStart(2, "0")}:${String(totalMinutes % 60).padStart(2, "0")}`;
 }
 
+// 현재 시각 기준으로 가장 가까운 미래 30분 단위 시간 (최대 23:30)
+function nearestFutureTime(): string {
+  const now = new Date();
+  const totalMinutes = now.getHours() * 60 + now.getMinutes();
+  const rounded = Math.ceil(totalMinutes / 30) * 30;
+  const capped = Math.min(rounded, 23 * 60 + 30);
+  const h = Math.floor(capped / 60);
+  const m = capped % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
 export default function EventSheet({
   open,
   event,
@@ -75,6 +91,7 @@ export default function EventSheet({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [endDatePickerOpen, setEndDatePickerOpen] = useState(false);
   const [timePicking, setTimePicking] = useState<TimePicking>(null);
 
   const {
@@ -89,6 +106,7 @@ export default function EventSheet({
     defaultValues: {
       title: "",
       date: defaultDate,
+      end_date: defaultDate,
       start_time: null,
       end_time: null,
       assignee_id: null,
@@ -99,6 +117,10 @@ export default function EventSheet({
   const startTime = useWatch({ control, name: "start_time" });
   const endTime = useWatch({ control, name: "end_time" });
   const date = useWatch({ control, name: "date" });
+  const endDate = useWatch({ control, name: "end_date" });
+
+  // end_date가 start_date보다 이후인 경우만 다일 일정
+  const isMultiDay = !!endDate && endDate > date;
 
   const participant: Participant =
     assigneeId === null
@@ -113,16 +135,20 @@ export default function EventSheet({
       reset({
         title: event.title,
         date: event.date,
+        end_date: event.end_date ?? event.date,
         start_time: formatTime(event.start_time),
         end_time: formatTime(event.end_time),
         assignee_id: event.assignee_id,
       });
     } else {
+      const st = nearestFutureTime();
+      const et = addOneHour(st);
       reset({
         title: "",
         date: defaultDate,
-        start_time: null,
-        end_time: null,
+        end_date: defaultDate,          // 당일 종료 기본값
+        start_time: st,
+        end_time: et !== st ? et : null, // 23:30 cap으로 같아지면 null
         assignee_id: null,
       });
     }
@@ -135,15 +161,22 @@ export default function EventSheet({
   };
 
   const onValid = async (values: FormValues) => {
+    // end_date가 date보다 이후여야 진짜 다일 일정 — 같은 날은 단일 일정으로 저장
+    const multiDay = !!values.end_date && values.end_date > values.date;
     const payload: EventFormValues = {
       title: values.title.trim(),
       date: values.date,
-      start_time: values.start_time || null,
-      end_time: values.end_time || null,
+      end_date: multiDay ? values.end_date : null,
+      start_time: multiDay ? null : (values.start_time || null),
+      end_time: multiDay ? null : (values.end_time || null),
       assignee_id: values.assignee_id,
     };
-    await onSubmit(payload);
-    onClose();
+    try {
+      await onSubmit(payload);
+      onClose();
+    } catch {
+      // 에러는 부모(toast)에서 처리. 시트는 열린 채로 유지.
+    }
   };
 
   const confirmDelete = async () => {
@@ -202,24 +235,47 @@ export default function EventSheet({
             error={errors.title?.message}
           />
 
-          {/* 날짜 */}
+          {/* 날짜 — 시작/종료 한 행 */}
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-haru-text">날짜</span>
-            <button
-              type="button"
-              onClick={() => setDatePickerOpen(true)}
-              className="flex min-h-[44px] w-full items-center gap-3 rounded-2xl border border-haru-border bg-haru-surface px-4 py-3 text-left text-base text-haru-text transition-colors active:bg-haru-primary-soft"
-            >
-              <CalendarDays className="h-4 w-4 shrink-0 text-haru-muted" />
-              <span>{date ? formatDateNavLabel(date) : "날짜 선택"}</span>
-            </button>
-            {errors.date && (
-              <p className="text-sm text-haru-danger">{errors.date.message}</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setDatePickerOpen(true)}
+                className="flex flex-1 min-h-[44px] items-center justify-center gap-1.5 rounded-2xl border border-haru-border bg-haru-surface px-3 py-2 text-sm text-haru-text transition-colors active:bg-haru-primary-soft"
+              >
+                <CalendarDays className="h-3.5 w-3.5 shrink-0 text-haru-muted" />
+                <span className="truncate">{date ? formatDateShort(date) : "시작"}</span>
+              </button>
+              <span className="shrink-0 text-xs text-haru-muted">→</span>
+              <button
+                type="button"
+                onClick={() => setEndDatePickerOpen(true)}
+                className={cn(
+                  "flex flex-1 min-h-[44px] items-center justify-center gap-1.5 rounded-2xl border px-3 py-2 text-sm transition-colors active:bg-haru-primary-soft",
+                  isMultiDay
+                    ? "border-haru-primary bg-haru-primary-soft text-haru-text"
+                    : "border-haru-border bg-haru-surface text-haru-muted"
+                )}
+              >
+                <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{endDate ? formatDateShort(endDate) : "종료"}</span>
+              </button>
+            </div>
+            {isMultiDay && (
+              <p className="text-xs text-haru-muted px-1">
+                {formatEventTimeRange({ date, end_date: endDate, start_time: null, end_time: null } as Event)}
+              </p>
+            )}
+            {(errors.date || errors.end_date) && (
+              <p className="text-sm text-haru-danger">
+                {errors.date?.message ?? errors.end_date?.message}
+              </p>
             )}
           </div>
 
-          {/* 시간 */}
-          <div className="flex flex-col gap-1.5">
+          {/* 시간 — 다일 일정에서는 숨김 */}
+          {!isMultiDay && <div className="flex flex-col gap-1.5">
             <div className="flex items-baseline justify-between">
               <span className="text-sm font-medium text-haru-text">시간</span>
               {(startTime || endTime) && (
@@ -289,7 +345,7 @@ export default function EventSheet({
                 {errors.end_time.message}
               </p>
             )}
-          </div>
+          </div>}
 
           {/* 참여 */}
           <div className="flex flex-col gap-1.5">
@@ -362,9 +418,26 @@ export default function EventSheet({
         selectedDate={date || defaultDate}
         onSelect={(iso) => {
           setValue("date", iso, { shouldValidate: true });
+          if (endDate) {
+            if (endDate === date || iso > endDate) {
+              // 같은 날 → 새 날짜에 동기화 / 시작이 종료 이후로 이동 → 리셋
+              setValue("end_date", iso, { shouldValidate: true });
+            }
+          }
           setDatePickerOpen(false);
         }}
         onClose={() => setDatePickerOpen(false)}
+      />
+
+      {/* 종료 날짜 피커 */}
+      <DatePickerSheet
+        open={endDatePickerOpen}
+        selectedDate={endDate || date || defaultDate}
+        onSelect={(iso) => {
+          setValue("end_date", iso, { shouldValidate: true });
+          setEndDatePickerOpen(false);
+        }}
+        onClose={() => setEndDatePickerOpen(false)}
       />
 
       {/* 시간 피커 */}

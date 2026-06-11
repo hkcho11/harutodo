@@ -12,7 +12,7 @@ export default function ToastContainer() {
 
   return (
     <div
-      className="pointer-events-none fixed left-0 right-0 z-[90] flex flex-col items-center gap-2 px-4"
+      className="pointer-events-none fixed left-0 right-0 z-[120] flex flex-col items-center gap-2 px-4"
       style={{
         bottom: "calc(56px + 1rem + env(safe-area-inset-bottom, 0px))",
       }}

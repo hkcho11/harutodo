@@ -48,6 +48,7 @@ export default function DatePickerSheet({ open, selectedDate, onSelect, onClose 
   useEffect(() => {
     const max = daysInMonth(parseInt(year), parseInt(month));
     if (parseInt(day) > max) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDay(String(max).padStart(2, "0"));
     }
   }, [year, month, day]);
@@ -56,8 +57,11 @@ export default function DatePickerSheet({ open, selectedDate, onSelect, onClose 
   useEffect(() => {
     if (!open) return;
     const { y, m, d } = parseDate(selectedDate);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setYear(y);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMonth(m);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDay(d);
   }, [open, selectedDate]);
 
@@ -77,9 +81,13 @@ export default function DatePickerSheet({ open, selectedDate, onSelect, onClose 
         </div>
 
         {/* 현재 선택값 표시 */}
-        <div className="rounded-2xl bg-haru-primary-soft px-8 py-2">
-          <span className="text-2xl font-bold tabular-nums text-haru-text">
-            {year}.{month}.{day}
+        <div className="rounded-2xl bg-haru-primary-soft px-6 py-2">
+          <span className="text-lg font-bold text-haru-text">
+            {parseInt(year)}년 {parseInt(month)}월 {parseInt(day)}일 (
+            {["일", "월", "화", "수", "목", "금", "토"][
+              new Date(`${year}-${month}-${day}T00:00:00`).getDay()
+            ]}
+            )
           </span>
         </div>
 

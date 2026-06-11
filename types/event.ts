@@ -6,6 +6,7 @@ export type Event = Tables<"events">;
 export interface EventFormValues {
   title: string;
   date: string;
+  end_date: string | null; // null = 단일일
   start_time: string | null; // 'HH:MM' or null
   end_time: string | null;
   assignee_id: string | null; // null = 함께

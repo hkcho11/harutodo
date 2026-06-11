@@ -36,8 +36,14 @@ export function formatEventLabel(event: Event): string {
   return time ? `${time} ${event.title}` : event.title;
 }
 
-// 상세 시간 표시 — 시작/종료 둘 다, 또는 종일
+// 상세 시간/기간 표시
 export function formatEventTimeRange(event: Event): string {
+  if (event.end_date) {
+    const start = new Date(`${event.date}T00:00:00`);
+    const end = new Date(`${event.end_date}T00:00:00`);
+    const nights = Math.round((end.getTime() - start.getTime()) / 86400000);
+    return `${nights}박 ${nights + 1}일`;
+  }
   const s = formatTime(event.start_time);
   const e = formatTime(event.end_time);
   if (!s && !e) return "종일";

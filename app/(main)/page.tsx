@@ -92,8 +92,11 @@ export default function HomePage() {
     ),
   }));
 
+  const completedCount = todos.filter((t) => t.is_completed).length;
+  const allDone = todos.length > 0 && completedCount === todos.length;
+
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 pb-28">
       {/* 날짜 네비게이션 */}
       <header className="mb-5">
         <div className="flex items-center justify-between">
@@ -106,7 +109,7 @@ export default function HomePage() {
             <ChevronLeft className="h-5 w-5" />
           </button>
 
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex flex-col items-center gap-1.5">
             <button
               type="button"
               onClick={() => setPickerOpen(true)}
@@ -118,14 +121,14 @@ export default function HomePage() {
               </h1>
             </button>
             {isToday ? (
-              <span className="rounded-full bg-haru-primary px-3 py-0.5 text-xs font-semibold text-white">
+              <span className="rounded-full bg-haru-primary px-3 py-0.5 text-xs font-semibold text-haru-text">
                 오늘
               </span>
             ) : (
               <button
                 type="button"
                 onClick={goToday}
-                className="rounded-full bg-haru-primary-soft px-3 py-0.5 text-xs font-semibold text-haru-primary"
+                className="rounded-full bg-haru-primary-soft px-3 py-0.5 text-xs font-semibold text-haru-text active:bg-haru-primary"
               >
                 오늘로
               </button>
@@ -143,6 +146,32 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* 진행 요약 바 */}
+      {!loading && todos.length > 0 && (
+        <div className="mb-5 flex items-center gap-3">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-haru-border">
+            <div
+              className="h-full rounded-full bg-haru-primary transition-all duration-500"
+              style={{
+                width: `${Math.round((completedCount / todos.length) * 100)}%`,
+              }}
+            />
+          </div>
+          <span className="shrink-0 tabular-nums text-xs text-haru-muted">
+            {completedCount} / {todos.length}
+          </span>
+        </div>
+      )}
+
+      {/* 모두 완료 배너 */}
+      {!loading && allDone && (
+        <div className="mb-5 rounded-2xl bg-haru-primary px-5 py-3 text-center">
+          <p className="text-sm font-semibold text-haru-text">
+            오늘 할 일을 모두 완료했어요 🎉
+          </p>
+        </div>
+      )}
+
       {loading ? (
         <p className="py-12 text-center text-sm text-haru-muted">
           불러오는 중...
@@ -150,7 +179,7 @@ export default function HomePage() {
       ) : todos.length === 0 ? (
         <div className="rounded-3xl bg-haru-surface p-8 text-center shadow-card">
           <div className="mb-2 text-3xl">🌤️</div>
-          <p className="text-sm text-haru-text">할 일이 없어요</p>
+          <p className="text-sm font-semibold text-haru-text">할 일이 없어요</p>
           <p className="mt-1 text-xs text-haru-muted">
             우하단 + 버튼으로 추가해보세요
           </p>

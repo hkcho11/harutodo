@@ -9,6 +9,7 @@ interface CoupleState {
   me: Profile | null;
   partner: Profile | null;
   hydrate: (data: { coupleId: string; me: Profile; partner: Profile }) => void;
+  updateMe: (updates: Partial<Profile>) => void;
   reset: () => void;
 }
 
@@ -17,5 +18,7 @@ export const useCoupleStore = create<CoupleState>((set) => ({
   me: null,
   partner: null,
   hydrate: ({ coupleId, me, partner }) => set({ coupleId, me, partner }),
+  updateMe: (updates) =>
+    set((state) => ({ me: state.me ? { ...state.me, ...updates } : null })),
   reset: () => set({ coupleId: null, me: null, partner: null }),
 }));

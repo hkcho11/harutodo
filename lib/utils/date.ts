@@ -25,12 +25,23 @@ export function addDays(iso: string, days: number): string {
   return `${y}-${m}-${day}`;
 }
 
-// 날짜 네비게이션 헤더용 레이블 (예: "5월 29일 (목)")
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+// 날짜 네비게이션 헤더용 레이블 (예: "2026년 5월 29일 (목)")
 export function formatDateNavLabel(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
-  return d.toLocaleDateString("ko-KR", {
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  const w = WEEKDAYS[d.getDay()];
+  return `${y}년 ${m}월 ${day}일 (${w})`;
+}
+
+// 폼 버튼 등 좁은 공간용 짧은 날짜 (예: "5월 29일 (목)")
+export function formatDateShort(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`);
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  const w = WEEKDAYS[d.getDay()];
+  return `${m}월 ${day}일 (${w})`;
 }

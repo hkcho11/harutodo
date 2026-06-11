@@ -1,10 +1,12 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 
 interface Props {
   year: number;
   month: number; // 0-based
+  isCurrentMonth?: boolean;
   onPrev: () => void;
   onNext: () => void;
   onToday: () => void;
@@ -13,6 +15,7 @@ interface Props {
 export default function CalendarHeader({
   year,
   month,
+  isCurrentMonth = false,
   onPrev,
   onNext,
   onToday,
@@ -23,7 +26,7 @@ export default function CalendarHeader({
         type="button"
         onClick={onPrev}
         aria-label="이전 달"
-        className="flex h-11 w-11 items-center justify-center rounded-full text-haru-text active:bg-haru-primary-soft"
+        className="flex h-11 w-11 items-center justify-center rounded-full text-haru-muted active:bg-haru-primary-soft"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
@@ -34,7 +37,7 @@ export default function CalendarHeader({
         type="button"
         onClick={onNext}
         aria-label="다음 달"
-        className="flex h-11 w-11 items-center justify-center rounded-full text-haru-text active:bg-haru-primary-soft"
+        className="flex h-11 w-11 items-center justify-center rounded-full text-haru-muted active:bg-haru-primary-soft"
       >
         <ChevronRight className="h-5 w-5" />
       </button>
@@ -42,7 +45,12 @@ export default function CalendarHeader({
         type="button"
         onClick={onToday}
         aria-label="오늘로 이동"
-        className="ml-1 min-h-[44px] rounded-xl px-3 text-sm font-semibold text-haru-text active:bg-haru-primary-soft"
+        className={cn(
+          "ml-1 min-h-[44px] rounded-xl px-3 text-sm font-semibold transition-colors",
+          isCurrentMonth
+            ? "invisible pointer-events-none"
+            : "bg-haru-primary-soft text-haru-text active:bg-haru-primary"
+        )}
       >
         오늘
       </button>

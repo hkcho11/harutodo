@@ -9,6 +9,7 @@ import { todayISO } from "@/lib/utils/date";
 import { formatDateLabel } from "@/lib/utils/calendar";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import MonthCalendar from "@/components/calendar/MonthCalendar";
+import EventDaySheet from "@/components/calendar/EventDaySheet";
 import EventList from "@/components/calendar/EventList";
 import EventSheet from "@/components/calendar/EventSheet";
 import type { Event, EventFormValues } from "@/types/event";
@@ -21,6 +22,7 @@ export default function CalendarPage() {
   const [viewMonth, setViewMonth] = useState(today.getMonth()); // 0-based
   const [selectedDate, setSelectedDate] = useState(todayStr);
 
+  const [daySheetOpen, setDaySheetOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
@@ -29,7 +31,11 @@ export default function CalendarPage() {
     viewMonth
   );
   const me = useCoupleStore((s) => s.me);
+  const partner = useCoupleStore((s) => s.partner);
   const showToast = useToastStore((s) => s.show);
+
+  const isCurrentMonth =
+    viewYear === today.getFullYear() && viewMonth === today.getMonth();
 
   const handleSubmit = async (values: EventFormValues) => {
     try {
@@ -75,11 +81,21 @@ export default function CalendarPage() {
     setSelectedDate(todayStr);
   };
 
+  const handleSelectDate = (date: string) => {
+    setSelectedDate(date);
+    const dayEvents = eventsByDate[date] ?? [];
+    if (dayEvents.length > 0) {
+      setDaySheetOpen(true);
+    }
+  };
+
   const openAdd = () => {
+    setDaySheetOpen(false);
     setEditingEvent(null);
     setSheetOpen(true);
   };
   const openEdit = (e: Event) => {
+    setDaySheetOpen(false);
     setEditingEvent(e);
     setSheetOpen(true);
   };
@@ -91,10 +107,11 @@ export default function CalendarPage() {
   const selectedEvents = eventsByDate[selectedDate] ?? [];
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 pb-28">
       <CalendarHeader
         year={viewYear}
         month={viewMonth}
+        isCurrentMonth={isCurrentMonth}
         onPrev={handlePrev}
         onNext={handleNext}
         onToday={handleToday}
@@ -107,20 +124,23 @@ export default function CalendarPage() {
         todayISO={todayStr}
         eventsByDate={eventsByDate}
         meId={me?.id ?? null}
-        onSelectDate={setSelectedDate}
+        meName={me?.display_name ?? null}
+        partnerName={partner?.display_name ?? null}
+        onSelectDate={handleSelectDate}
       />
 
-      <section className="mt-6">
-        <header className="mb-3 flex items-baseline gap-2 px-1">
-          <h2 className="text-base font-bold text-haru-text">
+      {/* 선택 날짜 섹션 */}
+      <section className="mt-5">
+        <div className="mb-3 flex items-center gap-2.5 px-0.5">
+          <span className="rounded-xl bg-haru-primary-soft px-3 py-1.5 text-sm font-bold text-haru-text">
             {formatDateLabel(selectedDate)}
-          </h2>
+          </span>
           {selectedEvents.length > 0 && (
             <span className="text-xs text-haru-muted">
               {selectedEvents.length}개
             </span>
           )}
-        </header>
+        </div>
 
         {loading ? (
           <p className="py-8 text-center text-sm text-haru-muted">
@@ -128,10 +148,17 @@ export default function CalendarPage() {
           </p>
         ) : selectedEvents.length === 0 ? (
           <div className="rounded-2xl bg-haru-surface p-6 text-center shadow-card">
-            <p className="text-sm text-haru-text">이 날짜에 일정이 없어요</p>
-            <p className="mt-1 text-xs text-haru-muted">
-              우하단 + 버튼으로 추가해보세요
+            <p className="mb-1 text-2xl">📅</p>
+            <p className="text-sm font-semibold text-haru-text">
+              이 날짜에 일정이 없어요
             </p>
+            <button
+              type="button"
+              onClick={openAdd}
+              className="mt-3 rounded-xl bg-haru-primary px-4 py-2 text-sm font-semibold text-haru-text active:bg-haru-primary-active"
+            >
+              일정 추가하기
+            </button>
           </div>
         ) : (
           <EventList events={selectedEvents} onItemClick={openEdit} />
@@ -146,6 +173,14 @@ export default function CalendarPage() {
       >
         <Plus className="h-7 w-7" strokeWidth={2.5} />
       </button>
+
+      <EventDaySheet
+        open={daySheetOpen}
+        date={selectedDate}
+        events={selectedEvents}
+        onClose={() => setDaySheetOpen(false)}
+        onItemClick={openEdit}
+      />
 
       <EventSheet
         open={sheetOpen}

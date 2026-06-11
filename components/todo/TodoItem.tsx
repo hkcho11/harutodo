@@ -69,7 +69,12 @@ export default function TodoItem({
         </p>
       </button>
       {assignee && (
-        <span className="shrink-0 rounded-full bg-haru-secondary-soft px-2.5 py-1 text-xs font-medium text-haru-text">
+        <span
+          className={cn(
+            "shrink-0 rounded-full px-2.5 py-1 text-xs font-medium text-haru-text",
+            assignee.id === me?.id ? "bg-haru-primary-soft" : "bg-haru-accent-soft"
+          )}
+        >
           {assignee.display_name}
         </span>
       )}

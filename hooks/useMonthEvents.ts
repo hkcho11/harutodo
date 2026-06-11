@@ -10,8 +10,13 @@ import {
 } from "@/lib/services/realtimeService";
 import type { Event, EventFormValues } from "@/types/event";
 
-// 정렬 — date asc, 같은 날짜 안에서는 start_time asc (null이 먼저 = 종일).
-// Realtime INSERT/UPDATE 반영 후에도 일관된 순서를 유지하기 위한 helper.
+// end_date 컬럼 미존재 감지:
+// - 42703: PostgreSQL undefined_column (DB 직접 접근 시)
+// - PGRST204: PostgREST 스키마 캐시 미존재 컬럼 (대부분의 Supabase 클라이언트 경우)
+function isEndDateMissing(err: { code?: string } | null): boolean {
+  return err?.code === "42703" || err?.code === "PGRST204";
+}
+
 function sortEvents(events: Event[]): Event[] {
   return [...events].sort((a, b) => {
     if (a.date !== b.date) return a.date < b.date ? -1 : 1;
@@ -22,7 +27,6 @@ function sortEvents(events: Event[]): Event[] {
   });
 }
 
-// 월 단위 일정 fetch + CRUD. useMonthTodos와 같은 낙관적 패턴.
 export function useMonthEvents(year: number, month: number) {
   const supabase = useMemo(() => createClient(), []);
   const coupleId = useCoupleStore((s) => s.coupleId);
@@ -32,54 +36,68 @@ export function useMonthEvents(year: number, month: number) {
   const [events, setEvents] = useState<Event[]>([]);
   const [fetchLoading, setFetchLoading] = useState(true);
 
-  // 수동 재조회 — 변이 실패 복구 + Realtime SUBSCRIBED 후 유실 보완용.
-  // 두 useEffect 모두 deps에 사용하므로 그 위에 정의.
-  const refetch = useCallback(async () => {
-    if (!coupleId) return;
-    const { data } = await supabase
+  // end_date 컬럼이 있으면 월과 겹치는 이벤트(다일 포함)를 조회.
+  // 컬럼이 없으면(마이그레이션 미적용) 단순 범위 쿼리로 폴백.
+  const fetchEvents = useCallback(async (): Promise<Event[]> => {
+    if (!coupleId) return [];
+
+    const { data, error } = await supabase
       .from("events")
       .select("*")
       .eq("couple_id", coupleId)
-      .gte("date", first)
       .lte("date", last)
+      .or(`end_date.gte.${first},and(end_date.is.null,date.gte.${first})`)
       .order("date", { ascending: true })
       .order("start_time", { ascending: true, nullsFirst: true });
-    setEvents(data ?? []);
-    setFetchLoading(false);
+
+    if (isEndDateMissing(error)) {
+      const { data: fallback } = await supabase
+        .from("events")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("date", first)
+        .lte("date", last)
+        .order("date", { ascending: true })
+        .order("start_time", { ascending: true, nullsFirst: true });
+      return fallback ?? [];
+    }
+
+    return data ?? [];
   }, [coupleId, first, last, supabase]);
+
+  const refetch = useCallback(async () => {
+    if (!coupleId) return;
+    const data = await fetchEvents();
+    setEvents(data);
+    setFetchLoading(false);
+  }, [coupleId, fetchEvents]);
 
   useEffect(() => {
     if (!coupleId) return;
     let cancelled = false;
-    supabase
-      .from("events")
-      .select("*")
-      .eq("couple_id", coupleId)
-      .gte("date", first)
-      .lte("date", last)
-      .order("date", { ascending: true })
-      .order("start_time", { ascending: true, nullsFirst: true })
-      .then(({ data }) => {
-        if (cancelled) return;
-        setEvents(data ?? []);
-        setFetchLoading(false);
-      });
+    fetchEvents().then((data) => {
+      if (cancelled) return;
+      setEvents(data);
+      setFetchLoading(false);
+    });
     return () => {
       cancelled = true;
     };
-  }, [coupleId, first, last, supabase]);
+  }, [coupleId, fetchEvents]);
 
-  // Realtime — 같은 커플의 events 변경 구독. 보고 있는 월 범위만 반영.
-  // SUBSCRIBED 직후 refetch로 fetch~subscribe 사이 유실 보완.
+  // Realtime 구독. SUBSCRIBED 직후 refetch로 유실 보완.
   useEffect(() => {
     if (!coupleId) return;
-    const inRange = (date: string) => date >= first && date <= last;
+    const overlapsRange = (e: Event) => {
+      const end = e.end_date ?? e.date;
+      return e.date <= last && end >= first;
+    };
     const channel = subscribeCoupleTable<Event>({
       channelName: `events:couple=${coupleId}:${first}~${last}`,
       table: "events",
       coupleId,
       onChange: ({ type, new: newRow, old: oldRow }) => {
-        if (type === "INSERT" && newRow && inRange(newRow.date)) {
+        if (type === "INSERT" && newRow && overlapsRange(newRow)) {
           setEvents((cur) =>
             cur.some((e) => e.id === newRow.id)
               ? cur
@@ -88,7 +106,7 @@ export function useMonthEvents(year: number, month: number) {
         } else if (type === "UPDATE" && newRow) {
           setEvents((cur) => {
             const has = cur.some((e) => e.id === newRow.id);
-            if (inRange(newRow.date)) {
+            if (overlapsRange(newRow)) {
               const merged = has
                 ? cur.map((e) => (e.id === newRow.id ? newRow : e))
                 : [...cur, newRow];
@@ -116,7 +134,8 @@ export function useMonthEvents(year: number, month: number) {
   const add = useCallback(
     async (input: EventFormValues) => {
       if (!coupleId || !me) throw new Error("no_couple");
-      const inRange = input.date >= first && input.date <= last;
+      const endForRange = input.end_date ?? input.date;
+      const overlaps = input.date <= last && endForRange >= first;
       const tempId = `temp-${Date.now()}`;
       const now = new Date().toISOString();
       const optimistic: Event = {
@@ -126,40 +145,51 @@ export function useMonthEvents(year: number, month: number) {
         assignee_id: input.assignee_id,
         title: input.title,
         date: input.date,
+        end_date: input.end_date ?? null,
         start_time: input.start_time,
         end_time: input.end_time,
         created_at: now,
         updated_at: now,
       };
-      if (inRange) {
-        setEvents((prev) => [...prev, optimistic]);
-      }
+      if (overlaps) setEvents((prev) => [...prev, optimistic]);
 
-      const { data, error } = await supabase
+      const insertPayload = {
+        couple_id: coupleId,
+        created_by: me.id,
+        assignee_id: input.assignee_id,
+        title: input.title,
+        date: input.date,
+        end_date: input.end_date ?? null,
+        start_time: input.start_time,
+        end_time: input.end_time,
+      };
+
+      let { data, error } = await supabase
         .from("events")
-        .insert({
-          couple_id: coupleId,
-          created_by: me.id,
-          assignee_id: input.assignee_id,
-          title: input.title,
-          date: input.date,
-          start_time: input.start_time,
-          end_time: input.end_time,
-        })
+        .insert(insertPayload)
         .select()
         .single();
+
+      // end_date 컬럼 미존재 시 해당 필드 제거 후 재시도
+      if (isEndDateMissing(error)) {
+        const { end_date: _, ...payloadWithoutEndDate } = insertPayload;
+        ({ data, error } = await supabase
+          .from("events")
+          .insert(payloadWithoutEndDate)
+          .select()
+          .single());
+      }
 
       if (error || !data) {
         await refetch();
         throw error ?? new Error("insert_failed");
       }
-      if (inRange) {
-        // Realtime INSERT가 먼저 도착해 real id가 이미 있는 경우 temp만 제거.
+      if (overlaps) {
         setEvents((prev) => {
           const withoutTemp = prev.filter((e) => e.id !== tempId);
-          const next = withoutTemp.some((e) => e.id === data.id)
+          const next = withoutTemp.some((e) => e.id === data!.id)
             ? withoutTemp
-            : [...withoutTemp, data];
+            : [...withoutTemp, data!];
           return sortEvents(next);
         });
       }
@@ -173,17 +203,32 @@ export function useMonthEvents(year: number, month: number) {
       setEvents((cur) =>
         cur.map((e) => (e.id === id ? { ...e, ...input } : e))
       );
-      const { error } = await supabase
+
+      let { error } = await supabase
         .from("events")
         .update(input)
         .eq("id", id)
         .eq("couple_id", coupleId);
+
+      // end_date 컬럼 미존재 시 해당 필드 제거 후 재시도
+      if (isEndDateMissing(error)) {
+        const { end_date: _, ...inputWithoutEndDate } = input;
+        ({ error } = await supabase
+          .from("events")
+          .update(inputWithoutEndDate)
+          .eq("id", id)
+          .eq("couple_id", coupleId));
+      }
+
       if (error) {
         await refetch();
         throw error;
       }
-      if (input.date && (input.date < first || input.date > last)) {
-        setEvents((cur) => cur.filter((e) => e.id !== id));
+      if (input.date) {
+        const endForRange = input.end_date ?? input.date;
+        if (input.date > last || endForRange < first) {
+          setEvents((cur) => cur.filter((e) => e.id !== id));
+        }
       }
     },
     [coupleId, supabase, first, last, refetch]
@@ -206,15 +251,28 @@ export function useMonthEvents(year: number, month: number) {
     [coupleId, supabase, refetch]
   );
 
-  // 날짜별 그룹핑 (정렬은 fetch 단계에서 이미 처리)
+  // 날짜별 그룹핑 — 다일 일정은 해당 월 범위 내 모든 날짜에 확장
   const eventsByDate = useMemo(() => {
     const map: Record<string, Event[]> = {};
     for (const e of events) {
-      if (!map[e.date]) map[e.date] = [];
-      map[e.date].push(e);
+      if (!e.end_date) {
+        if (!map[e.date]) map[e.date] = [];
+        map[e.date].push(e);
+      } else {
+        const rangeStart = e.date > first ? e.date : first;
+        const rangeEnd = e.end_date < last ? e.end_date : last;
+        let cur = rangeStart;
+        while (cur <= rangeEnd) {
+          if (!map[cur]) map[cur] = [];
+          map[cur].push(e);
+          const d = new Date(`${cur}T00:00:00`);
+          d.setDate(d.getDate() + 1);
+          cur = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        }
+      }
     }
     return map;
-  }, [events]);
+  }, [events, first, last]);
 
   return { events, eventsByDate, loading, refetch, add, update, remove };
 }

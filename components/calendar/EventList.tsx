@@ -2,7 +2,7 @@
 
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { cn } from "@/lib/utils/cn";
-import { eventColorClass, formatEventTimeRange } from "@/lib/utils/event";
+import { formatEventTimeRange } from "@/lib/utils/event";
 import type { Event } from "@/types/event";
 
 interface Props {
@@ -10,17 +10,22 @@ interface Props {
   onItemClick: (event: Event) => void;
 }
 
-const PARTICIPANT_LABEL = (
+function participantLabel(
   event: Event,
   meId: string | null,
   partnerName: string | null
-): string => {
+): string {
   if (event.assignee_id === null) return "함께";
   if (meId && event.assignee_id === meId) return "나";
   return partnerName ?? "파트너";
-};
+}
 
-// 선택일의 일정 리스트. 항목 탭 → 편집 시트 오픈.
+function colorBarClass(event: Event, meId: string | null): string {
+  if (event.assignee_id === null) return "bg-haru-secondary";
+  if (meId && event.assignee_id === meId) return "bg-haru-primary-active";
+  return "bg-haru-accent";
+}
+
 export default function EventList({ events, onItemClick }: Props) {
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
@@ -29,29 +34,42 @@ export default function EventList({ events, onItemClick }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      {events.map((e) => (
-        <button
-          key={e.id}
-          type="button"
-          onClick={() => onItemClick(e)}
-          className="flex items-center gap-3 rounded-2xl bg-haru-surface px-4 py-3 text-left shadow-card min-h-[60px] animate-haru-fade-up"
-        >
-          <span
-            className={cn(
-              "shrink-0 rounded-md px-2 py-1 text-xs font-semibold",
-              eventColorClass(e, me?.id ?? null)
-            )}
+      {events.map((e) => {
+        const timeRange = formatEventTimeRange(e);
+        const isAllDay = timeRange === "종일";
+
+        return (
+          <button
+            key={e.id}
+            type="button"
+            onClick={() => onItemClick(e)}
+            className="flex w-full items-stretch overflow-hidden rounded-2xl bg-haru-surface shadow-card animate-haru-fade-up text-left"
           >
-            {formatEventTimeRange(e)}
-          </span>
-          <div className="flex min-w-0 flex-1 flex-col">
-            <p className="truncate text-base text-haru-text">{e.title}</p>
-            <p className="text-xs text-haru-muted">
-              {PARTICIPANT_LABEL(e, me?.id ?? null, partner?.display_name ?? null)}
-            </p>
-          </div>
-        </button>
-      ))}
+            {/* 참여자 색상 바 */}
+            <div className={cn("w-1 shrink-0", colorBarClass(e, me?.id ?? null))} />
+
+            {/* 일정 내용 */}
+            <div className="flex flex-1 flex-col justify-center gap-0.5 px-4 py-3">
+              <div className="flex items-center gap-1.5">
+                {isAllDay ? (
+                  <span className="rounded-full bg-haru-primary-soft px-1.5 py-0.5 text-[10px] font-medium text-haru-text">
+                    종일
+                  </span>
+                ) : (
+                  <span className="text-xs text-haru-muted">{timeRange}</span>
+                )}
+                <span className="text-[10px] text-haru-border">·</span>
+                <span className="text-xs text-haru-muted">
+                  {participantLabel(e, me?.id ?? null, partner?.display_name ?? null)}
+                </span>
+              </div>
+              <p className="truncate text-sm font-semibold text-haru-text">
+                {e.title}
+              </p>
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
