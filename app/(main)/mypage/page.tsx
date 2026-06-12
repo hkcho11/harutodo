@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock } from "lucide-react";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
+import OptionSheet from "@/components/common/OptionSheet";
 import { signOut } from "@/lib/services/authService";
 import { updateProfile } from "@/lib/services/profileService";
 import { disconnectCouple } from "@/lib/services/coupleService";
@@ -184,6 +185,13 @@ export default function MyPage() {
   } = useNotificationSettings(me?.id);
 
   const [timePickerTarget, setTimePickerTarget] = useState<"morning" | "evening" | null>(null);
+  const [leadMinPickerOpen, setLeadMinPickerOpen] = useState(false);
+
+  const LEAD_MIN_OPTIONS: { label: string; value: number }[] = [
+    { label: "15분 전", value: 15 },
+    { label: "30분 전", value: 30 },
+    { label: "1시간 전", value: 60 },
+  ];
 
   const meInitial = me?.display_name?.charAt(0)?.toUpperCase() ?? "?";
   const partnerInitial = partner?.display_name?.charAt(0)?.toUpperCase() ?? "?";
@@ -438,18 +446,14 @@ export default function MyPage() {
               {notifSettings.event_enabled && (
                 <div className="flex items-center gap-2 pl-1">
                   <label className="text-xs text-haru-muted">미리 알림</label>
-                  <select
-                    value={notifSettings.event_lead_min}
-                    onChange={(e) =>
-                      void notifUpdate({ event_lead_min: Number(e.target.value) })
-                    }
+                  <button
+                    type="button"
+                    onClick={() => setLeadMinPickerOpen(true)}
                     disabled={notifUpdating}
-                    className="rounded-lg border border-haru-border bg-haru-surface px-2 py-1 text-sm text-haru-text outline-none focus:ring-2 focus:ring-haru-primary-soft disabled:opacity-40"
+                    className="flex items-center gap-1 rounded-xl border border-haru-border bg-haru-surface px-3 py-1.5 text-sm text-haru-text active:bg-haru-primary-soft disabled:opacity-40"
                   >
-                    <option value={15}>15분 전</option>
-                    <option value={30}>30분 전</option>
-                    <option value={60}>1시간 전</option>
-                  </select>
+                    {LEAD_MIN_OPTIONS.find((o) => o.value === notifSettings.event_lead_min)?.label ?? "30분 전"}
+                  </button>
                 </div>
               )}
             </div>
@@ -541,6 +545,16 @@ export default function MyPage() {
           커플 연결 해제하기
         </button>
       </section>
+
+      {/* 일정 알림 미리 알림 선택 */}
+      <OptionSheet
+        open={leadMinPickerOpen}
+        title="미리 알림"
+        options={LEAD_MIN_OPTIONS}
+        value={notifSettings?.event_lead_min ?? 30}
+        onSelect={(v) => void notifUpdate({ event_lead_min: v })}
+        onClose={() => setLeadMinPickerOpen(false)}
+      />
 
       {/* 알림 시각 선택 */}
       <TimePickerSheet
