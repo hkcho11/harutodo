@@ -101,7 +101,7 @@ export default function TodoSheet({
     defaultValues: {
       title: "",
       date: defaultDate,
-      group: "other",
+      group: "together",
       assignee_id: null,
       custom_group_id: null,
     },
@@ -127,7 +127,7 @@ export default function TodoSheet({
       reset({
         title: "",
         date: defaultDate,
-        group: "other",
+        group: "together",
         assignee_id: null,
         custom_group_id: null,
       });
