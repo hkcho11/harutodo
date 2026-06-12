@@ -7,6 +7,7 @@ import {
   subscribeCoupleTable,
   unsubscribeCouple,
 } from "@/lib/services/realtimeService";
+import { notifyPartner } from "@/lib/services/pushService";
 import type { Todo } from "@/types/todo";
 
 // useTodayTodos와 타입을 공유 — TodoSheet 등 기존 import를 유지한다.
@@ -19,6 +20,7 @@ export function useDateTodos(date: string) {
   const supabase = useMemo(() => createClient(), []);
   const coupleId = useCoupleStore((s) => s.coupleId);
   const me = useCoupleStore((s) => s.me);
+  const partner = useCoupleStore((s) => s.partner);
 
   const [todos, setTodos] = useState<Todo[]>([]);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -142,8 +144,17 @@ export function useDateTodos(date: string) {
             : [...withoutTemp, data];
         });
       }
+      if (partner && me) {
+        void notifyPartner({
+          partnerId: partner.id,
+          actorName: me.display_name,
+          action: "add",
+          entityType: "todo",
+          entityTitle: input.title,
+        });
+      }
     },
-    [coupleId, me, supabase, date, refetch]
+    [coupleId, me, partner, supabase, date, refetch]
   );
 
   const update = useCallback(
@@ -167,8 +178,17 @@ export function useDateTodos(date: string) {
       if (input.date && input.date !== date) {
         setTodos((cur) => cur.filter((t) => t.id !== id));
       }
+      if (partner && me && input.is_completed === undefined) {
+        void notifyPartner({
+          partnerId: partner.id,
+          actorName: me.display_name,
+          action: "update",
+          entityType: "todo",
+          entityTitle: typeof input.title === "string" ? input.title : undefined,
+        });
+      }
     },
-    [coupleId, supabase, date, refetch]
+    [coupleId, me, partner, supabase, date, refetch]
   );
 
   const toggle = useCallback(
@@ -190,8 +210,16 @@ export function useDateTodos(date: string) {
         await refetch();
         throw error;
       }
+      if (partner && me) {
+        void notifyPartner({
+          partnerId: partner.id,
+          actorName: me.display_name,
+          action: "delete",
+          entityType: "todo",
+        });
+      }
     },
-    [coupleId, supabase, refetch]
+    [coupleId, me, partner, supabase, refetch]
   );
 
   return { todos, loading, refetch, add, update, toggle, remove };

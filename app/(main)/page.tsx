@@ -11,6 +11,7 @@ import TodoSheet from "@/components/todo/TodoSheet";
 import { todayISO, addDays, formatDateNavLabel } from "@/lib/utils/date";
 import CalendarPickerSheet from "@/components/common/CalendarPickerSheet";
 import LoadingScreen from "@/components/common/LoadingScreen";
+import PushBanner from "@/components/common/PushBanner";
 import type { Todo } from "@/types/todo";
 
 export default function HomePage() {
@@ -99,7 +100,9 @@ export default function HomePage() {
   if (loading) return <LoadingScreen />;
 
   return (
-    <div className="px-4 py-6 pb-28">
+    <div className="pb-28">
+      <PushBanner />
+      <div className="px-4 py-6">
       {/* 날짜 네비게이션 */}
       <header className="mb-5">
         <div className="flex items-center justify-between">
@@ -238,6 +241,7 @@ export default function HomePage() {
         onSelect={setSelectedDate}
         onClose={() => setPickerOpen(false)}
       />
+      </div>
     </div>
   );
 }

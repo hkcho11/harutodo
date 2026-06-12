@@ -8,6 +8,7 @@ import {
   subscribeCoupleTable,
   unsubscribeCouple,
 } from "@/lib/services/realtimeService";
+import { notifyPartner } from "@/lib/services/pushService";
 import type { Event, EventFormValues } from "@/types/event";
 
 // end_date 컬럼 미존재 감지:
@@ -31,6 +32,7 @@ export function useMonthEvents(year: number, month: number) {
   const supabase = useMemo(() => createClient(), []);
   const coupleId = useCoupleStore((s) => s.coupleId);
   const me = useCoupleStore((s) => s.me);
+  const partner = useCoupleStore((s) => s.partner);
   const { first, last } = monthRangeISO(year, month);
 
   const [events, setEvents] = useState<Event[]>([]);
@@ -193,8 +195,17 @@ export function useMonthEvents(year: number, month: number) {
           return sortEvents(next);
         });
       }
+      if (partner && me) {
+        void notifyPartner({
+          partnerId: partner.id,
+          actorName: me.display_name,
+          action: "add",
+          entityType: "event",
+          entityTitle: input.title,
+        });
+      }
     },
-    [coupleId, me, supabase, first, last, refetch]
+    [coupleId, me, partner, supabase, first, last, refetch]
   );
 
   const update = useCallback(
@@ -230,8 +241,17 @@ export function useMonthEvents(year: number, month: number) {
           setEvents((cur) => cur.filter((e) => e.id !== id));
         }
       }
+      if (partner && me) {
+        void notifyPartner({
+          partnerId: partner.id,
+          actorName: me.display_name,
+          action: "update",
+          entityType: "event",
+          entityTitle: typeof input.title === "string" ? input.title : undefined,
+        });
+      }
     },
-    [coupleId, supabase, first, last, refetch]
+    [coupleId, me, partner, supabase, first, last, refetch]
   );
 
   const remove = useCallback(
@@ -247,8 +267,16 @@ export function useMonthEvents(year: number, month: number) {
         await refetch();
         throw error;
       }
+      if (partner && me) {
+        void notifyPartner({
+          partnerId: partner.id,
+          actorName: me.display_name,
+          action: "delete",
+          entityType: "event",
+        });
+      }
     },
-    [coupleId, supabase, refetch]
+    [coupleId, me, partner, supabase, refetch]
   );
 
   // 날짜별 그룹핑 — 다일 일정은 해당 월 범위 내 모든 날짜에 확장

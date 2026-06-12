@@ -9,6 +9,7 @@ export default withPWA({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
+  customWorkerSrc: "worker",
   workboxOptions: {
     skipWaiting: true,
     disableDevLogs: true,
