@@ -6,22 +6,55 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
-const schema = z.object({
-  display_name: z.string().min(1, "닉네임을 입력해주세요"),
-  email: z.string().email("올바른 이메일을 입력해주세요"),
-  password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다"),
-});
+const schema = z
+  .object({
+    display_name: z.string().min(1, "닉네임을 입력해주세요"),
+    email: z.string().email("올바른 이메일을 입력해주세요"),
+    password: z.string().min(6, "비밀번호는 6자 이상이어야 합니다"),
+    confirmPassword: z.string().min(1, "비밀번호 확인을 입력해주세요"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "비밀번호가 일치하지 않아요",
+    path: ["confirmPassword"],
+  });
 
 type FormValues = z.infer<typeof schema>;
+
+function EyeToggle({
+  show,
+  onToggle,
+}: {
+  show: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      tabIndex={-1}
+      aria-label={show ? "비밀번호 숨기기" : "비밀번호 보기"}
+      className="flex h-8 w-8 items-center justify-center rounded-full text-haru-muted transition-colors active:bg-haru-primary-soft active:text-haru-text"
+    >
+      {show ? (
+        <EyeOff className="h-4 w-4" />
+      ) : (
+        <Eye className="h-4 w-4" />
+      )}
+    </button>
+  );
+}
 
 export default function SignupPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
   const [emailSent, setEmailSent] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const {
     register,
@@ -110,11 +143,32 @@ export default function SignupPage() {
             <Input
               label="비밀번호"
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="6자 이상"
               autoComplete="new-password"
+              suffix={
+                <EyeToggle
+                  show={showPassword}
+                  onToggle={() => setShowPassword((v) => !v)}
+                />
+              }
               {...register("password")}
               error={errors.password?.message}
+            />
+            <Input
+              label="비밀번호 확인"
+              id="confirmPassword"
+              type={showConfirm ? "text" : "password"}
+              placeholder="비밀번호 재입력"
+              autoComplete="new-password"
+              suffix={
+                <EyeToggle
+                  show={showConfirm}
+                  onToggle={() => setShowConfirm((v) => !v)}
+                />
+              }
+              {...register("confirmPassword")}
+              error={errors.confirmPassword?.message}
             />
             {serverError && (
               <p className="text-sm text-haru-danger">{serverError}</p>
@@ -127,7 +181,10 @@ export default function SignupPage() {
 
         <p className="mt-5 text-center text-sm text-haru-muted">
           이미 계정이 있나요?{" "}
-          <Link href="/login" className="font-semibold text-haru-text underline underline-offset-2 decoration-haru-primary-active">
+          <Link
+            href="/login"
+            className="font-semibold text-haru-text underline underline-offset-2 decoration-haru-primary-active"
+          >
             로그인
           </Link>
         </p>
