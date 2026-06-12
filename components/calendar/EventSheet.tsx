@@ -198,7 +198,7 @@ export default function EventSheet({
       setValue("start_time", v, { shouldValidate: true });
       if (!v) {
         setValue("end_time", null, { shouldValidate: true });
-      } else if (!endTime) {
+      } else {
         setValue("end_time", addOneHour(v), { shouldValidate: true });
       }
     } else if (timePicking === "end") {
