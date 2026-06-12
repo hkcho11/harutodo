@@ -14,7 +14,7 @@ import Input from "@/components/ui/Input";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { cn } from "@/lib/utils/cn";
 import { formatTime, formatEventTimeRange } from "@/lib/utils/event";
-import { formatDateShort, addDays } from "@/lib/utils/date";
+import { formatDateShort } from "@/lib/utils/date";
 import type { Event, EventFormValues } from "@/types/event";
 
 const schema = z

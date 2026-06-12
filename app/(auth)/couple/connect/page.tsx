@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Copy, Check, LogOut, Share2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/services/authService";
@@ -26,16 +26,16 @@ const CONNECT_ERROR_MAP: Record<string, string> = {
 
 export default function CoupleConnectPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
 
   const [inviteCode, setInviteCode] = useState<InviteCode | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const [partnerCode, setPartnerCode] = useState(
-    searchParams.get("code")?.toUpperCase() ?? ""
-  );
+  const [partnerCode, setPartnerCode] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("code")?.toUpperCase() ?? "";
+  });
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectError, setConnectError] = useState("");
 

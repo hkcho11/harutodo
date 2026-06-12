@@ -16,13 +16,24 @@ import EventList from "@/components/calendar/EventList";
 import EventSheet from "@/components/calendar/EventSheet";
 import type { Event, EventFormValues } from "@/types/event";
 
+function parsePushDate(fallbackDate: string, fallbackYear: number, fallbackMonth: number) {
+  if (typeof window === "undefined") return { date: fallbackDate, year: fallbackYear, month: fallbackMonth };
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("source") !== "push") return { date: fallbackDate, year: fallbackYear, month: fallbackMonth };
+  const raw = params.get("date");
+  if (!raw) return { date: fallbackDate, year: fallbackYear, month: fallbackMonth };
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return { date: fallbackDate, year: fallbackYear, month: fallbackMonth };
+  return { date: raw, year: d.getFullYear(), month: d.getMonth() };
+}
+
 export default function CalendarPage() {
   const today = new Date();
   const todayStr = todayISO();
 
-  const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth()); // 0-based
-  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [viewYear, setViewYear] = useState(() => parsePushDate(todayStr, today.getFullYear(), today.getMonth()).year);
+  const [viewMonth, setViewMonth] = useState(() => parsePushDate(todayStr, today.getFullYear(), today.getMonth()).month); // 0-based
+  const [selectedDate, setSelectedDate] = useState(() => parsePushDate(todayStr, today.getFullYear(), today.getMonth()).date);
 
   const [daySheetOpen, setDaySheetOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -42,17 +53,8 @@ export default function CalendarPage() {
     if (params.get("source") !== "push") return;
     const notificationId = params.get("notification_id");
     const type = params.get("type");
-    const dateParam = params.get("date");
     if (notificationId && type) {
       void trackEvent(me.id, "push_clicked", { notification_id: notificationId, type, source: "push" });
-    }
-    if (dateParam) {
-      const d = new Date(dateParam);
-      if (!isNaN(d.getTime())) {
-        setSelectedDate(dateParam);
-        setViewYear(d.getFullYear());
-        setViewMonth(d.getMonth());
-      }
     }
     const url = new URL(window.location.href);
     url.searchParams.delete("source");
