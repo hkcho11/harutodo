@@ -85,7 +85,6 @@ export default function CalendarPickerSheet({
             month={viewMonth}
             selectedDate={selectedDate}
             todayISO={today}
-            eventsByDate={{}}
             meId={null}
             markedDates={markedDates}
             onSelectDate={handleSelectDate}

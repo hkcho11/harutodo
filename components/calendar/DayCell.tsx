@@ -17,6 +17,7 @@ interface Props {
   meId?: string | null;
   meName?: string | null;
   partnerName?: string | null;
+  barLanes?: number; // 위에 오버레이된 멀티데이 bar 레인 수 → 해당 높이만큼 이벤트 행 아래로 이동
   onClick: () => void;
 }
 
@@ -64,11 +65,15 @@ export default function DayCell({
   meId = null,
   meName = null,
   partnerName = null,
+  barLanes = 0,
   onClick,
 }: Props) {
   const dayNum = date.getDate();
   const visibleEvents = events.slice(0, MAX_VISIBLE);
   const overflowCount = Math.max(0, events.length - MAX_VISIBLE);
+
+  // 멀티데이 bar 레인당 15px(bar 13px + gap 2px) 만큼 이벤트 행 아래로 이동
+  const eventTopOffset = barLanes > 0 ? barLanes * 15 : 0;
 
   return (
     <button
@@ -77,11 +82,11 @@ export default function DayCell({
       aria-label={`${iso}, 일정 ${events.length}개`}
       aria-pressed={isSelected}
       className={cn(
-        "flex h-[76px] w-full flex-col items-center overflow-hidden pt-1.5 transition-colors active:bg-haru-primary-soft/60",
+        "flex h-full w-full flex-col items-center overflow-hidden pt-1.5 transition-colors active:bg-haru-primary-soft/60",
         !inMonth && "opacity-30"
       )}
     >
-      {/* 날짜 숫자 — 오늘=테두리링, 선택=배경채움, 둘 다=링+채움 */}
+      {/* 날짜 숫자 */}
       <span
         className={cn(
           "flex h-6 w-6 items-center justify-center rounded-full text-xs leading-none",
@@ -104,7 +109,10 @@ export default function DayCell({
         <span className="mt-1 h-1 w-1 rounded-full bg-haru-primary" />
       )}
 
-      {/* 이벤트 행 — 최대 2개 */}
+      {/* 멀티데이 bar 영역 확보용 스페이서 */}
+      {eventTopOffset > 0 && <div style={{ height: eventTopOffset }} className="shrink-0" />}
+
+      {/* 단일 이벤트 행 */}
       {visibleEvents.map((event) => (
         <div
           key={event.id}
@@ -122,7 +130,6 @@ export default function DayCell({
         </div>
       ))}
 
-      {/* 오버플로우 */}
       {overflowCount > 0 && (
         <span className="mt-auto pb-0.5 text-[9px] text-haru-muted">
           +{overflowCount}

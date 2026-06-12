@@ -27,7 +27,7 @@ export default function CalendarPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
-  const { eventsByDate, loading, add, update, remove } = useMonthEvents(
+  const { events, eventsByDate, loading, add, update, remove } = useMonthEvents(
     viewYear,
     viewMonth
   );
@@ -126,6 +126,7 @@ export default function CalendarPage() {
         selectedDate={selectedDate}
         todayISO={todayStr}
         eventsByDate={eventsByDate}
+        events={events}
         meId={me?.id ?? null}
         meName={me?.display_name ?? null}
         partnerName={partner?.display_name ?? null}
