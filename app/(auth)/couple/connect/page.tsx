@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { Copy, Check, LogOut } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Copy, Check, LogOut, Share2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/services/authService";
 import Button from "@/components/ui/Button";
@@ -26,13 +26,16 @@ const CONNECT_ERROR_MAP: Record<string, string> = {
 
 export default function CoupleConnectPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
 
   const [inviteCode, setInviteCode] = useState<InviteCode | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const [partnerCode, setPartnerCode] = useState("");
+  const [partnerCode, setPartnerCode] = useState(
+    searchParams.get("code")?.toUpperCase() ?? ""
+  );
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectError, setConnectError] = useState("");
 
@@ -74,12 +77,25 @@ export default function CoupleConnectPage() {
     setInviteCode(data as unknown as InviteCode);
   };
 
-  const copyCode = async () => {
+  const shareCode = async () => {
     if (!inviteCode) return;
-    await navigator.clipboard.writeText(inviteCode.code);
+    const url = `${window.location.origin}/couple/connect?code=${inviteCode.code}`;
+    const text = `하루투두 커플 연결 초대예요 💑\n\n초대 코드: ${inviteCode.code}\n\n아래 링크를 눌러 바로 연결할 수 있어요 👇\n${url}`;
+
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch {
+        // 취소 또는 미지원 시 클립보드로 폴백
+      }
+    }
+    await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const canShare = typeof window !== "undefined" && typeof navigator.share === "function";
 
   const submitCode = async () => {
     const trimmed = partnerCode.trim().toUpperCase();
@@ -168,15 +184,17 @@ export default function CoupleConnectPage() {
                 {inviteCode.code}
               </span>
               <button
-                onClick={copyCode}
+                onClick={shareCode}
                 className="ml-auto flex items-center gap-1.5 rounded-xl bg-haru-primary-soft px-3 py-2 text-sm font-semibold text-haru-text active:scale-95 transition-transform"
               >
                 {copied ? (
                   <Check className="h-4 w-4 text-haru-success" />
+                ) : canShare ? (
+                  <Share2 className="h-4 w-4" />
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
-                {copied ? "복사됨" : "복사"}
+                {copied ? "복사됨" : canShare ? "공유" : "복사"}
               </button>
             </div>
             <p className="mb-4 text-xs text-haru-muted">만료: {expiresLabel}</p>
