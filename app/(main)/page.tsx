@@ -10,6 +10,7 @@ import IndividualSection from "@/components/todo/IndividualSection";
 import TodoSheet from "@/components/todo/TodoSheet";
 import { todayISO, addDays, formatDateNavLabel } from "@/lib/utils/date";
 import CalendarPickerSheet from "@/components/common/CalendarPickerSheet";
+import LoadingScreen from "@/components/common/LoadingScreen";
 import type { Todo } from "@/types/todo";
 
 export default function HomePage() {
@@ -95,6 +96,8 @@ export default function HomePage() {
   const completedCount = todos.filter((t) => t.is_completed).length;
   const allDone = todos.length > 0 && completedCount === todos.length;
 
+  if (loading) return <LoadingScreen />;
+
   return (
     <div className="px-4 py-6 pb-28">
       {/* 날짜 네비게이션 */}
@@ -172,11 +175,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {loading ? (
-        <p className="py-12 text-center text-sm text-haru-muted">
-          불러오는 중...
-        </p>
-      ) : todos.length === 0 ? (
+      {todos.length === 0 ? (
         <div className="rounded-3xl bg-haru-surface p-8 text-center shadow-card">
           <div className="mb-2 text-3xl">🌤️</div>
           <p className="text-sm font-semibold text-haru-text">할 일이 없어요</p>

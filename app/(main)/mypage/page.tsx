@@ -14,6 +14,7 @@ import { useCustomGroups } from "@/hooks/useCustomGroups";
 import { useToastStore } from "@/store/useToastStore";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import LoadingScreen from "@/components/common/LoadingScreen";
 import type { CustomGroup } from "@/types/todo";
 
 export default function MyPage() {
@@ -131,6 +132,8 @@ export default function MyPage() {
 
   const meInitial = me?.display_name?.charAt(0)?.toUpperCase() ?? "?";
   const partnerInitial = partner?.display_name?.charAt(0)?.toUpperCase() ?? "?";
+
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="flex flex-col gap-4 px-4 py-6">

@@ -10,6 +10,7 @@ import { formatDateLabel } from "@/lib/utils/calendar";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import MonthCalendar from "@/components/calendar/MonthCalendar";
 import EventDaySheet from "@/components/calendar/EventDaySheet";
+import LoadingScreen from "@/components/common/LoadingScreen";
 import EventList from "@/components/calendar/EventList";
 import EventSheet from "@/components/calendar/EventSheet";
 import type { Event, EventFormValues } from "@/types/event";
@@ -106,6 +107,8 @@ export default function CalendarPage() {
 
   const selectedEvents = eventsByDate[selectedDate] ?? [];
 
+  if (loading) return <LoadingScreen />;
+
   return (
     <div className="px-4 py-6 pb-28">
       <CalendarHeader
@@ -142,11 +145,7 @@ export default function CalendarPage() {
           )}
         </div>
 
-        {loading ? (
-          <p className="py-8 text-center text-sm text-haru-muted">
-            불러오는 중...
-          </p>
-        ) : selectedEvents.length === 0 ? (
+        {selectedEvents.length === 0 ? (
           <div className="rounded-2xl bg-haru-surface p-6 text-center shadow-card">
             <p className="mb-1 text-2xl">📅</p>
             <p className="text-sm font-semibold text-haru-text">
