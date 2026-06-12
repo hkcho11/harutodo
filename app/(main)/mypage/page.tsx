@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell } from "lucide-react";
 import { signOut } from "@/lib/services/authService";
 import { updateProfile } from "@/lib/services/profileService";
 import { disconnectCouple } from "@/lib/services/coupleService";
@@ -11,11 +11,56 @@ import {
   ERR_GROUP_LIMIT_EXCEEDED,
 } from "@/lib/services/customGroupService";
 import { useCustomGroups } from "@/hooks/useCustomGroups";
+import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import { useToastStore } from "@/store/useToastStore";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import LoadingScreen from "@/components/common/LoadingScreen";
+import { cn } from "@/lib/utils/cn";
 import type { CustomGroup } from "@/types/todo";
+
+function ToggleRow({
+  label,
+  description,
+  checked,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-haru-text">{label}</p>
+        {description && (
+          <p className="mt-0.5 text-xs leading-relaxed text-haru-muted">{description}</p>
+        )}
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        disabled={disabled}
+        className={cn(
+          "relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-40",
+          checked ? "bg-haru-primary" : "bg-haru-border"
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200",
+            checked ? "translate-x-5" : "translate-x-0.5"
+          )}
+        />
+      </button>
+    </div>
+  );
+}
 
 export default function MyPage() {
   const router = useRouter();
@@ -129,6 +174,13 @@ export default function MyPage() {
       setIsDeleting(false);
     }
   };
+
+  const {
+    settings: notifSettings,
+    loading: notifLoading,
+    updating: notifUpdating,
+    update: notifUpdate,
+  } = useNotificationSettings(me?.id);
 
   const meInitial = me?.display_name?.charAt(0)?.toUpperCase() ?? "?";
   const partnerInitial = partner?.display_name?.charAt(0)?.toUpperCase() ?? "?";
@@ -331,6 +383,121 @@ export default function MyPage() {
           >
             <Plus className="h-4 w-4" />새 그룹
           </button>
+        )}
+      </section>
+
+      {/* 알림 설정 */}
+      <section className="overflow-hidden rounded-2xl bg-haru-surface shadow-card">
+        <div className="flex items-center gap-2 border-b border-haru-border px-5 py-4">
+          <Bell className="h-4 w-4 text-haru-muted" />
+          <h2 className="text-sm font-semibold text-haru-text">알림 설정</h2>
+        </div>
+        {notifLoading ? (
+          <p className="px-5 py-4 text-sm text-haru-muted">불러오는 중...</p>
+        ) : !notifSettings ? (
+          <p className="px-5 py-4 text-sm text-haru-muted">설정을 불러오지 못했어요</p>
+        ) : (
+          <div className="divide-y divide-haru-border">
+            {/* 아침 알림 */}
+            <div className="flex flex-col gap-2 px-5 py-4">
+              <ToggleRow
+                label="아침 알림"
+                description="오늘의 할 일·일정 요약을 보내드려요"
+                checked={notifSettings.morning_enabled}
+                onChange={(v) => void notifUpdate({ morning_enabled: v })}
+                disabled={notifUpdating}
+              />
+              {notifSettings.morning_enabled && (
+                <div className="flex items-center gap-2 pl-1">
+                  <label className="text-xs text-haru-muted">알림 시각</label>
+                  <input
+                    type="time"
+                    value={notifSettings.morning_time.slice(0, 5)}
+                    onChange={(e) =>
+                      void notifUpdate({ morning_time: e.target.value })
+                    }
+                    disabled={notifUpdating}
+                    className="rounded-lg border border-haru-border bg-haru-surface px-2 py-1 text-sm text-haru-text outline-none focus:ring-2 focus:ring-haru-primary-soft disabled:opacity-40"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* 일정 알림 */}
+            <div className="flex flex-col gap-2 px-5 py-4">
+              <ToggleRow
+                label="일정 알림"
+                description="일정 시작 전 미리 알려드려요"
+                checked={notifSettings.event_enabled}
+                onChange={(v) => void notifUpdate({ event_enabled: v })}
+                disabled={notifUpdating}
+              />
+              {notifSettings.event_enabled && (
+                <div className="flex items-center gap-2 pl-1">
+                  <label className="text-xs text-haru-muted">미리 알림</label>
+                  <select
+                    value={notifSettings.event_lead_min}
+                    onChange={(e) =>
+                      void notifUpdate({ event_lead_min: Number(e.target.value) })
+                    }
+                    disabled={notifUpdating}
+                    className="rounded-lg border border-haru-border bg-haru-surface px-2 py-1 text-sm text-haru-text outline-none focus:ring-2 focus:ring-haru-primary-soft disabled:opacity-40"
+                  >
+                    <option value={15}>15분 전</option>
+                    <option value={30}>30분 전</option>
+                    <option value={60}>1시간 전</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* 저녁 알림 */}
+            <div className="flex flex-col gap-2 px-5 py-4">
+              <ToggleRow
+                label="저녁 알림"
+                description="남은 할 일을 저녁에 다시 알려드려요"
+                checked={notifSettings.evening_enabled}
+                onChange={(v) => void notifUpdate({ evening_enabled: v })}
+                disabled={notifUpdating}
+              />
+              {notifSettings.evening_enabled && (
+                <div className="flex items-center gap-2 pl-1">
+                  <label className="text-xs text-haru-muted">알림 시각</label>
+                  <input
+                    type="time"
+                    value={notifSettings.evening_time.slice(0, 5)}
+                    onChange={(e) =>
+                      void notifUpdate({ evening_time: e.target.value })
+                    }
+                    disabled={notifUpdating}
+                    className="rounded-lg border border-haru-border bg-haru-surface px-2 py-1 text-sm text-haru-text outline-none focus:ring-2 focus:ring-haru-primary-soft disabled:opacity-40"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* 파트너 할 일 포함 */}
+            <div className="px-5 py-4">
+              <ToggleRow
+                label="파트너 할 일 포함"
+                description="아침·저녁 알림에 파트너 할 일도 포함해요"
+                checked={notifSettings.partner_enabled}
+                onChange={(v) => void notifUpdate({ partner_enabled: v })}
+                disabled={notifUpdating}
+              />
+            </div>
+
+            {/* 내용 표시 */}
+            <div className="px-5 py-4">
+              <ToggleRow
+                label="알림에 내용 표시"
+                description="잠금화면에 일정 제목이 보여요"
+                checked={notifSettings.show_content}
+                onChange={(v) => void notifUpdate({ show_content: v })}
+                disabled={notifUpdating}
+              />
+            </div>
+          </div>
         )}
       </section>
 

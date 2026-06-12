@@ -4,14 +4,15 @@ declare const self: ServiceWorkerGlobalScope;
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;
-  const { title, body, url } = event.data.json() as {
+  const payload = event.data.json() as {
     title: string;
     body: string;
-    url: string;
+    data?: { url?: string };
   };
+  const url = payload.data?.url ?? "/";
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
       icon: "/icons/icon-192x192.png",
       badge: "/icons/icon-192x192.png",
       data: { url },
@@ -26,8 +27,13 @@ self.addEventListener("notificationclick", (event) => {
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((clients) => {
-        const existing = clients.find((c) => c.url.includes(url));
-        if (existing) return existing.focus();
+        // Focus an existing window at the origin and navigate it to the target URL
+        const origin = new URL(self.location.href).origin;
+        const existing = clients.find((c) => new URL(c.url).origin === origin);
+        if (existing) {
+          void existing.navigate(url);
+          return existing.focus();
+        }
         return self.clients.openWindow(url);
       })
   );

@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDateTodos, type TodoFormValues } from "@/hooks/useDateTodos";
 import { useCustomGroups } from "@/hooks/useCustomGroups";
 import { useToastStore } from "@/store/useToastStore";
+import { useCoupleStore } from "@/store/useCoupleStore";
+import { trackEvent } from "@/lib/services/analyticsService";
 import TodoSection from "@/components/todo/TodoSection";
 import IndividualSection from "@/components/todo/IndividualSection";
 import TodoSheet from "@/components/todo/TodoSheet";
@@ -17,6 +19,23 @@ import type { Todo } from "@/types/todo";
 export default function HomePage() {
   const todayStr = todayISO();
   const [selectedDate, setSelectedDate] = useState(todayStr);
+  const me = useCoupleStore((s) => s.me);
+
+  useEffect(() => {
+    if (!me?.id) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("source") !== "push") return;
+    const notificationId = params.get("notification_id");
+    const type = params.get("type");
+    if (notificationId && type) {
+      void trackEvent(me.id, "push_clicked", { notification_id: notificationId, type, source: "push" });
+      const url = new URL(window.location.href);
+      url.searchParams.delete("source");
+      url.searchParams.delete("notification_id");
+      url.searchParams.delete("type");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [me?.id]);
 
   const { todos, loading, add, update, toggle, remove } =
     useDateTodos(selectedDate);

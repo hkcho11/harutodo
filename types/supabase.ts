@@ -182,6 +182,141 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          id: string
+          user_id: string
+          morning_enabled: boolean
+          morning_time: string
+          event_enabled: boolean
+          event_lead_min: number
+          evening_enabled: boolean
+          evening_time: string
+          partner_enabled: boolean
+          show_content: boolean
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          morning_enabled?: boolean
+          morning_time?: string
+          event_enabled?: boolean
+          event_lead_min?: number
+          evening_enabled?: boolean
+          evening_time?: string
+          partner_enabled?: boolean
+          show_content?: boolean
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          morning_enabled?: boolean
+          morning_time?: string
+          event_enabled?: boolean
+          event_lead_min?: number
+          evening_enabled?: boolean
+          evening_time?: string
+          partner_enabled?: boolean
+          show_content?: boolean
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_schedules: {
+        Row: {
+          id: string
+          user_id: string
+          event_id: string
+          scheduled_at: string
+          sent_at: string | null
+          cancelled_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          event_id: string
+          scheduled_at: string
+          sent_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          event_id?: string
+          scheduled_at?: string
+          sent_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      notification_logs: {
+        Row: {
+          id: string
+          user_id: string
+          type: string
+          notification_id: string
+          scheduled_date: string
+          status: string
+          error_message: string | null
+          clicked_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: string
+          notification_id?: string
+          scheduled_date: string
+          status: string
+          error_message?: string | null
+          clicked_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: string
+          notification_id?: string
+          scheduled_date?: string
+          status?: string
+          error_message?: string | null
+          clicked_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      analytics_events: {
+        Row: {
+          id: string
+          user_id: string | null
+          event_name: string
+          properties: Json
+          occurred_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          event_name: string
+          properties?: Json
+          occurred_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          event_name?: string
+          properties?: Json
+          occurred_at?: string
+        }
+        Relationships: []
+      }
       invite_codes: {
         Row: {
           code: string

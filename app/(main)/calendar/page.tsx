@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { useMonthEvents } from "@/hooks/useMonthEvents";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { useToastStore } from "@/store/useToastStore";
+import { trackEvent } from "@/lib/services/analyticsService";
 import { todayISO } from "@/lib/utils/date";
 import { formatDateLabel } from "@/lib/utils/calendar";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
@@ -34,6 +35,32 @@ export default function CalendarPage() {
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
   const showToast = useToastStore((s) => s.show);
+
+  useEffect(() => {
+    if (!me?.id) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("source") !== "push") return;
+    const notificationId = params.get("notification_id");
+    const type = params.get("type");
+    const dateParam = params.get("date");
+    if (notificationId && type) {
+      void trackEvent(me.id, "push_clicked", { notification_id: notificationId, type, source: "push" });
+    }
+    if (dateParam) {
+      const d = new Date(dateParam);
+      if (!isNaN(d.getTime())) {
+        setSelectedDate(dateParam);
+        setViewYear(d.getFullYear());
+        setViewMonth(d.getMonth());
+      }
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.delete("source");
+    url.searchParams.delete("notification_id");
+    url.searchParams.delete("type");
+    url.searchParams.delete("date");
+    window.history.replaceState({}, "", url.toString());
+  }, [me?.id]);
 
   const isCurrentMonth =
     viewYear === today.getFullYear() && viewMonth === today.getMonth();
