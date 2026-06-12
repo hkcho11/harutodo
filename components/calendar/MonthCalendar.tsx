@@ -5,7 +5,6 @@ import { getMonthDays, type DayCell as DayCellData } from "@/lib/utils/calendar"
 import { cn } from "@/lib/utils/cn";
 import DayCell from "./DayCell";
 import type { Event } from "@/types/event";
-import type { NaverCalendarEvent } from "@/types/naver";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const MAX_LANES = 2;
@@ -15,15 +14,6 @@ const DATE_AREA_H = 30;
 
 interface BarLayout {
   event: Event;
-  lane: number;
-  startCol: number;
-  endCol: number;
-  isStart: boolean;
-  isEnd: boolean;
-}
-
-interface NaverBarLayout {
-  event: NaverCalendarEvent;
   lane: number;
   startCol: number;
   endCol: number;
@@ -124,61 +114,12 @@ function computeWeekBars(
   return { bars, overflowByIso };
 }
 
-function computeNaverWeekBars(
-  weekCells: DayCellData[],
-  naverEvents: NaverCalendarEvent[]
-): NaverBarLayout[] {
-  const weekStart = weekCells[0].iso;
-  const weekEnd = weekCells[6].iso;
-
-  const relevant = naverEvents.filter((e) => {
-    const eEnd = e.end_date ?? e.date;
-    return e.date <= weekEnd && eEnd >= weekStart;
-  });
-
-  relevant.sort((a, b) => {
-    const aMulti = a.end_date && a.end_date > a.date ? 1 : 0;
-    const bMulti = b.end_date && b.end_date > b.date ? 1 : 0;
-    if (aMulti !== bMulti) return bMulti - aMulti;
-    return a.date < b.date ? -1 : 1;
-  });
-
-  const bars: NaverBarLayout[] = [];
-  const laneEnd: number[] = [];
-
-  for (const event of relevant) {
-    const eEnd = event.end_date ?? event.date;
-    const rawSc = event.date < weekStart ? 0 : weekCells.findIndex((c) => c.iso === event.date);
-    const rawEc = eEnd > weekEnd ? 6 : weekCells.findIndex((c) => c.iso === eEnd);
-    const sc = rawSc < 0 ? 0 : rawSc;
-    const ec = rawEc < 0 ? 6 : rawEc;
-
-    let lane = laneEnd.findIndex((end) => end < sc);
-    if (lane === -1) lane = laneEnd.length;
-    laneEnd[lane] = ec;
-
-    if (lane < MAX_LANES) {
-      bars.push({
-        event,
-        lane,
-        startCol: sc,
-        endCol: ec,
-        isStart: event.date >= weekStart,
-        isEnd: eEnd <= weekEnd,
-      });
-    }
-  }
-
-  return bars;
-}
-
 interface Props {
   year: number;
   month: number;
   selectedDate: string;
   todayISO: string;
   events?: Event[];
-  naverEvents?: NaverCalendarEvent[];
   meId: string | null;
   meName?: string | null;
   partnerName?: string | null;
@@ -192,7 +133,6 @@ export default function MonthCalendar({
   selectedDate,
   todayISO,
   events,
-  naverEvents,
   meId,
   meName,
   partnerName,
@@ -213,13 +153,6 @@ export default function MonthCalendar({
     }
     return weeks.map((weekCells) => computeWeekBars(weekCells, events));
   }, [weeks, events]);
-
-  const weekNaverBars = useMemo(() => {
-    if (!naverEvents || naverEvents.length === 0) {
-      return weeks.map(() => [] as NaverBarLayout[]);
-    }
-    return weeks.map((weekCells) => computeNaverWeekBars(weekCells, naverEvents));
-  }, [weeks, naverEvents]);
 
   return (
     <div>
@@ -242,7 +175,6 @@ export default function MonthCalendar({
       <div className="flex flex-col">
         {weeks.map((weekCells, weekIdx) => {
           const { bars, overflowByIso } = weekBars[weekIdx];
-          const naverBars = weekNaverBars[weekIdx];
           return (
             <div
               key={weekIdx}
@@ -308,48 +240,6 @@ export default function MonthCalendar({
                       )}
                     </div>
                   ))}
-                </div>
-              )}
-
-              {/* 네이버 이벤트 bar 오버레이 (lane 0만, 정규 bars 아래) */}
-              {naverBars.length > 0 && (
-                <div
-                  className="pointer-events-none absolute inset-x-0 grid grid-cols-7"
-                  style={{
-                    top: DATE_AREA_H + MAX_LANES * (BAR_H + BAR_GAP),
-                    gridTemplateRows: `${BAR_H}px`,
-                  }}
-                >
-                  {naverBars
-                    .filter((b) => b.lane === 0)
-                    .map((bar) => (
-                      <div
-                        key={`naver-${bar.event.id}`}
-                        style={{
-                          gridColumn: `${bar.startCol + 1} / ${bar.endCol + 2}`,
-                          gridRow: 1,
-                        }}
-                        className={cn(
-                          "flex items-center gap-0.5 overflow-hidden bg-green-100 pl-0.5 text-[9px] leading-none",
-                          bar.isStart && bar.isEnd
-                            ? "mx-0.5 rounded-full pr-1"
-                            : bar.isStart
-                            ? "ml-0.5 rounded-l-full"
-                            : bar.isEnd
-                            ? "rounded-r-full pr-1"
-                            : ""
-                        )}
-                      >
-                        {bar.isStart && (
-                          <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-green-500 text-[7px] leading-none text-white">
-                            N
-                          </span>
-                        )}
-                        {bar.isStart && (
-                          <span className="truncate text-green-800">{bar.event.title}</span>
-                        )}
-                      </div>
-                    ))}
                 </div>
               )}
 
