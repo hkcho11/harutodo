@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell } from "lucide-react";
+import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock } from "lucide-react";
+import TimePickerSheet from "@/components/ui/TimePickerSheet";
 import { signOut } from "@/lib/services/authService";
 import { updateProfile } from "@/lib/services/profileService";
 import { disconnectCouple } from "@/lib/services/coupleService";
@@ -53,8 +54,8 @@ function ToggleRow({
       >
         <span
           className={cn(
-            "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200",
-            checked ? "translate-x-5" : "translate-x-0.5"
+            "absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200",
+            checked ? "translate-x-[22px]" : "translate-x-[2px]"
           )}
         />
       </button>
@@ -181,6 +182,8 @@ export default function MyPage() {
     updating: notifUpdating,
     update: notifUpdate,
   } = useNotificationSettings(me?.id);
+
+  const [timePickerTarget, setTimePickerTarget] = useState<"morning" | "evening" | null>(null);
 
   const meInitial = me?.display_name?.charAt(0)?.toUpperCase() ?? "?";
   const partnerInitial = partner?.display_name?.charAt(0)?.toUpperCase() ?? "?";
@@ -410,15 +413,15 @@ export default function MyPage() {
               {notifSettings.morning_enabled && (
                 <div className="flex items-center gap-2 pl-1">
                   <label className="text-xs text-haru-muted">알림 시각</label>
-                  <input
-                    type="time"
-                    value={notifSettings.morning_time.slice(0, 5)}
-                    onChange={(e) =>
-                      void notifUpdate({ morning_time: e.target.value })
-                    }
+                  <button
+                    type="button"
+                    onClick={() => setTimePickerTarget("morning")}
                     disabled={notifUpdating}
-                    className="rounded-lg border border-haru-border bg-haru-surface px-2 py-1 text-sm text-haru-text outline-none focus:ring-2 focus:ring-haru-primary-soft disabled:opacity-40"
-                  />
+                    className="flex items-center gap-1.5 rounded-xl border border-haru-border bg-haru-surface px-3 py-1.5 text-sm text-haru-text active:bg-haru-primary-soft disabled:opacity-40"
+                  >
+                    <Clock className="h-3.5 w-3.5 text-haru-muted" />
+                    {notifSettings.morning_time.slice(0, 5)}
+                  </button>
                 </div>
               )}
             </div>
@@ -463,15 +466,15 @@ export default function MyPage() {
               {notifSettings.evening_enabled && (
                 <div className="flex items-center gap-2 pl-1">
                   <label className="text-xs text-haru-muted">알림 시각</label>
-                  <input
-                    type="time"
-                    value={notifSettings.evening_time.slice(0, 5)}
-                    onChange={(e) =>
-                      void notifUpdate({ evening_time: e.target.value })
-                    }
+                  <button
+                    type="button"
+                    onClick={() => setTimePickerTarget("evening")}
                     disabled={notifUpdating}
-                    className="rounded-lg border border-haru-border bg-haru-surface px-2 py-1 text-sm text-haru-text outline-none focus:ring-2 focus:ring-haru-primary-soft disabled:opacity-40"
-                  />
+                    className="flex items-center gap-1.5 rounded-xl border border-haru-border bg-haru-surface px-3 py-1.5 text-sm text-haru-text active:bg-haru-primary-soft disabled:opacity-40"
+                  >
+                    <Clock className="h-3.5 w-3.5 text-haru-muted" />
+                    {notifSettings.evening_time.slice(0, 5)}
+                  </button>
                 </div>
               )}
             </div>
@@ -538,6 +541,24 @@ export default function MyPage() {
           커플 연결 해제하기
         </button>
       </section>
+
+      {/* 알림 시각 선택 */}
+      <TimePickerSheet
+        open={timePickerTarget !== null}
+        value={
+          timePickerTarget === "morning"
+            ? notifSettings?.morning_time.slice(0, 5) ?? null
+            : notifSettings?.evening_time.slice(0, 5) ?? null
+        }
+        title={timePickerTarget === "morning" ? "아침 알림 시각" : "저녁 알림 시각"}
+        allowClear={false}
+        onConfirm={(v) => {
+          if (!v) return;
+          if (timePickerTarget === "morning") void notifUpdate({ morning_time: v });
+          else void notifUpdate({ evening_time: v });
+        }}
+        onClose={() => setTimePickerTarget(null)}
+      />
 
       {/* 다이얼로그: 커스텀 그룹 삭제 */}
       <ConfirmDialog

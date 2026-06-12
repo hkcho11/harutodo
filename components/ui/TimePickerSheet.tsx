@@ -14,6 +14,7 @@ interface Props {
   open: boolean;
   value: string | null; // "HH:MM" or null
   title: string;
+  allowClear?: boolean; // false면 "종일로" 버튼 숨김 (알림 시각 설정 등)
   onConfirm: (v: string | null) => void;
   onClose: () => void;
 }
@@ -42,6 +43,7 @@ export default function TimePickerSheet({
   open,
   value,
   title,
+  allowClear = true,
   onConfirm,
   onClose,
 }: Props) {
@@ -97,9 +99,11 @@ export default function TimePickerSheet({
 
         {/* 액션 */}
         <div className="flex w-full gap-3">
-          <Button variant="ghost" onClick={handleClear} className="flex-1">
-            종일로
-          </Button>
+          {allowClear && (
+            <Button variant="ghost" onClick={handleClear} className="flex-1">
+              종일로
+            </Button>
+          )}
           <Button onClick={handleConfirm} className="flex-1">
             확인
           </Button>
