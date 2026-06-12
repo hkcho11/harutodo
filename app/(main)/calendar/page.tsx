@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useMonthEvents } from "@/hooks/useMonthEvents";
+import { useNaverCalendar } from "@/hooks/useNaverCalendar";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { useToastStore } from "@/store/useToastStore";
 import { todayISO } from "@/lib/utils/date";
@@ -31,6 +32,7 @@ export default function CalendarPage() {
     viewYear,
     viewMonth
   );
+  const { events: naverEvents } = useNaverCalendar(viewYear, viewMonth);
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
   const showToast = useToastStore((s) => s.show);
@@ -126,6 +128,7 @@ export default function CalendarPage() {
         selectedDate={selectedDate}
         todayISO={todayStr}
         events={events}
+        naverEvents={naverEvents}
         meId={me?.id ?? null}
         meName={me?.display_name ?? null}
         partnerName={partner?.display_name ?? null}

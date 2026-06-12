@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle } from "lucide-react";
 import { signOut } from "@/lib/services/authService";
 import { updateProfile } from "@/lib/services/profileService";
@@ -10,6 +10,7 @@ import {
   MAX_CUSTOM_GROUPS_PER_COUPLE,
   ERR_GROUP_LIMIT_EXCEEDED,
 } from "@/lib/services/customGroupService";
+import { initiateNaverAuth, getNaverConnectionStatus, disconnectNaver } from "@/lib/services/naverService";
 import { useCustomGroups } from "@/hooks/useCustomGroups";
 import { useToastStore } from "@/store/useToastStore";
 import { useCoupleStore } from "@/store/useCoupleStore";
@@ -19,6 +20,7 @@ import type { CustomGroup } from "@/types/todo";
 
 export default function MyPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
   const coupleId = useCoupleStore((s) => s.coupleId);
@@ -86,6 +88,39 @@ export default function MyPage() {
       showToast("연결 해제에 실패했어요. 다시 시도해주세요");
       setIsDisconnecting(false);
       setDisconnectOpen(false);
+    }
+  };
+
+  // 네이버 캘린더 연결
+  const [naverConnected, setNaverConnected] = useState(false);
+  const [isNaverDisconnecting, setIsNaverDisconnecting] = useState(false);
+
+  useEffect(() => {
+    void getNaverConnectionStatus().then(setNaverConnected);
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get("naver") === "connected") {
+      setNaverConnected(true);
+      showToast("네이버 캘린더가 연결됐어요");
+      router.replace("/mypage");
+    }
+    if (searchParams.get("error") === "naver_auth_failed" || searchParams.get("error") === "naver_token_failed") {
+      showToast("네이버 연결에 실패했어요. 다시 시도해주세요");
+      router.replace("/mypage");
+    }
+  }, [searchParams, router, showToast]);
+
+  const handleNaverDisconnect = async () => {
+    setIsNaverDisconnecting(true);
+    try {
+      await disconnectNaver();
+      setNaverConnected(false);
+      showToast("네이버 캘린더 연결을 해제했어요");
+    } catch {
+      showToast("연결 해제에 실패했어요. 다시 시도해주세요");
+    } finally {
+      setIsNaverDisconnecting(false);
     }
   };
 
@@ -330,6 +365,45 @@ export default function MyPage() {
             className="mt-3 flex w-full items-center justify-center gap-1 rounded-xl border border-dashed border-haru-border py-2 text-sm font-medium text-haru-muted active:bg-haru-primary-soft"
           >
             <Plus className="h-4 w-4" />새 그룹
+          </button>
+        )}
+      </section>
+
+      {/* 네이버 캘린더 연동 */}
+      <section className="rounded-2xl bg-haru-surface p-5 shadow-card">
+        <header className="mb-3 flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-haru-text">네이버 캘린더</h2>
+            <p className="mt-0.5 text-xs text-haru-muted">
+              네이버 예약 일정을 캘린더에서 확인해요
+            </p>
+          </div>
+          <span
+            className={
+              naverConnected
+                ? "rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700"
+                : "rounded-full bg-haru-primary-soft px-2.5 py-1 text-xs font-semibold text-haru-muted"
+            }
+          >
+            {naverConnected ? "연결됨" : "미연결"}
+          </span>
+        </header>
+        {naverConnected ? (
+          <button
+            type="button"
+            onClick={() => void handleNaverDisconnect()}
+            disabled={isNaverDisconnecting}
+            className="min-h-[44px] w-full rounded-2xl border border-haru-border py-2.5 text-sm font-medium text-haru-muted active:bg-haru-primary-soft disabled:opacity-40"
+          >
+            {isNaverDisconnecting ? "해제 중..." : "연결 해제"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={initiateNaverAuth}
+            className="min-h-[44px] w-full rounded-2xl bg-[#03C75A] py-2.5 text-sm font-semibold text-white active:opacity-80"
+          >
+            네이버로 연결하기
           </button>
         )}
       </section>
