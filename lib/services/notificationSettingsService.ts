@@ -26,8 +26,15 @@ export async function getNotificationSettings(
     .single();
 
   if (error) {
-    if (error.code === "PGRST116") return null;
-    throw error;
+    if (error.code !== "PGRST116") throw error;
+    // row 없으면 기본값으로 생성 (기존 유저 또는 트리거 누락 시 fallback)
+    const { data: created, error: insertError } = await supabase
+      .from("notification_settings")
+      .insert({ user_id: userId })
+      .select()
+      .single();
+    if (insertError) throw insertError;
+    return created;
   }
   return data;
 }
