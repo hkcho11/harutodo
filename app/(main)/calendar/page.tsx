@@ -125,7 +125,6 @@ export default function CalendarPage() {
         month={viewMonth}
         selectedDate={selectedDate}
         todayISO={todayStr}
-        eventsByDate={eventsByDate}
         events={events}
         meId={me?.id ?? null}
         meName={me?.display_name ?? null}
