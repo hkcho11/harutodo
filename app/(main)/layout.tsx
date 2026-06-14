@@ -40,10 +40,11 @@ export default async function MainLayout({
   const me = profiles?.find((p) => p.id === user.id) ?? null;
   const partner = profiles?.find((p) => p.id === partnerId) ?? null;
 
-  // 내 프로필이 없으면 계정이 삭제된 것 — 세션을 만료시키고 로그인으로 보낸다.
+  // 내 프로필이 없으면 계정이 삭제된 것 — Route Handler를 통해 세션 쿠키를 만료시킨다.
+  // Server Component에서 직접 signOut()을 호출하면 Set-Cookie 헤더가 응답에 포함되지 않아
+  // 브라우저 쿠키가 실제로 지워지지 않는다.
   if (!me) {
-    await supabase.auth.signOut();
-    redirect("/login");
+    redirect("/api/auth/signout");
   }
   if (!partner) {
     return <ProfileErrorScreen missing="partner" />;
