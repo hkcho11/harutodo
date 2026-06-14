@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDateTodos, type TodoFormValues } from "@/hooks/useDateTodos";
 import { useCustomGroups } from "@/hooks/useCustomGroups";
@@ -116,10 +116,23 @@ export default function HomePage() {
   const completedCount = todos.filter((t) => t.is_completed).length;
   const allDone = todos.length > 0 && completedCount === todos.length;
 
+  const swipeStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    swipeStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (swipeStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - swipeStartX.current;
+    swipeStartX.current = null;
+    if (Math.abs(dx) < 50) return;
+    if (dx < 0) goNext();
+    else goPrev();
+  };
+
   if (loading) return <LoadingScreen />;
 
   return (
-    <div className="pb-28">
+    <div className="pb-28" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <PushBanner />
       <div className="px-4 py-6">
       {/* 날짜 네비게이션 */}
@@ -145,6 +158,7 @@ export default function HomePage() {
                 {formatDateNavLabel(selectedDate)}
               </h1>
             </button>
+            <p className="-mt-1 mb-1 text-xs text-haru-muted">탭하면 날짜를 선택할 수 있어요</p>
             {isToday ? (
               <span className="rounded-full bg-haru-primary px-3 py-0.5 text-xs font-semibold text-haru-text">
                 오늘
