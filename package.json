@@ -10,7 +10,10 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "npm run lint && npm run type-check && npm run test && npm run build"
+    "verify": "npm run lint && npm run type-check && npm run test && npm run build",
+    "db:link:dev": "supabase link --project-ref ufktbteicipsjzoqqbat",
+    "db:link:prod": "supabase link --project-ref eefgpaqjdhgsqljknsfp",
+    "db:push": "supabase db push --linked --yes"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10",

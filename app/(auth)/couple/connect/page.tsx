@@ -32,10 +32,7 @@ export default function CoupleConnectPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const [partnerCode, setPartnerCode] = useState(() => {
-    if (typeof window === "undefined") return "";
-    return new URLSearchParams(window.location.search).get("code")?.toUpperCase() ?? "";
-  });
+  const [partnerCode, setPartnerCode] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectError, setConnectError] = useState("");
 
@@ -52,6 +49,11 @@ export default function CoupleConnectPage() {
       setIsLoggingOut(false);
     }
   };
+
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("code")?.toUpperCase() ?? "";
+    if (code) setPartnerCode(code);
+  }, []);
 
   useEffect(() => {
     const checkCouple = async () => {
@@ -79,7 +81,8 @@ export default function CoupleConnectPage() {
 
   const shareCode = async () => {
     if (!inviteCode) return;
-    const url = `${window.location.origin}/couple/connect?code=${inviteCode.code}`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
+    const url = `${appUrl}/couple/connect?code=${inviteCode.code}`;
     const text = `하루투두 커플 연결 초대예요 💑\n\n초대 코드: ${inviteCode.code}\n\n아래 링크를 눌러 바로 연결할 수 있어요 👇\n${url}`;
 
     if (typeof navigator.share === "function") {

@@ -4,7 +4,7 @@
 
 -- ── Extensions ──────────────────────────────────────────────
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- uuid-ossp not needed; using gen_random_uuid() (PG13+ built-in)
 
 -- ── 공통 트리거: updated_at 자동 갱신 ───────────────────────
 
@@ -28,7 +28,7 @@ CREATE TABLE profiles (
 
 -- couples: 커플 연결
 CREATE TABLE couples (
-  id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user1_id   UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   user2_id   UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -38,7 +38,7 @@ CREATE TABLE couples (
 
 -- invite_codes: 초대 코드 (24시간 유효)
 CREATE TABLE invite_codes (
-  id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   code       TEXT        NOT NULL UNIQUE,
   expires_at TIMESTAMPTZ NOT NULL,
@@ -54,7 +54,7 @@ CREATE TYPE todo_group AS ENUM ('together', 'individual', 'other', 'custom');
 
 -- custom_groups: 커스텀 투두 그룹
 CREATE TABLE custom_groups (
-  id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   couple_id  UUID        NOT NULL REFERENCES couples(id) ON DELETE CASCADE,
   created_by UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   name       TEXT        NOT NULL,
@@ -65,7 +65,7 @@ CREATE INDEX custom_groups_couple_id_idx ON custom_groups(couple_id);
 
 -- todo_items: 투두
 CREATE TABLE todo_items (
-  id              UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   couple_id       UUID        NOT NULL REFERENCES couples(id) ON DELETE CASCADE,
   user_id         UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   title           TEXT        NOT NULL,

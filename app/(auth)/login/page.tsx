@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,21 +27,25 @@ export default function LoginPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
   const [isNavigating, setIsNavigating] = useState(false);
-  const [rememberEmail, setRememberEmail] = useState(
-    () => typeof window !== "undefined" && !!localStorage.getItem(REMEMBER_KEY)
-  );
+  const [rememberEmail, setRememberEmail] = useState(false);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      email: typeof window !== "undefined" ? (localStorage.getItem(REMEMBER_KEY) ?? "") : "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
+
+  useEffect(() => {
+    const saved = localStorage.getItem(REMEMBER_KEY);
+    if (saved) {
+      setRememberEmail(true);
+      setValue("email", saved);
+    }
+  }, [setValue]);
 
   const onSubmit = async (values: FormValues) => {
     setServerError("");

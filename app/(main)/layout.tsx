@@ -40,10 +40,10 @@ export default async function MainLayout({
   const me = profiles?.find((p) => p.id === user.id) ?? null;
   const partner = profiles?.find((p) => p.id === partnerId) ?? null;
 
-  // 프로필 누락은 데이터 오류 — /couple/connect로 보내면 핑퐁 루프가 발생하므로
-  // 인라인 에러 화면을 렌더링한다.
+  // 내 프로필이 없으면 계정이 삭제된 것 — 세션을 만료시키고 로그인으로 보낸다.
   if (!me) {
-    return <ProfileErrorScreen missing="me" />;
+    await supabase.auth.signOut();
+    redirect("/login");
   }
   if (!partner) {
     return <ProfileErrorScreen missing="partner" />;

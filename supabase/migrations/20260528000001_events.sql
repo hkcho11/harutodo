@@ -5,7 +5,7 @@
 -- 둘을 한 테이블에 섞지 않고 분리한다.
 
 CREATE TABLE events (
-  id          UUID         PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   couple_id   UUID         NOT NULL REFERENCES couples(id) ON DELETE CASCADE,
   created_by  UUID         NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   assignee_id UUID         REFERENCES profiles(id) ON DELETE SET NULL, -- null = 함께

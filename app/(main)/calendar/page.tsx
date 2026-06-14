@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { useMonthEvents } from "@/hooks/useMonthEvents";
 import { useCoupleStore } from "@/store/useCoupleStore";
@@ -136,30 +136,45 @@ export default function CalendarPage() {
 
   const selectedEvents = eventsByDate[selectedDate] ?? [];
 
+  const swipeStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    swipeStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (swipeStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - swipeStartX.current;
+    swipeStartX.current = null;
+    if (Math.abs(dx) < 50) return;
+    if (dx < 0) handleNext();
+    else handlePrev();
+  };
+
   if (loading) return <LoadingScreen />;
 
   return (
     <div className="px-4 py-6 pb-28">
-      <CalendarHeader
-        year={viewYear}
-        month={viewMonth}
-        isCurrentMonth={isCurrentMonth}
-        onPrev={handlePrev}
-        onNext={handleNext}
-        onToday={handleToday}
-      />
+      <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        <CalendarHeader
+          year={viewYear}
+          month={viewMonth}
+          isCurrentMonth={isCurrentMonth}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onToday={handleToday}
+        />
 
-      <MonthCalendar
-        year={viewYear}
-        month={viewMonth}
-        selectedDate={selectedDate}
-        todayISO={todayStr}
-        events={events}
-        meId={me?.id ?? null}
-        meName={me?.display_name ?? null}
-        partnerName={partner?.display_name ?? null}
-        onSelectDate={handleSelectDate}
-      />
+        <MonthCalendar
+          year={viewYear}
+          month={viewMonth}
+          selectedDate={selectedDate}
+          todayISO={todayStr}
+          events={events}
+          meId={me?.id ?? null}
+          meName={me?.display_name ?? null}
+          partnerName={partner?.display_name ?? null}
+          onSelectDate={handleSelectDate}
+        />
+      </div>
 
       {/* 선택 날짜 섹션 */}
       <section className="mt-5">
