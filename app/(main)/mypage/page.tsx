@@ -8,6 +8,7 @@ import OptionSheet from "@/components/common/OptionSheet";
 import { signOut } from "@/lib/services/authService";
 import { updateProfile } from "@/lib/services/profileService";
 import { disconnectCouple } from "@/lib/services/coupleService";
+import { subscribePush } from "@/lib/services/pushService";
 import {
   MAX_CUSTOM_GROUPS_PER_COUPLE,
   ERR_GROUP_LIMIT_EXCEEDED,
@@ -186,6 +187,25 @@ export default function MyPage() {
 
   const [timePickerTarget, setTimePickerTarget] = useState<"morning" | "evening" | null>(null);
   const [leadMinPickerOpen, setLeadMinPickerOpen] = useState(false);
+
+  // M1: Push 권한 상태
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | "unavailable">(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return "unavailable";
+    return Notification.permission;
+  });
+
+  const handleRequestPush = async () => {
+    if (!me?.id) return;
+    const ok = await subscribePush(me.id);
+    setPushPermission(typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unavailable");
+    if (ok) showToast("이 기기에서 알림이 허용됐어요");
+    else showToast("알림 허용이 필요해요");
+  };
+
+  // M2: 설정 저장 실패 toast
+  const saveNotif = (patch: Parameters<typeof notifUpdate>[0]) => {
+    notifUpdate(patch).catch(() => showToast("알림 설정 저장에 실패했어요. 다시 시도해주세요"));
+  };
 
   const LEAD_MIN_OPTIONS: { label: string; value: number }[] = [
     { label: "15분 전", value: 15 },
@@ -403,6 +423,31 @@ export default function MyPage() {
           <Bell className="h-4 w-4 text-haru-muted" />
           <h2 className="text-sm font-semibold text-haru-text">알림 설정</h2>
         </div>
+
+        {/* M1: Push 권한 상태 배너 */}
+        {pushPermission === "denied" && (
+          <div className="flex items-start gap-2 border-b border-haru-border bg-haru-danger/5 px-5 py-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-haru-danger" />
+            <p className="text-xs leading-relaxed text-haru-danger">
+              이 기기에서 알림이 차단됐어요. 브라우저 설정에서 알림을 허용해주세요.
+            </p>
+          </div>
+        )}
+        {pushPermission === "default" && (
+          <div className="flex items-center justify-between gap-3 border-b border-haru-border bg-haru-primary-soft/50 px-5 py-3">
+            <p className="text-xs leading-relaxed text-haru-text">
+              알림을 받으려면 이 기기에서 허용이 필요해요
+            </p>
+            <button
+              type="button"
+              onClick={() => void handleRequestPush()}
+              className="shrink-0 rounded-xl bg-haru-primary px-3 py-1.5 text-xs font-semibold text-haru-text active:bg-haru-primary-active"
+            >
+              허용
+            </button>
+          </div>
+        )}
+
         {notifLoading ? (
           <p className="px-5 py-4 text-sm text-haru-muted">불러오는 중...</p>
         ) : !notifSettings ? (
@@ -415,7 +460,7 @@ export default function MyPage() {
                 label="아침 알림"
                 description="오늘의 할 일·일정 요약을 보내드려요"
                 checked={notifSettings.morning_enabled}
-                onChange={(v) => void notifUpdate({ morning_enabled: v })}
+                onChange={(v) => saveNotif({ morning_enabled: v })}
                 disabled={notifUpdating}
               />
               {notifSettings.morning_enabled && (
@@ -440,7 +485,7 @@ export default function MyPage() {
                 label="일정 알림"
                 description="일정 시작 전 미리 알려드려요"
                 checked={notifSettings.event_enabled}
-                onChange={(v) => void notifUpdate({ event_enabled: v })}
+                onChange={(v) => saveNotif({ event_enabled: v })}
                 disabled={notifUpdating}
               />
               {notifSettings.event_enabled && (
@@ -464,7 +509,7 @@ export default function MyPage() {
                 label="저녁 알림"
                 description="남은 할 일을 저녁에 다시 알려드려요"
                 checked={notifSettings.evening_enabled}
-                onChange={(v) => void notifUpdate({ evening_enabled: v })}
+                onChange={(v) => saveNotif({ evening_enabled: v })}
                 disabled={notifUpdating}
               />
               {notifSettings.evening_enabled && (
@@ -483,13 +528,13 @@ export default function MyPage() {
               )}
             </div>
 
-            {/* 파트너 할 일 포함 */}
+            {/* 파트너 활동 알림 */}
             <div className="px-5 py-4">
               <ToggleRow
-                label="파트너 할 일 포함"
-                description="아침·저녁 알림에 파트너 할 일도 포함해요"
+                label="파트너 활동 알림"
+                description="파트너가 할 일·일정을 추가·수정하면 알려드려요"
                 checked={notifSettings.partner_enabled}
-                onChange={(v) => void notifUpdate({ partner_enabled: v })}
+                onChange={(v) => saveNotif({ partner_enabled: v })}
                 disabled={notifUpdating}
               />
             </div>
@@ -498,9 +543,9 @@ export default function MyPage() {
             <div className="px-5 py-4">
               <ToggleRow
                 label="알림에 내용 표시"
-                description="잠금화면에 일정 제목이 보여요"
+                description="잠금화면에 일정·할 일 제목이 보여요"
                 checked={notifSettings.show_content}
-                onChange={(v) => void notifUpdate({ show_content: v })}
+                onChange={(v) => saveNotif({ show_content: v })}
                 disabled={notifUpdating}
               />
             </div>
@@ -552,7 +597,7 @@ export default function MyPage() {
         title="미리 알림"
         options={LEAD_MIN_OPTIONS}
         value={notifSettings?.event_lead_min ?? 30}
-        onSelect={(v) => void notifUpdate({ event_lead_min: v })}
+        onSelect={(v) => saveNotif({ event_lead_min: v })}
         onClose={() => setLeadMinPickerOpen(false)}
       />
 
@@ -568,8 +613,8 @@ export default function MyPage() {
         allowClear={false}
         onConfirm={(v) => {
           if (!v) return;
-          if (timePickerTarget === "morning") void notifUpdate({ morning_time: v });
-          else void notifUpdate({ evening_time: v });
+          if (timePickerTarget === "morning") saveNotif({ morning_time: v });
+          else saveNotif({ evening_time: v });
         }}
         onClose={() => setTimePickerTarget(null)}
       />

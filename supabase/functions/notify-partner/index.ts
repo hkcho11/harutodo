@@ -43,17 +43,71 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // C3: JWT 검증 — Authorization 헤더에서 토큰 추출
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const jwt = authHeader.slice(7);
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // 호출자 신원 확인
+    const { data: { user: caller }, error: authError } = await supabase.auth.getUser(jwt);
+    if (authError || !caller) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const body: NotifyPayload = await req.json();
     const { partner_id, actor_name, action, entity_type, entity_title } = body;
+
+    // C3: 커플 관계 검증 — caller와 partner_id가 실제 커플인지 확인
+    const { data: coupleRow } = await supabase
+      .from("couples")
+      .select("id")
+      .or(
+        `and(user1_id.eq.${caller.id},user2_id.eq.${partner_id}),and(user1_id.eq.${partner_id},user2_id.eq.${caller.id})`
+      )
+      .maybeSingle();
+
+    if (!coupleRow) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // C2: 수신자 알림 설정 확인
+    const { data: recipientSettings } = await supabase
+      .from("notification_settings")
+      .select("partner_enabled, show_content")
+      .eq("user_id", partner_id)
+      .maybeSingle();
+
+    // partner_enabled false면 발송 스킵
+    if (recipientSettings && !recipientSettings.partner_enabled) {
+      return new Response(
+        JSON.stringify({ sent: 0, reason: "partner_disabled" }),
+        { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+      );
+    }
 
     const notifTitle = actor_name;
     const entityLabel = ENTITY_LABEL[entity_type] ?? "항목을";
     const actionLabel = ACTION_LABEL[action] ?? "변경했어요";
-    const notifBody = entity_title
+
+    // C2: show_content false면 entity_title 숨김
+    const showContent = recipientSettings?.show_content ?? false;
+    const notifBody = (showContent && entity_title)
       ? `${entityLabel} ${actionLabel} — ${entity_title}`
       : `${entityLabel} ${actionLabel}`;
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const { data: subs } = await supabase
       .from("push_subscriptions")
       .select("subscription")
@@ -65,10 +119,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    // M3: data.url 형식 (Service Worker와 일치)
     const payload = JSON.stringify({
       title: notifTitle,
       body: notifBody,
-      url: entity_type === "event" ? "/calendar" : "/",
+      data: {
+        url: entity_type === "event" ? "/calendar" : "/",
+      },
     });
 
     const results = await Promise.allSettled(
