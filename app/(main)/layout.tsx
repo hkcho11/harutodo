@@ -19,6 +19,18 @@ export default async function MainLayout({
     redirect("/login");
   }
 
+  // 내 프로필 먼저 확인 — 계정이 삭제된 경우 couples보다 먼저 잡아야 한다.
+  // (couples는 profiles ON DELETE CASCADE로 함께 삭제되므로 !couple이 먼저 걸려버림)
+  const { data: myProfile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!myProfile) {
+    redirect("/api/auth/signout");
+  }
+
   const { data: couple } = await supabase
     .from("couples")
     .select("id, user1_id, user2_id")
@@ -32,26 +44,18 @@ export default async function MainLayout({
   const partnerId =
     couple.user1_id === user.id ? couple.user2_id : couple.user1_id;
 
-  const { data: profiles } = await supabase
+  const { data: partnerProfile } = await supabase
     .from("profiles")
     .select("*")
-    .in("id", [user.id, partnerId]);
+    .eq("id", partnerId)
+    .maybeSingle();
 
-  const me = profiles?.find((p) => p.id === user.id) ?? null;
-  const partner = profiles?.find((p) => p.id === partnerId) ?? null;
-
-  // 내 프로필이 없으면 계정이 삭제된 것 — Route Handler를 통해 세션 쿠키를 만료시킨다.
-  // Server Component에서 직접 signOut()을 호출하면 Set-Cookie 헤더가 응답에 포함되지 않아
-  // 브라우저 쿠키가 실제로 지워지지 않는다.
-  if (!me) {
-    redirect("/api/auth/signout");
-  }
-  if (!partner) {
+  if (!partnerProfile) {
     return <ProfileErrorScreen missing="partner" />;
   }
 
   return (
-    <CoupleProvider coupleId={couple.id} me={me} partner={partner}>
+    <CoupleProvider coupleId={couple.id} me={myProfile} partner={partnerProfile}>
       <div className="flex flex-col min-h-dvh">
         <main className="flex-1 overflow-y-auto pb-[calc(56px+env(safe-area-inset-bottom,0px))]">
           {children}
