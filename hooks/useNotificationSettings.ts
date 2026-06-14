@@ -19,19 +19,18 @@ export function useNotificationSettings(
   userId: string | undefined
 ): UseNotificationSettingsResult {
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
-  const [loading, setLoading] = useState(true);
+  // fetchedForUserId: 마지막으로 fetch 완료된 userId — loading을 동기 setState 없이 도출
+  const [fetchedForUserId, setFetchedForUserId] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
 
+  const loading = !!userId && fetchedForUserId !== userId;
+
   useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
+    if (!userId) return;
     getNotificationSettings(userId)
       .then(setSettings)
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => setFetchedForUserId(userId));
   }, [userId]);
 
   const update = useCallback(

@@ -8,28 +8,26 @@ const DISMISSED_KEY = "harutodo_push_dismissed";
 
 export type PushState = "idle" | "prompt" | "granted" | "denied";
 
+function getInitialPushState(): PushState {
+  if (typeof window === "undefined") return "idle";
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) return "denied";
+  const perm = Notification.permission;
+  if (perm === "granted") return "granted";
+  if (perm === "denied") return "denied";
+  return localStorage.getItem(DISMISSED_KEY) ? "idle" : "prompt";
+}
+
 export function usePushSubscription() {
   const me = useCoupleStore((s) => s.me);
-  const [state, setState] = useState<PushState>("idle");
+  const [state, setState] = useState<PushState>(() => getInitialPushState());
 
+  // 이미 권한이 있는 경우 me 로드 시 구독 등록
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
-      setState("denied");
-      return;
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+    if (Notification.permission === "granted" && me) {
+      void subscribePush(me.id);
     }
-    const perm = Notification.permission;
-    if (perm === "granted") {
-      setState("granted");
-      if (me) void subscribePush(me.id);
-      return;
-    }
-    if (perm === "denied") {
-      setState("denied");
-      return;
-    }
-    const dismissed = localStorage.getItem(DISMISSED_KEY);
-    if (!dismissed) setState("prompt");
   }, [me]);
 
   const requestPermission = async () => {

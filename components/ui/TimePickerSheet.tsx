@@ -56,7 +56,6 @@ export default function TimePickerSheet({
     const { h, m } = parseTime(value);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setHour(h);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMinute(m);
   }, [open, value]);
 

@@ -59,9 +59,7 @@ export default function DatePickerSheet({ open, selectedDate, onSelect, onClose 
     const { y, m, d } = parseDate(selectedDate);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setYear(y);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMonth(m);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDay(d);
   }, [open, selectedDate]);
 

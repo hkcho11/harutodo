@@ -38,7 +38,6 @@ export default function CalendarPickerSheet({
     const [y, m] = selectedDate.split("-");
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setViewYear(parseInt(y));
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setViewMonth(parseInt(m) - 1);
   }, [open, selectedDate]);
 

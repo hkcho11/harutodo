@@ -174,6 +174,7 @@ export function useMonthEvents(year: number, month: number) {
 
       // end_date 컬럼 미존재 시 해당 필드 제거 후 재시도
       if (isEndDateMissing(error)) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { end_date: _, ...payloadWithoutEndDate } = insertPayload;
         ({ data, error } = await supabase
           .from("events")
@@ -223,6 +224,7 @@ export function useMonthEvents(year: number, month: number) {
 
       // end_date 컬럼 미존재 시 해당 필드 제거 후 재시도
       if (isEndDateMissing(error)) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { end_date: _, ...inputWithoutEndDate } = input;
         ({ error } = await supabase
           .from("events")
