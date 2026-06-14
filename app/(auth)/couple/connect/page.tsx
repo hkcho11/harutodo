@@ -52,6 +52,7 @@ export default function CoupleConnectPage() {
 
   useEffect(() => {
     const code = new URLSearchParams(window.location.search).get("code")?.toUpperCase() ?? "";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (code) setPartnerCode(code);
   }, []);
 
