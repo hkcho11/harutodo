@@ -1,5 +1,6 @@
 "use client";
 
+import { MapPin } from "lucide-react";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { cn } from "@/lib/utils/cn";
 import { formatEventTimeRange } from "@/lib/utils/event";
@@ -66,6 +67,12 @@ export default function EventList({ events, onItemClick }: Props) {
               <p className="truncate text-sm font-semibold text-haru-text">
                 {e.title}
               </p>
+              {e.location_name && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <MapPin className="h-3 w-3 shrink-0 text-haru-muted" />
+                  <span className="truncate text-xs text-haru-muted">{e.location_name}</span>
+                </div>
+              )}
             </div>
           </button>
         );
