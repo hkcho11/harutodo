@@ -12,15 +12,16 @@
 - 플랫폼: iOS Safari, Android Chrome (PWA)
 - 방향: 커플 감성보다 실용적인 공유 투두/캘린더 경험
 
-## 기능 (MVP)
+## 기능
 
 - **투두 관리** — 제목, 날짜, 담당자, 그룹별 분류, 완료 체크
-- **투두 그룹** — 함께 할 일 / 사람별 할 일 / 그 외 할 일 / 커스텀 그룹
-- **홈** — 오늘의 투두 리스트
-- **캘린더** — 월간 캘린더, 날짜별 투두 확인
+- **투두 그룹** — 함께 할 일 / 사람별 할 일 / 그 외 할 일 / 커스텀 그룹 (최대 5개)
+- **홈** — 날짜별 투두 리스트, 스와이프 날짜 이동
+- **캘린더** — 월간 캘린더, 날짜별 일정 확인, 스와이프 월 이동
 - **커플 연결** — 초대 코드 방식
 - **실시간 동기화** — Supabase Realtime
 - **PWA** — 홈화면 추가, 오프라인 캐시
+- **푸시 알림** — 아침 요약 / 저녁 리마인더 / 일정 리마인더 / 파트너 알림
 
 ## 기술 스택
 
@@ -122,6 +123,6 @@ npx supabase gen types typescript --project-id <project-id> > types/supabase.ts
 
 | 문서 | 내용 |
 |---|---|
-| [CLAUDE.md](./CLAUDE.md) | Claude Code 페르소나, MVP 범위, 작업 방식 |
+| [CLAUDE.md](./CLAUDE.md) | Claude Code 페르소나, 제품 기능 현황, 작업 방식, 완료 정의 |
 | [AGENTS.md](./AGENTS.md) | 에이전트 협업 방식, Codex 리뷰 반영 규칙 |
 | [PROJECT_RULES.md](./PROJECT_RULES.md) | 기술 스택, 폴더 구조, 네이밍, PWA/모바일 기준 |

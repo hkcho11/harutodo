@@ -5,7 +5,16 @@
 현재 구현 범위는 인증, 커플 연결, 오늘 할 일, 월간 캘린더, 마이페이지, 투두/일정 입력 시트, 기본 Realtime/서비스 계층을 전제로 정리했다.
 각 항목은 제품 검증에 필요한 순서대로 배치했으며, 실제 구현 전에는 Claude Code가 현재 코드 상태를 다시 확인해야 한다.
 
-## P0: MVP 안정화
+## P0: 즉각 해소 필요
+
+### 0. ESLint 에러 해소
+
+- 목적: `npm run lint` 에러 0 상태로 만들어 CI 도입 기반을 마련한다.
+- 범위: `supabase/functions/`를 `.eslintignore`에 추가 (Deno 런타임은 Next.js ESLint 범위 제외) + hooks 3개 파일 `eslint-disable-next-line` 처리 + 경고 7건 정리.
+- 검수 기준: `npm run lint` 실행 시 에러 0, 신규 경고 추가 없음.
+- 의존성: `engineering-harness-phase1` 문서 참조. 코드 변경 최소.
+
+
 
 ### 1. 핵심 플로우 수동 검수 체크리스트 정착
 

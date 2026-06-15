@@ -376,7 +376,7 @@ export type TodoUpdateInput = Partial<TodoCreateInput> & {
 4. `createPortal(document.body)`에 의존하는 컴포넌트(`BottomSheet`, `ConfirmDialog`, `ToastContainer`)는 향후 RN의 `Modal`로 교체 가능하도록 **props 인터페이스를 안정 유지**한다.
 5. 라우팅·세션 가드처럼 Next 의존이 불가피한 로직도, 그 내부에서 호출하는 도메인 로직은 service로 분리해 RN의 라우터 가드에서 동일 함수를 재사용할 수 있게 한다.
 
-### MVP 단계의 점진 적용 전략
+### 점진 적용 전략
 
 전체 마이그레이션은 한 번에 하지 않는다. **새 기능 / 손대는 파일부터 service 패턴으로 옮기는 방식**으로 점진 적용.
 
@@ -435,7 +435,7 @@ UI 작업은 단순히 "동작하는 화면"을 만드는 것이 아니라, 모�
 
 ## 인증/권한 규칙
 
-- 인증은 Supabase Auth(이메일/비밀번호) 기반. 소셜 로그인은 비 MVP.
+- 인증은 Supabase Auth(이메일/비밀번호) 기반. 소셜 로그인은 Product Growth 로드맵.
 - 게이트 책임 분리:
   - **미들웨어**: 세션(`getUser()`) 유무만 검사. 무거운 DB 조회 금지.
   - **`(main)/layout.tsx`**: 커플 멤버십 검사. 미연결 시 `/couple/connect`로 리다이렉트.
@@ -460,5 +460,7 @@ UI 작업은 단순히 "동작하는 화면"을 만드는 것이 아니라, 모�
 - 투두 CRUD 전체 플로우 수동 검수 (생성 → 완료 체크 → 수정 → 삭제)
 - 커플 공유 실시간 동기화: 2개 탭(또는 2개 디바이스)으로 확인
 - 초대 코드 플로우 수동 검수 (코드 생성 → 입력 → 연결 확인)
-- TypeScript 컴파일 에러 0개 유지 (`tsc --noEmit` 통과)
+- 타입 오류 0개 유지 (`npm run type-check` 통과)
+- 린트 에러 0개 유지 (`npm run lint` 통과)
+- 빌드 성공 확인 (`npm run build` — 푸시 전 필수)
 - Lighthouse PWA 점수 90+ (주요 릴리즈 기준)

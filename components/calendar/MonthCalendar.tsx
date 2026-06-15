@@ -71,12 +71,15 @@ function computeWeekBars(
     return e.date <= weekEnd && eEnd >= weekStart;
   });
 
-  // 다일 이벤트 우선, 같으면 시작일 빠른 순
+  // 주 내 실제 시작 열 기준 정렬 (이전 주에서 이어지는 일정은 모두 sc=0으로 동일)
+  // 같은 시작 열이면 긴 일정 우선 (더 긴 bar가 위 lane 차지)
   relevant.sort((a, b) => {
-    const aMulti = a.end_date && a.end_date > a.date ? 1 : 0;
-    const bMulti = b.end_date && b.end_date > b.date ? 1 : 0;
-    if (aMulti !== bMulti) return bMulti - aMulti;
-    return a.date < b.date ? -1 : 1;
+    const aSc = a.date < weekStart ? weekStart : a.date;
+    const bSc = b.date < weekStart ? weekStart : b.date;
+    if (aSc !== bSc) return aSc < bSc ? -1 : 1;
+    const aEnd = (a.end_date ?? a.date) > weekEnd ? weekEnd : (a.end_date ?? a.date);
+    const bEnd = (b.end_date ?? b.date) > weekEnd ? weekEnd : (b.end_date ?? b.date);
+    return aEnd > bEnd ? -1 : aEnd < bEnd ? 1 : 0;
   });
 
   const bars: BarLayout[] = [];
