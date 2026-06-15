@@ -162,6 +162,7 @@ export function useMonthEvents(year: number, month: number) {
       };
       if (overlaps) setEvents((prev) => [...prev, optimistic]);
 
+      // location 컬럼은 마이그레이션 적용 전 환경을 위해 값이 있을 때만 포함
       const insertPayload = {
         couple_id: coupleId,
         created_by: me.id,
@@ -171,13 +172,15 @@ export function useMonthEvents(year: number, month: number) {
         end_date: input.end_date ?? null,
         start_time: input.start_time,
         end_time: input.end_time,
-        location_name: input.location_name ?? null,
-        location_address: input.location_address ?? null,
-        location_latitude: input.location_latitude ?? null,
-        location_longitude: input.location_longitude ?? null,
-        location_provider: input.location_provider ?? null,
-        location_provider_id: input.location_provider_id ?? null,
-        location_url: input.location_url ?? null,
+        ...(input.location_name != null && {
+          location_name: input.location_name,
+          location_address: input.location_address ?? null,
+          location_latitude: input.location_latitude ?? null,
+          location_longitude: input.location_longitude ?? null,
+          location_provider: input.location_provider ?? null,
+          location_provider_id: input.location_provider_id ?? null,
+          location_url: input.location_url ?? null,
+        }),
       };
 
       let { data, error } = await supabase
@@ -230,16 +233,35 @@ export function useMonthEvents(year: number, month: number) {
         cur.map((e) => (e.id === id ? { ...e, ...input } : e))
       );
 
+      // location 컬럼은 마이그레이션 적용 전 환경을 위해 값이 있을 때만 포함
+      const {
+        location_name, location_address, location_latitude, location_longitude,
+        location_provider, location_provider_id, location_url,
+        ...baseInput
+      } = input;
+      const updatePayload = {
+        ...baseInput,
+        ...(location_name != null && {
+          location_name,
+          location_address: location_address ?? null,
+          location_latitude: location_latitude ?? null,
+          location_longitude: location_longitude ?? null,
+          location_provider: location_provider ?? null,
+          location_provider_id: location_provider_id ?? null,
+          location_url: location_url ?? null,
+        }),
+      };
+
       let { error } = await supabase
         .from("events")
-        .update(input)
+        .update(updatePayload)
         .eq("id", id)
         .eq("couple_id", coupleId);
 
       // end_date 컬럼 미존재 시 해당 필드 제거 후 재시도
       if (isEndDateMissing(error)) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { end_date: _, ...inputWithoutEndDate } = input;
+        const { end_date: _, ...inputWithoutEndDate } = updatePayload;
         ({ error } = await supabase
           .from("events")
           .update(inputWithoutEndDate)

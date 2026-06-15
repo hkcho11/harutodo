@@ -95,10 +95,6 @@ export default function LocationInput({ value, onChange }: Props) {
     setOpen(false);
   };
 
-  const handleBlur = () => {
-    setTimeout(() => setOpen(false), 150);
-  };
-
   if (value) {
     return (
       <div className="flex items-center gap-2 rounded-2xl border border-haru-primary bg-haru-primary-soft px-3 py-2.5">
@@ -120,14 +116,13 @@ export default function LocationInput({ value, onChange }: Props) {
   }
 
   return (
-    <div className="relative">
+    <div>
       <div className="relative flex items-center">
         <Search className="pointer-events-none absolute left-3 h-4 w-4 text-haru-muted" />
         <input
           type="text"
           value={query}
           onChange={handleChange}
-          onBlur={handleBlur}
           placeholder="장소 검색"
           className="min-h-[44px] w-full rounded-2xl border border-haru-border bg-haru-surface pl-9 pr-3 text-sm text-haru-text placeholder:text-haru-muted focus:border-haru-primary focus:outline-none"
         />
@@ -136,14 +131,15 @@ export default function LocationInput({ value, onChange }: Props) {
         )}
       </div>
 
+      {/* 검색결과 — overflow-y-auto 컨테이너 안에서도 클리핑 없도록 inline 렌더 */}
       {open && results.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full overflow-hidden rounded-2xl border border-haru-border bg-haru-surface shadow-card">
+        <ul className="mt-1 overflow-hidden rounded-2xl border border-haru-border bg-haru-surface shadow-card">
           {results.map((doc) => (
-            <li key={doc.id}>
+            <li key={doc.id} className="border-b border-haru-border last:border-b-0">
               <button
                 type="button"
                 onMouseDown={() => handleSelect(doc)}
-                className="flex w-full flex-col gap-0.5 px-3 py-2.5 text-left active:bg-haru-primary-soft"
+                className="flex w-full flex-col gap-0.5 px-3 py-3 text-left active:bg-haru-primary-soft"
               >
                 <span className="text-sm font-medium text-haru-text">{doc.place_name}</span>
                 <span className="text-xs text-haru-muted">
@@ -156,7 +152,7 @@ export default function LocationInput({ value, onChange }: Props) {
       )}
 
       {open && !loading && results.length === 0 && query.trim().length >= 2 && (
-        <div className="absolute z-50 mt-1 w-full rounded-2xl border border-haru-border bg-haru-surface px-3 py-4 text-center shadow-card">
+        <div className="mt-1 rounded-2xl border border-haru-border bg-haru-surface px-3 py-4 text-center shadow-card">
           <p className="text-sm text-haru-muted">검색 결과가 없어요</p>
         </div>
       )}
