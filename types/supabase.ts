@@ -99,6 +99,13 @@ export type Database = {
           end_date: string | null
           end_time: string | null
           id: string
+          location_address: string | null
+          location_latitude: number | null
+          location_longitude: number | null
+          location_name: string | null
+          location_provider: string | null
+          location_provider_id: string | null
+          location_url: string | null
           start_time: string | null
           title: string
           updated_at: string
@@ -112,6 +119,13 @@ export type Database = {
           end_date?: string | null
           end_time?: string | null
           id?: string
+          location_address?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          location_name?: string | null
+          location_provider?: string | null
+          location_provider_id?: string | null
+          location_url?: string | null
           start_time?: string | null
           title: string
           updated_at?: string
@@ -125,6 +139,13 @@ export type Database = {
           end_date?: string | null
           end_time?: string | null
           id?: string
+          location_address?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          location_name?: string | null
+          location_provider?: string | null
+          location_provider_id?: string | null
+          location_url?: string | null
           start_time?: string | null
           title?: string
           updated_at?: string

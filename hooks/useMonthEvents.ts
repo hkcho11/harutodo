@@ -150,6 +150,13 @@ export function useMonthEvents(year: number, month: number) {
         end_date: input.end_date ?? null,
         start_time: input.start_time,
         end_time: input.end_time,
+        location_name: input.location_name ?? null,
+        location_address: input.location_address ?? null,
+        location_latitude: input.location_latitude ?? null,
+        location_longitude: input.location_longitude ?? null,
+        location_provider: input.location_provider ?? null,
+        location_provider_id: input.location_provider_id ?? null,
+        location_url: input.location_url ?? null,
         created_at: now,
         updated_at: now,
       };
@@ -164,6 +171,13 @@ export function useMonthEvents(year: number, month: number) {
         end_date: input.end_date ?? null,
         start_time: input.start_time,
         end_time: input.end_time,
+        location_name: input.location_name ?? null,
+        location_address: input.location_address ?? null,
+        location_latitude: input.location_latitude ?? null,
+        location_longitude: input.location_longitude ?? null,
+        location_provider: input.location_provider ?? null,
+        location_provider_id: input.location_provider_id ?? null,
+        location_url: input.location_url ?? null,
       };
 
       let { data, error } = await supabase

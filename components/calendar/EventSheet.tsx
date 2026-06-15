@@ -11,11 +11,13 @@ import DatePickerSheet from "@/components/common/DatePickerSheet";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import LocationInput from "@/components/calendar/LocationInput";
+import LocationMapPreview from "@/components/calendar/LocationMapPreview";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { cn } from "@/lib/utils/cn";
 import { formatTime, formatEventTimeRange } from "@/lib/utils/event";
 import { formatDateShort } from "@/lib/utils/date";
-import type { Event, EventFormValues } from "@/types/event";
+import type { Event, EventFormValues, SelectedLocation } from "@/types/event";
 
 const schema = z
   .object({
@@ -93,6 +95,7 @@ export default function EventSheet({
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [endDatePickerOpen, setEndDatePickerOpen] = useState(false);
   const [timePicking, setTimePicking] = useState<TimePicking>(null);
+  const [location, setLocation] = useState<SelectedLocation | null>(null);
 
   const {
     register,
@@ -140,6 +143,20 @@ export default function EventSheet({
         end_time: formatTime(event.end_time),
         assignee_id: event.assignee_id,
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLocation(
+        event.location_name && event.location_latitude != null && event.location_longitude != null
+          ? {
+              name: event.location_name,
+              address: event.location_address ?? "",
+              latitude: event.location_latitude,
+              longitude: event.location_longitude,
+              provider: event.location_provider ?? "kakao",
+              providerId: event.location_provider_id ?? "",
+              url: event.location_url ?? "",
+            }
+          : null
+      );
     } else {
       const st = nearestFutureTime();
       const et = addOneHour(st);
@@ -151,6 +168,7 @@ export default function EventSheet({
         end_time: et !== st ? et : null, // 23:30 cap으로 같아지면 null
         assignee_id: null,
       });
+      setLocation(null);
     }
   }, [open, event, defaultDate, reset]);
 
@@ -170,6 +188,13 @@ export default function EventSheet({
       start_time: multiDay ? null : (values.start_time || null),
       end_time: multiDay ? null : (values.end_time || null),
       assignee_id: values.assignee_id,
+      location_name: location?.name ?? null,
+      location_address: location?.address ?? null,
+      location_latitude: location?.latitude ?? null,
+      location_longitude: location?.longitude ?? null,
+      location_provider: location?.provider ?? null,
+      location_provider_id: location?.providerId ?? null,
+      location_url: location?.url ?? null,
     };
     try {
       await onSubmit(payload);
@@ -392,6 +417,13 @@ export default function EventSheet({
                 </button>
               )}
             </div>
+          </div>
+
+          {/* 장소 */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-haru-text">장소</span>
+            <LocationInput value={location} onChange={setLocation} />
+            {location && <LocationMapPreview location={location} />}
           </div>
 
           <div className="sticky bottom-0 -mx-5 mt-2 flex gap-2 border-t border-haru-border bg-haru-surface px-5 pt-3 pb-1">

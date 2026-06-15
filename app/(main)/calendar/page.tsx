@@ -89,21 +89,26 @@ export default function CalendarPage() {
     }
   };
 
+  const sameDayInMonth = (isoDate: string, year: number, month: number) => {
+    const day = parseInt(isoDate.split("-")[2], 10);
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const d = Math.min(day, lastDay);
+    return `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  };
+
   const handlePrev = () => {
-    if (viewMonth === 0) {
-      setViewYear((y) => y - 1);
-      setViewMonth(11);
-    } else {
-      setViewMonth((m) => m - 1);
-    }
+    const newYear = viewMonth === 0 ? viewYear - 1 : viewYear;
+    const newMonth = viewMonth === 0 ? 11 : viewMonth - 1;
+    setViewYear(newYear);
+    setViewMonth(newMonth);
+    setSelectedDate(sameDayInMonth(selectedDate, newYear, newMonth));
   };
   const handleNext = () => {
-    if (viewMonth === 11) {
-      setViewYear((y) => y + 1);
-      setViewMonth(0);
-    } else {
-      setViewMonth((m) => m + 1);
-    }
+    const newYear = viewMonth === 11 ? viewYear + 1 : viewYear;
+    const newMonth = viewMonth === 11 ? 0 : viewMonth + 1;
+    setViewYear(newYear);
+    setViewMonth(newMonth);
+    setSelectedDate(sameDayInMonth(selectedDate, newYear, newMonth));
   };
   const handleToday = () => {
     setViewYear(today.getFullYear());
