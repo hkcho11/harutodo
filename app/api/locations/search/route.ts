@@ -49,7 +49,9 @@ export async function GET(req: NextRequest) {
     if (!res.ok) {
       const body = await res.text();
       console.error(`[locations/search] Kakao API ${res.status}:`, body);
-      return NextResponse.json({ documents: [] });
+      // 403: 카카오맵 제품 미활성화 또는 플랫폼 미등록
+      const errorCode = res.status === 403 ? "kakao_403" : "kakao_error";
+      return NextResponse.json({ documents: [], error: errorCode });
     }
 
     const data = (await res.json()) as KakaoResponse;

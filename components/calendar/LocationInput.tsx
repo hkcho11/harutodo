@@ -29,7 +29,7 @@ export default function LocationInput({ value, onChange }: Props) {
   const [results, setResults] = useState<KakaoDoc[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [hasError, setHasError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const coordsRef = useRef<{ lat: number; lng: number } | null>(null);
@@ -49,7 +49,7 @@ export default function LocationInput({ value, onChange }: Props) {
     if (q.trim().length < 2) {
       setResults([]);
       setOpen(false);
-      setHasError(false);
+      setHasError(null);
       return;
     }
 
@@ -58,7 +58,7 @@ export default function LocationInput({ value, onChange }: Props) {
     abortRef.current = new AbortController();
 
     setLoading(true);
-    setHasError(false);
+    setHasError(null);
 
     try {
       const params = new URLSearchParams({ query: q.trim() });
@@ -74,15 +74,16 @@ export default function LocationInput({ value, onChange }: Props) {
       const data = (await res.json()) as SearchResponse;
 
       if (!res.ok || data.error) {
-        setHasError(true);
+        setHasError(data.error ?? "unknown");
         setResults([]);
       } else {
+        setHasError(null);
         setResults(data.documents ?? []);
       }
       setOpen(true);
     } catch (e) {
       if ((e as Error).name === "AbortError") return;
-      setHasError(true);
+      setHasError("network");
       setResults([]);
       setOpen(true);
     } finally {
@@ -96,7 +97,7 @@ export default function LocationInput({ value, onChange }: Props) {
     if (!q.trim()) {
       setOpen(false);
       setResults([]);
-      setHasError(false);
+      setHasError(null);
     }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => void search(q), 300);
@@ -115,7 +116,7 @@ export default function LocationInput({ value, onChange }: Props) {
     setQuery("");
     setResults([]);
     setOpen(false);
-    setHasError(false);
+    setHasError(null);
   };
 
   const handleClear = () => {
@@ -123,7 +124,7 @@ export default function LocationInput({ value, onChange }: Props) {
     setQuery("");
     setResults([]);
     setOpen(false);
-    setHasError(false);
+    setHasError(null);
   };
 
   if (value) {
@@ -166,7 +167,9 @@ export default function LocationInput({ value, onChange }: Props) {
         <div className="mt-1 overflow-hidden rounded-2xl border border-haru-border bg-haru-surface shadow-card">
           {hasError ? (
             <p className="px-3 py-3 text-sm text-haru-danger">
-              검색 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.
+              {hasError === "kakao_403"
+                ? "카카오맵 API 권한 오류예요. 카카오 개발자 콘솔에서 카카오맵 제품을 활성화해주세요."
+                : "검색 중 오류가 발생했어요. 잠시 후 다시 시도해주세요."}
             </p>
           ) : results.length > 0 ? (
             <ul>
