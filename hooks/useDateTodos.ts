@@ -146,13 +146,13 @@ export function useDateTodos(date: string) {
         });
       }
       if (partner && me) {
-        void notifyPartner({
+        notifyPartner({
           partnerId: partner.id,
           actorName: me.display_name,
           action: "add",
           entityType: "todo",
           entityTitle: input.title,
-        });
+        }).catch((e) => console.error("[notify]", e));
       }
     },
     [coupleId, me, partner, supabase, date, refetch]
@@ -180,13 +180,13 @@ export function useDateTodos(date: string) {
         setTodos((cur) => cur.filter((t) => t.id !== id));
       }
       if (partner && me && input.is_completed === undefined) {
-        void notifyPartner({
+        notifyPartner({
           partnerId: partner.id,
           actorName: me.display_name,
           action: "update",
           entityType: "todo",
           entityTitle: typeof input.title === "string" ? input.title : undefined,
-        });
+        }).catch((e) => console.error("[notify]", e));
       }
     },
     [coupleId, me, partner, supabase, date, refetch]
@@ -212,12 +212,12 @@ export function useDateTodos(date: string) {
         throw error;
       }
       if (partner && me) {
-        void notifyPartner({
+        notifyPartner({
           partnerId: partner.id,
           actorName: me.display_name,
           action: "delete",
           entityType: "todo",
-        });
+        }).catch((e) => console.error("[notify]", e));
       }
     },
     [coupleId, me, partner, supabase, refetch]

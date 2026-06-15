@@ -227,13 +227,13 @@ export function useMonthEvents(year: number, month: number) {
         });
       }
       if (partner && me) {
-        void notifyPartner({
+        notifyPartner({
           partnerId: partner.id,
           actorName: me.display_name,
           action: "add",
           entityType: "event",
           entityTitle: input.title,
-        });
+        }).catch((e) => console.error("[notify]", e));
       }
     },
     [coupleId, me, partner, supabase, first, last, refetch]
@@ -306,13 +306,13 @@ export function useMonthEvents(year: number, month: number) {
         }
       }
       if (partner && me) {
-        void notifyPartner({
+        notifyPartner({
           partnerId: partner.id,
           actorName: me.display_name,
           action: "update",
           entityType: "event",
           entityTitle: typeof input.title === "string" ? input.title : undefined,
-        });
+        }).catch((e) => console.error("[notify]", e));
       }
     },
     [coupleId, me, partner, supabase, first, last, refetch]
@@ -332,12 +332,12 @@ export function useMonthEvents(year: number, month: number) {
         throw error;
       }
       if (partner && me) {
-        void notifyPartner({
+        notifyPartner({
           partnerId: partner.id,
           actorName: me.display_name,
           action: "delete",
           entityType: "event",
-        });
+        }).catch((e) => console.error("[notify]", e));
       }
     },
     [coupleId, me, partner, supabase, refetch]

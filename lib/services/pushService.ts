@@ -9,6 +9,14 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
 
+// Dev 모드에서 SW가 비활성화된 경우 navigator.serviceWorker.ready가 영원히 pending 상태가 됨
+async function getReadySW(): Promise<ServiceWorkerRegistration | null> {
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+  ]);
+}
+
 export async function subscribePush(userId: string): Promise<boolean> {
   if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
     return false;
@@ -16,7 +24,9 @@ export async function subscribePush(userId: string): Promise<boolean> {
   const permission = await Notification.requestPermission();
   if (permission !== "granted") return false;
 
-  const reg = await navigator.serviceWorker.ready;
+  const reg = await getReadySW();
+  if (!reg) return false;
+
   const existing = await reg.pushManager.getSubscription();
   const sub = existing ?? await reg.pushManager.subscribe({
     userVisibleOnly: true,
@@ -33,7 +43,8 @@ export async function subscribePush(userId: string): Promise<boolean> {
 
 export async function unsubscribePush(userId: string): Promise<void> {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
-  const reg = await navigator.serviceWorker.ready;
+  const reg = await getReadySW();
+  if (!reg) return;
   const sub = await reg.pushManager.getSubscription();
   if (sub) {
     await sub.unsubscribe();
