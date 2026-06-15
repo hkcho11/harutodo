@@ -200,6 +200,19 @@ export function useMonthEvents(year: number, month: number) {
           .single());
       }
 
+      // location 컬럼 미존재 시 (마이그레이션 미적용) 해당 필드 제거 후 재시도
+      if ((error?.code === "PGRST204" || error?.code === "42703") && "location_name" in insertPayload) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { location_name: _ln, location_address: _la, location_latitude: _lat,
+                location_longitude: _lng, location_provider: _lp, location_provider_id: _lpi,
+                location_url: _lu, ...payloadWithoutLocation } = insertPayload;
+        ({ data, error } = await supabase
+          .from("events")
+          .insert(payloadWithoutLocation)
+          .select()
+          .single());
+      }
+
       if (error || !data) {
         await refetch();
         throw error ?? new Error("insert_failed");
@@ -265,6 +278,19 @@ export function useMonthEvents(year: number, month: number) {
         ({ error } = await supabase
           .from("events")
           .update(inputWithoutEndDate)
+          .eq("id", id)
+          .eq("couple_id", coupleId));
+      }
+
+      // location 컬럼 미존재 시 (마이그레이션 미적용) 해당 필드 제거 후 재시도
+      if ((error?.code === "PGRST204" || error?.code === "42703") && "location_name" in updatePayload) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { location_name: _ln, location_address: _la, location_latitude: _lat,
+                location_longitude: _lng, location_provider: _lp, location_provider_id: _lpi,
+                location_url: _lu, ...updateWithoutLocation } = updatePayload;
+        ({ error } = await supabase
+          .from("events")
+          .update(updateWithoutLocation)
           .eq("id", id)
           .eq("couple_id", coupleId));
       }
