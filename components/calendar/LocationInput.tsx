@@ -16,6 +16,7 @@ interface KakaoDoc {
 
 interface SearchResponse {
   documents: KakaoDoc[];
+  error?: string;
 }
 
 interface Props {
@@ -28,7 +29,9 @@ export default function LocationInput({ value, onChange }: Props) {
   const [results, setResults] = useState<KakaoDoc[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const coordsRef = useRef<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
@@ -46,21 +49,42 @@ export default function LocationInput({ value, onChange }: Props) {
     if (q.trim().length < 2) {
       setResults([]);
       setOpen(false);
+      setHasError(false);
       return;
     }
+
+    // 이전 요청 취소
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
     setLoading(true);
+    setHasError(false);
+
     try {
       const params = new URLSearchParams({ query: q.trim() });
       if (coordsRef.current) {
         params.set("x", String(coordsRef.current.lng));
         params.set("y", String(coordsRef.current.lat));
       }
-      const res = await fetch(`/api/locations/search?${params}`);
+
+      const res = await fetch(`/api/locations/search?${params}`, {
+        signal: abortRef.current.signal,
+      });
+
       const data = (await res.json()) as SearchResponse;
-      setResults(data.documents ?? []);
+
+      if (!res.ok || data.error) {
+        setHasError(true);
+        setResults([]);
+      } else {
+        setResults(data.documents ?? []);
+      }
       setOpen(true);
-    } catch {
+    } catch (e) {
+      if ((e as Error).name === "AbortError") return;
+      setHasError(true);
       setResults([]);
+      setOpen(true);
     } finally {
       setLoading(false);
     }
@@ -69,8 +93,13 @@ export default function LocationInput({ value, onChange }: Props) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const q = e.target.value;
     setQuery(q);
+    if (!q.trim()) {
+      setOpen(false);
+      setResults([]);
+      setHasError(false);
+    }
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => void search(q), 400);
+    debounceRef.current = setTimeout(() => void search(q), 300);
   };
 
   const handleSelect = (doc: KakaoDoc) => {
@@ -86,6 +115,7 @@ export default function LocationInput({ value, onChange }: Props) {
     setQuery("");
     setResults([]);
     setOpen(false);
+    setHasError(false);
   };
 
   const handleClear = () => {
@@ -93,6 +123,7 @@ export default function LocationInput({ value, onChange }: Props) {
     setQuery("");
     setResults([]);
     setOpen(false);
+    setHasError(false);
   };
 
   if (value) {
@@ -131,29 +162,35 @@ export default function LocationInput({ value, onChange }: Props) {
         )}
       </div>
 
-      {/* 검색결과 — overflow-y-auto 컨테이너 안에서도 클리핑 없도록 inline 렌더 */}
-      {open && results.length > 0 && (
-        <ul className="mt-1 overflow-hidden rounded-2xl border border-haru-border bg-haru-surface shadow-card">
-          {results.map((doc) => (
-            <li key={doc.id} className="border-b border-haru-border last:border-b-0">
-              <button
-                type="button"
-                onMouseDown={() => handleSelect(doc)}
-                className="flex w-full flex-col gap-0.5 px-3 py-3 text-left active:bg-haru-primary-soft"
-              >
-                <span className="text-sm font-medium text-haru-text">{doc.place_name}</span>
-                <span className="text-xs text-haru-muted">
-                  {doc.road_address_name || doc.address_name}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {open && !loading && results.length === 0 && query.trim().length >= 2 && (
-        <div className="mt-1 rounded-2xl border border-haru-border bg-haru-surface px-3 py-4 text-center shadow-card">
-          <p className="text-sm text-haru-muted">검색 결과가 없어요</p>
+      {open && (
+        <div className="mt-1 overflow-hidden rounded-2xl border border-haru-border bg-haru-surface shadow-card">
+          {hasError ? (
+            <p className="px-3 py-3 text-sm text-haru-danger">
+              검색 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.
+            </p>
+          ) : results.length > 0 ? (
+            <ul>
+              {results.map((doc, i) => (
+                <li
+                  key={doc.id}
+                  className={i < results.length - 1 ? "border-b border-haru-border" : ""}
+                >
+                  <button
+                    type="button"
+                    onMouseDown={() => handleSelect(doc)}
+                    className="flex w-full flex-col gap-0.5 px-3 py-3 text-left active:bg-haru-primary-soft"
+                  >
+                    <span className="text-sm font-medium text-haru-text">{doc.place_name}</span>
+                    <span className="text-xs text-haru-muted">
+                      {doc.road_address_name || doc.address_name}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : !loading ? (
+            <p className="px-3 py-3 text-sm text-haru-muted">검색 결과가 없어요</p>
+          ) : null}
         </div>
       )}
     </div>

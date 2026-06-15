@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 interface KakaoDocument {
   id: string;
   place_name: string;
@@ -22,7 +24,8 @@ export async function GET(req: NextRequest) {
 
   const apiKey = process.env.KAKAO_REST_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "API key not configured" }, { status: 500 });
+    console.error("[locations/search] KAKAO_REST_API_KEY 환경변수가 설정되지 않음");
+    return NextResponse.json({ documents: [], error: "api_key_missing" }, { status: 500 });
   }
 
   const params = new URLSearchParams({ query: query.trim(), size: "5" });
@@ -34,18 +37,25 @@ export async function GET(req: NextRequest) {
     params.set("sort", "distance");
   }
 
-  const res = await fetch(
-    `https://dapi.kakao.com/v2/local/search/keyword.json?${params}`,
-    {
-      headers: { Authorization: `KakaoAK ${apiKey}` },
-      next: { revalidate: 0 },
-    }
-  );
+  try {
+    const res = await fetch(
+      `https://dapi.kakao.com/v2/local/search/keyword.json?${params}`,
+      {
+        headers: { Authorization: `KakaoAK ${apiKey}` },
+        cache: "no-store",
+      }
+    );
 
-  if (!res.ok) {
+    if (!res.ok) {
+      const body = await res.text();
+      console.error(`[locations/search] Kakao API ${res.status}:`, body);
+      return NextResponse.json({ documents: [] });
+    }
+
+    const data = (await res.json()) as KakaoResponse;
+    return NextResponse.json({ documents: data.documents ?? [] });
+  } catch (e) {
+    console.error("[locations/search] fetch 실패:", e);
     return NextResponse.json({ documents: [] });
   }
-
-  const data = (await res.json()) as KakaoResponse;
-  return NextResponse.json({ documents: data.documents ?? [] });
 }
