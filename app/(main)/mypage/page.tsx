@@ -193,6 +193,7 @@ export default function MyPage() {
 
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window)) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPushPermission(Notification.permission);
   }, []);
 
