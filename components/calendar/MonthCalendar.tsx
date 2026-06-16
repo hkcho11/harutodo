@@ -120,6 +120,14 @@ export default function MonthCalendar({
 }: Props) {
   const resolvedMeColor = getAvatarColor(meColor);
   const resolvedPartnerColor = getAvatarColor(partnerColor);
+
+  // 현재 월의 첫날·마지막날 (bar별 투명도 판단에 사용)
+  const monthFirst = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const monthLast = (() => {
+    const d = new Date(year, month + 1, 0).getDate();
+    return `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  })();
+
   const cells = useMemo(() => getMonthDays(year, month), [year, month]);
 
   const weeks = useMemo(() => {
@@ -157,8 +165,6 @@ export default function MonthCalendar({
         {weeks.map((weekCells, weekIdx) => {
           const { bars, overflowByIso } = weekBars[weekIdx];
           const isPreviewWeek = weekCells[0].isPreview === true;
-          const hasOutOfMonth = weekCells.some((c) => !c.inMonth);
-          const barOpacity = isPreviewWeek ? "opacity-40" : hasOutOfMonth ? "opacity-60" : "";
           return (
             <div
               key={weekIdx}
@@ -186,40 +192,45 @@ export default function MonthCalendar({
               {/* 이벤트 bar 오버레이 */}
               {bars.length > 0 && (
                 <div
-                  className={cn(
-                    "pointer-events-none absolute inset-x-0 grid grid-cols-7",
-                    barOpacity
-                  )}
+                  className="pointer-events-none absolute inset-x-0 grid grid-cols-7"
                   style={{
                     top: DATE_AREA_H,
                     gridTemplateRows: `repeat(${MAX_LANES}, ${BAR_H}px)`,
                     gap: `${BAR_GAP}px 0`,
                   }}
                 >
-                  {bars.map((bar) => (
-                    <div
-                      key={`${bar.event.id}-${bar.lane}`}
-                      style={{
-                        gridColumn: `${bar.startCol + 1} / ${bar.endCol + 2}`,
-                        gridRow: bar.lane + 1,
-                      }}
-                      className={cn(
-                        "flex items-center overflow-hidden text-[11px] font-medium leading-none",
-                        bar.isStart && bar.isEnd
-                          ? "mx-0.5 rounded-full px-2"
-                          : bar.isStart
-                          ? "ml-0.5 rounded-l-full pl-2"
-                          : bar.isEnd
-                          ? "rounded-r-full pr-1"
-                          : "",
-                        getBarBgClass(bar.event, meId, resolvedMeColor, resolvedPartnerColor)
-                      )}
-                    >
-                      {bar.isStart && (
-                        <span className="truncate text-haru-text">{bar.event.title}</span>
-                      )}
-                    </div>
-                  ))}
+                  {bars.map((bar) => {
+                    const eEnd = bar.event.end_date ?? bar.event.date;
+                    const inCurrentMonth =
+                      !isPreviewWeek &&
+                      bar.event.date <= monthLast &&
+                      eEnd >= monthFirst;
+                    return (
+                      <div
+                        key={`${bar.event.id}-${bar.lane}`}
+                        style={{
+                          gridColumn: `${bar.startCol + 1} / ${bar.endCol + 2}`,
+                          gridRow: bar.lane + 1,
+                        }}
+                        className={cn(
+                          "flex items-center overflow-hidden text-[11px] font-medium leading-none",
+                          bar.isStart && bar.isEnd
+                            ? "mx-0.5 rounded-full px-2"
+                            : bar.isStart
+                            ? "ml-0.5 rounded-l-full pl-2"
+                            : bar.isEnd
+                            ? "rounded-r-full pr-1"
+                            : "",
+                          inCurrentMonth ? "" : "opacity-40",
+                          getBarBgClass(bar.event, meId, resolvedMeColor, resolvedPartnerColor)
+                        )}
+                      >
+                        {bar.isStart && (
+                          <span className="truncate text-haru-text">{bar.event.title}</span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
