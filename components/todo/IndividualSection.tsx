@@ -2,6 +2,7 @@
 
 import { useCoupleStore } from "@/store/useCoupleStore";
 import TodoItem from "./TodoItem";
+import { getAvatarColor, AVATAR_COLOR_CLASSES } from "@/lib/utils/avatarColor";
 import type { Todo } from "@/types/todo";
 import type { Profile } from "@/types/couple";
 
@@ -44,6 +45,7 @@ export default function IndividualSection({
           todos={myTodos}
           onToggle={onToggle}
           onItemClick={onItemClick}
+          columnBg={AVATAR_COLOR_CLASSES[getAvatarColor(me?.avatar_color)].columnBg}
         />
         <Column
           variant="partner"
@@ -52,6 +54,7 @@ export default function IndividualSection({
           todos={partnerTodos}
           onToggle={onToggle}
           onItemClick={onItemClick}
+          columnBg={AVATAR_COLOR_CLASSES[getAvatarColor(partner?.avatar_color)].columnBg}
         />
       </div>
 
@@ -85,6 +88,7 @@ interface ColumnProps {
   todos: Todo[];
   onToggle: (id: string, isCompleted: boolean) => void;
   onItemClick: (todo: Todo) => void;
+  columnBg: string;
 }
 
 function Column({
@@ -94,13 +98,9 @@ function Column({
   todos,
   onToggle,
   onItemClick,
+  columnBg,
 }: ColumnProps) {
-  // 컬럼 배경: 본인 = primary-soft(연두 베일), 파트너 = accent-soft(스카이 베일).
-  // 의미 매핑과 일관 — 살구는 "함께" 의미에 보존.
-  const wrapperClass =
-    variant === "me"
-      ? "bg-haru-primary-soft"
-      : "bg-haru-accent-soft";
+  const wrapperClass = columnBg;
 
   const label = variant === "me" ? "내 할 일" : person?.display_name ?? fallbackLabel;
 

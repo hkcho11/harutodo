@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock } from "lucide-react";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
 import OptionSheet from "@/components/common/OptionSheet";
+import AvatarColorSheet from "@/components/mypage/AvatarColorSheet";
 import { signOut } from "@/lib/services/authService";
 import { updateProfile } from "@/lib/services/profileService";
 import { disconnectCouple } from "@/lib/services/coupleService";
+import { getAvatarColor, AVATAR_COLOR_CLASSES, type AvatarColor } from "@/lib/utils/avatarColor";
 import { subscribePush } from "@/lib/services/pushService";
 import {
   MAX_CUSTOM_GROUPS_PER_COUPLE,
@@ -79,6 +81,24 @@ export default function MyPage() {
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [isSavingName, setIsSavingName] = useState(false);
+
+  // 아바타 색상 변경
+  const [colorSheetOpen, setColorSheetOpen] = useState(false);
+  const [isSavingColor, setIsSavingColor] = useState(false);
+
+  const handleColorSelect = async (color: AvatarColor) => {
+    if (!me) return;
+    setIsSavingColor(true);
+    try {
+      await updateProfile(me.id, { avatar_color: color });
+      updateMe({ avatar_color: color });
+      setColorSheetOpen(false);
+    } catch {
+      showToast("색상 변경에 실패했어요. 다시 시도해주세요");
+    } finally {
+      setIsSavingColor(false);
+    }
+  };
 
   const startEditName = () => {
     setNameInput(me?.display_name ?? "");
@@ -231,9 +251,20 @@ export default function MyPage() {
         <div className="flex items-start justify-center gap-6">
           {/* 나 */}
           <div className="flex flex-col items-center gap-2">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-haru-primary-soft">
+            <button
+              type="button"
+              onClick={() => setColorSheetOpen(true)}
+              aria-label="프로필 색상 변경"
+              className={cn(
+                "relative flex h-16 w-16 items-center justify-center rounded-full active:opacity-80",
+                AVATAR_COLOR_CLASSES[getAvatarColor(me?.avatar_color)].avatarBg
+              )}
+            >
               <span className="text-2xl font-bold text-haru-text">{meInitial}</span>
-            </div>
+              <span className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-haru-surface shadow-card">
+                <Pencil className="h-2.5 w-2.5 text-haru-muted" />
+              </span>
+            </button>
             <div className="flex items-center gap-1">
               <span className="text-sm font-semibold text-haru-text">
                 {me?.display_name ?? "—"}
@@ -259,7 +290,12 @@ export default function MyPage() {
 
           {/* 파트너 */}
           <div className="flex flex-col items-center gap-2">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-haru-accent-soft">
+            <div
+              className={cn(
+                "flex h-16 w-16 items-center justify-center rounded-full",
+                AVATAR_COLOR_CLASSES[getAvatarColor(partner?.avatar_color)].avatarBg
+              )}
+            >
               <span className="text-2xl font-bold text-haru-text">{partnerInitial}</span>
             </div>
             <span className="text-sm font-semibold text-haru-text">
@@ -593,6 +629,16 @@ export default function MyPage() {
           커플 연결 해제하기
         </button>
       </section>
+
+      {/* 아바타 색상 선택 */}
+      <AvatarColorSheet
+        open={colorSheetOpen}
+        currentColor={getAvatarColor(me?.avatar_color)}
+        partnerColor={getAvatarColor(partner?.avatar_color)}
+        isSaving={isSavingColor}
+        onSelect={handleColorSelect}
+        onClose={() => setColorSheetOpen(false)}
+      />
 
       {/* 일정 알림 미리 알림 선택 */}
       <OptionSheet

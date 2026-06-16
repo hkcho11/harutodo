@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { getMonthDays, type DayCell as DayCellData } from "@/lib/utils/calendar";
 import { cn } from "@/lib/utils/cn";
+import { getAvatarColor, AVATAR_COLOR_CLASSES, type AvatarColor } from "@/lib/utils/avatarColor";
 import DayCell from "./DayCell";
 import type { Event } from "@/types/event";
 
@@ -23,10 +24,15 @@ interface BarLayout {
 }
 
 
-function getBarBgClass(event: Event, meId: string | null): string {
+function getBarBgClass(
+  event: Event,
+  meId: string | null,
+  meColor: AvatarColor,
+  partnerColor: AvatarColor
+): string {
   if (event.assignee_id === null) return "bg-haru-secondary/20";
-  if (meId && event.assignee_id === meId) return "bg-haru-primary-active/15";
-  return "bg-haru-accent/15";
+  if (meId && event.assignee_id === meId) return AVATAR_COLOR_CLASSES[meColor].barBgSoft;
+  return AVATAR_COLOR_CLASSES[partnerColor].barBgSoft;
 }
 
 function computeWeekBars(
@@ -94,6 +100,8 @@ interface Props {
   todayISO: string;
   events?: Event[];
   meId: string | null;
+  meColor?: string | null;
+  partnerColor?: string | null;
   markedDates?: Set<string>;
   onSelectDate: (iso: string) => void;
 }
@@ -105,9 +113,13 @@ export default function MonthCalendar({
   todayISO,
   events,
   meId,
+  meColor,
+  partnerColor,
   markedDates,
   onSelectDate,
 }: Props) {
+  const resolvedMeColor = getAvatarColor(meColor);
+  const resolvedPartnerColor = getAvatarColor(partnerColor);
   const cells = useMemo(() => getMonthDays(year, month), [year, month]);
 
   const weeks = useMemo(() => {
@@ -200,7 +212,7 @@ export default function MonthCalendar({
                           : bar.isEnd
                           ? "rounded-r-full pr-1"
                           : "",
-                        getBarBgClass(bar.event, meId)
+                        getBarBgClass(bar.event, meId, resolvedMeColor, resolvedPartnerColor)
                       )}
                     >
                       {bar.isStart && (

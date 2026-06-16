@@ -4,6 +4,7 @@ import { MapPin } from "lucide-react";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { cn } from "@/lib/utils/cn";
 import { formatEventTimeRange } from "@/lib/utils/event";
+import { getAvatarColor, AVATAR_COLOR_CLASSES } from "@/lib/utils/avatarColor";
 import type { Event } from "@/types/event";
 
 interface Props {
@@ -21,15 +22,17 @@ function participantLabel(
   return partnerName ?? "파트너";
 }
 
-function colorBarClass(event: Event, meId: string | null): string {
-  if (event.assignee_id === null) return "bg-haru-secondary";
-  if (meId && event.assignee_id === meId) return "bg-haru-primary-active";
-  return "bg-haru-accent";
-}
-
 export default function EventList({ events, onItemClick }: Props) {
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
+  const meBarBg = AVATAR_COLOR_CLASSES[getAvatarColor(me?.avatar_color)].barBg;
+  const partnerBarBg = AVATAR_COLOR_CLASSES[getAvatarColor(partner?.avatar_color)].barBg;
+
+  function colorBarClass(event: Event): string {
+    if (event.assignee_id === null) return "bg-haru-secondary";
+    if (me?.id && event.assignee_id === me.id) return meBarBg;
+    return partnerBarBg;
+  }
 
   if (events.length === 0) return null;
 
@@ -47,7 +50,7 @@ export default function EventList({ events, onItemClick }: Props) {
             className="flex w-full items-stretch overflow-hidden rounded-2xl bg-haru-surface shadow-card animate-haru-fade-up text-left"
           >
             {/* 참여자 색상 바 */}
-            <div className={cn("w-1 shrink-0", colorBarClass(e, me?.id ?? null))} />
+            <div className={cn("w-1 shrink-0", colorBarClass(e))} />
 
             {/* 일정 내용 */}
             <div className="flex flex-1 flex-col justify-center gap-0.5 px-4 py-3">
