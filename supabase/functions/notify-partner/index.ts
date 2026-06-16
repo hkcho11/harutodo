@@ -98,14 +98,16 @@ Deno.serve(async (req) => {
       );
     }
 
-    const notifTitle = actor_name;
     const entityLabel = ENTITY_LABEL[entity_type] ?? "항목을";
     const actionLabel = ACTION_LABEL[action] ?? "변경했어요";
 
-    // C2: show_content false면 entity_title 숨김
     const showContent = recipientSettings?.show_content ?? false;
-    const notifBody = (showContent && entity_title)
-      ? `${entityLabel} ${actionLabel} — ${entity_title}`
+    const hasTitle = showContent && entity_title;
+
+    // 내용이 있으면 항목명을 제목으로, 없으면 보낸 사람 이름을 제목으로
+    const notifTitle = hasTitle ? entity_title! : actor_name;
+    const notifBody = hasTitle
+      ? `${actor_name} · ${entityLabel} ${actionLabel}`
       : `${entityLabel} ${actionLabel}`;
 
     const { data: subs } = await supabase
