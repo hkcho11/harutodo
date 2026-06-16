@@ -213,16 +213,7 @@ export default function MonthCalendar({
                           gridRow: bar.lane + 1,
                         }}
                         className={cn(
-                          "flex items-center overflow-hidden text-[11px] font-medium leading-none",
-                          bar.isStart && bar.isEnd
-                            ? "mx-0.5 rounded-md pl-2"
-                            : bar.isStart
-                            ? "ml-0.5 rounded-l-md pl-2"
-                            : bar.isEnd
-                            ? "rounded-r-md"
-                            : bar.startCol === 0
-                            ? "pl-2"
-                            : "",
+                          "mx-0.5 flex items-center overflow-hidden rounded-md pl-1.5 text-[11px] font-medium leading-none",
                           inCurrentMonth ? "" : "opacity-40",
                           getBarBgClass(bar.event, meId, resolvedMeColor, resolvedPartnerColor)
                         )}
