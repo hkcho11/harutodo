@@ -23,7 +23,7 @@ export const AVATAR_COLOR_CLASSES: Record<AvatarColor, AvatarColorTokens> = {
     hex: "#B9DFA7",
     avatarBg: "bg-haru-primary-soft",
     barBg: "bg-haru-primary-active",
-    barBgSoft: "bg-haru-primary-active/15",
+    barBgSoft: "bg-haru-primary-active/25",
     columnBg: "bg-haru-primary-soft",
   },
   sky: {
@@ -31,7 +31,7 @@ export const AVATAR_COLOR_CLASSES: Record<AvatarColor, AvatarColorTokens> = {
     hex: "#B8DCE8",
     avatarBg: "bg-haru-accent-soft",
     barBg: "bg-haru-accent",
-    barBgSoft: "bg-haru-accent/15",
+    barBgSoft: "bg-haru-accent/25",
     columnBg: "bg-haru-accent-soft",
   },
   mint: {
@@ -39,7 +39,7 @@ export const AVATAR_COLOR_CLASSES: Record<AvatarColor, AvatarColorTokens> = {
     hex: "#B5E8D5",
     avatarBg: "bg-haru-avatar-mint-soft",
     barBg: "bg-haru-avatar-mint",
-    barBgSoft: "bg-haru-avatar-mint/15",
+    barBgSoft: "bg-haru-avatar-mint/25",
     columnBg: "bg-haru-avatar-mint-soft",
   },
   lavender: {
@@ -47,7 +47,7 @@ export const AVATAR_COLOR_CLASSES: Record<AvatarColor, AvatarColorTokens> = {
     hex: "#C9C5F0",
     avatarBg: "bg-haru-avatar-lavender-soft",
     barBg: "bg-haru-avatar-lavender",
-    barBgSoft: "bg-haru-avatar-lavender/15",
+    barBgSoft: "bg-haru-avatar-lavender/25",
     columnBg: "bg-haru-avatar-lavender-soft",
   },
   blush: {
@@ -55,7 +55,7 @@ export const AVATAR_COLOR_CLASSES: Record<AvatarColor, AvatarColorTokens> = {
     hex: "#F0C5D4",
     avatarBg: "bg-haru-avatar-blush-soft",
     barBg: "bg-haru-avatar-blush",
-    barBgSoft: "bg-haru-avatar-blush/15",
+    barBgSoft: "bg-haru-avatar-blush/25",
     columnBg: "bg-haru-avatar-blush-soft",
   },
 };

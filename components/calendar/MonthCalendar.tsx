@@ -9,10 +9,10 @@ import type { Event } from "@/types/event";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const MAX_LANES = 4;
-const BAR_H = 13;
+const BAR_H = 18;
 const BAR_GAP = 2;
-const DATE_AREA_H = 30;
-const ROW_H = 96;
+const DATE_AREA_H = 28;
+const ROW_H = 112;
 
 interface BarLayout {
   event: Event;
@@ -30,7 +30,7 @@ function getBarBgClass(
   meColor: AvatarColor,
   partnerColor: AvatarColor
 ): string {
-  if (event.assignee_id === null) return "bg-haru-secondary/20";
+  if (event.assignee_id === null) return "bg-haru-secondary/30";
   if (meId && event.assignee_id === meId) return AVATAR_COLOR_CLASSES[meColor].barBgSoft;
   return AVATAR_COLOR_CLASSES[partnerColor].barBgSoft;
 }
@@ -204,11 +204,11 @@ export default function MonthCalendar({
                         gridRow: bar.lane + 1,
                       }}
                       className={cn(
-                        "flex items-center overflow-hidden text-[9px] leading-none",
+                        "flex items-center overflow-hidden text-[11px] font-medium leading-none",
                         bar.isStart && bar.isEnd
-                          ? "mx-0.5 rounded-full px-1.5"
+                          ? "mx-0.5 rounded-full px-2"
                           : bar.isStart
-                          ? "ml-0.5 rounded-l-full pl-1.5"
+                          ? "ml-0.5 rounded-l-full pl-2"
                           : bar.isEnd
                           ? "rounded-r-full pr-1"
                           : "",
