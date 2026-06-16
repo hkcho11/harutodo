@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock } from "lucide-react";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
@@ -188,11 +188,13 @@ export default function MyPage() {
   const [timePickerTarget, setTimePickerTarget] = useState<"morning" | "evening" | null>(null);
   const [leadMinPickerOpen, setLeadMinPickerOpen] = useState(false);
 
-  // M1: Push 권한 상태
-  const [pushPermission, setPushPermission] = useState<NotificationPermission | "unavailable">(() => {
-    if (typeof window === "undefined" || !("Notification" in window)) return "unavailable";
-    return Notification.permission;
-  });
+  // M1: Push 권한 상태 — SSR과 초기 클라이언트 렌더 일치를 위해 "unavailable"로 초기화
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | "unavailable">("unavailable");
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    setPushPermission(Notification.permission);
+  }, []);
 
   const handleRequestPush = async () => {
     if (!me?.id) return;
