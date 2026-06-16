@@ -44,7 +44,6 @@ export default function CalendarPage() {
     viewMonth
   );
   const me = useCoupleStore((s) => s.me);
-  const partner = useCoupleStore((s) => s.partner);
   const showToast = useToastStore((s) => s.show);
 
   useEffect(() => {
@@ -175,8 +174,6 @@ export default function CalendarPage() {
           todayISO={todayStr}
           events={events}
           meId={me?.id ?? null}
-          meName={me?.display_name ?? null}
-          partnerName={partner?.display_name ?? null}
           onSelectDate={handleSelectDate}
         />
       </div>

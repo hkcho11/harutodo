@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useCoupleStore } from "@/store/useCoupleStore";
-import { monthRangeISO } from "@/lib/utils/calendar";
+import { monthRangeISO, gridFirstISO, gridLastISO } from "@/lib/utils/calendar";
 import {
   subscribeCoupleTable,
   unsubscribeCouple,
@@ -34,6 +34,9 @@ export function useMonthEvents(year: number, month: number) {
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
   const { first, last } = monthRangeISO(year, month);
+  // 캘린더 그리드 실제 표시 범위 (이전 달 leading + 다음 달 trailing 포함)
+  const gridFirst = useMemo(() => gridFirstISO(year, month), [year, month]);
+  const gridLast = useMemo(() => gridLastISO(year, month), [year, month]);
 
   const [events, setEvents] = useState<Event[]>([]);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -47,8 +50,8 @@ export function useMonthEvents(year: number, month: number) {
       .from("events")
       .select("*")
       .eq("couple_id", coupleId)
-      .lte("date", last)
-      .or(`end_date.gte.${first},and(end_date.is.null,date.gte.${first})`)
+      .lte("date", gridLast)
+      .or(`end_date.gte.${gridFirst},and(end_date.is.null,date.gte.${gridFirst})`)
       .order("date", { ascending: true })
       .order("start_time", { ascending: true, nullsFirst: true });
 
@@ -57,15 +60,15 @@ export function useMonthEvents(year: number, month: number) {
         .from("events")
         .select("*")
         .eq("couple_id", coupleId)
-        .gte("date", first)
-        .lte("date", last)
+        .gte("date", gridFirst)
+        .lte("date", gridLast)
         .order("date", { ascending: true })
         .order("start_time", { ascending: true, nullsFirst: true });
       return fallback ?? [];
     }
 
     return data ?? [];
-  }, [coupleId, first, last, supabase]);
+  }, [coupleId, gridFirst, gridLast, supabase]);
 
   const refetch = useCallback(async () => {
     if (!coupleId) return;
@@ -92,10 +95,10 @@ export function useMonthEvents(year: number, month: number) {
     if (!coupleId) return;
     const overlapsRange = (e: Event) => {
       const end = e.end_date ?? e.date;
-      return e.date <= last && end >= first;
+      return e.date <= gridLast && end >= gridFirst;
     };
     const channel = subscribeCoupleTable<Event>({
-      channelName: `events:couple=${coupleId}:${first}~${last}`,
+      channelName: `events:couple=${coupleId}:${gridFirst}~${gridLast}`,
       table: "events",
       coupleId,
       onChange: ({ type, new: newRow, old: oldRow }) => {
@@ -129,7 +132,7 @@ export function useMonthEvents(year: number, month: number) {
     return () => {
       unsubscribeCouple(channel);
     };
-  }, [coupleId, first, last, refetch]);
+  }, [coupleId, gridFirst, gridLast, refetch]);
 
   const loading = coupleId !== null && fetchLoading;
 
@@ -351,8 +354,8 @@ export function useMonthEvents(year: number, month: number) {
         if (!map[e.date]) map[e.date] = [];
         map[e.date].push(e);
       } else {
-        const rangeStart = e.date > first ? e.date : first;
-        const rangeEnd = e.end_date < last ? e.end_date : last;
+        const rangeStart = e.date > gridFirst ? e.date : gridFirst;
+        const rangeEnd = e.end_date < gridLast ? e.end_date : gridLast;
         let cur = rangeStart;
         while (cur <= rangeEnd) {
           if (!map[cur]) map[cur] = [];
@@ -364,7 +367,7 @@ export function useMonthEvents(year: number, month: number) {
       }
     }
     return map;
-  }, [events, first, last]);
+  }, [events, gridFirst, gridLast]);
 
   return { events, eventsByDate, loading, refetch, add, update, remove };
 }

@@ -7,10 +7,11 @@ import DayCell from "./DayCell";
 import type { Event } from "@/types/event";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
-const MAX_LANES = 2;
+const MAX_LANES = 4;
 const BAR_H = 13;
 const BAR_GAP = 2;
 const DATE_AREA_H = 30;
+const ROW_H = 96;
 
 interface BarLayout {
   event: Event;
@@ -21,37 +22,6 @@ interface BarLayout {
   isEnd: boolean;
 }
 
-function ParticipantAvatar({
-  event,
-  meId,
-  meName,
-  partnerName,
-}: {
-  event: Event;
-  meId: string | null;
-  meName: string | null;
-  partnerName: string | null;
-}) {
-  if (event.assignee_id === null) {
-    return (
-      <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-haru-secondary/50 text-[7px] leading-none text-haru-secondary">
-        ♥
-      </span>
-    );
-  }
-  if (meId && event.assignee_id === meId) {
-    return (
-      <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-haru-primary-active/40 text-[7px] leading-none text-haru-primary-active">
-        {meName?.[0] ?? "나"}
-      </span>
-    );
-  }
-  return (
-    <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-haru-accent/40 text-[7px] leading-none text-haru-accent">
-      {partnerName?.[0] ?? "파"}
-    </span>
-  );
-}
 
 function getBarBgClass(event: Event, meId: string | null): string {
   if (event.assignee_id === null) return "bg-haru-secondary/20";
@@ -124,8 +94,6 @@ interface Props {
   todayISO: string;
   events?: Event[];
   meId: string | null;
-  meName?: string | null;
-  partnerName?: string | null;
   markedDates?: Set<string>;
   onSelectDate: (iso: string) => void;
 }
@@ -137,8 +105,6 @@ export default function MonthCalendar({
   todayISO,
   events,
   meId,
-  meName,
-  partnerName,
   markedDates,
   onSelectDate,
 }: Props) {
@@ -178,11 +144,14 @@ export default function MonthCalendar({
       <div className="flex flex-col">
         {weeks.map((weekCells, weekIdx) => {
           const { bars, overflowByIso } = weekBars[weekIdx];
+          const isPreviewWeek = weekCells[0].isPreview === true;
+          const hasOutOfMonth = weekCells.some((c) => !c.inMonth);
+          const barOpacity = isPreviewWeek ? "opacity-40" : hasOutOfMonth ? "opacity-60" : "";
           return (
             <div
               key={weekIdx}
               className="relative border-b border-haru-border"
-              style={{ height: 76 }}
+              style={{ height: ROW_H }}
             >
               {/* 날짜 숫자 셀 */}
               <div className="grid grid-cols-7 h-full">
@@ -196,6 +165,7 @@ export default function MonthCalendar({
                     isSelected={cell.iso === selectedDate}
                     isSunday={colIdx === 0}
                     hasMark={markedDates?.has(cell.iso) ?? false}
+                    overflowCount={overflowByIso[cell.iso] ?? 0}
                     onClick={() => onSelectDate(cell.iso)}
                   />
                 ))}
@@ -204,7 +174,10 @@ export default function MonthCalendar({
               {/* 이벤트 bar 오버레이 */}
               {bars.length > 0 && (
                 <div
-                  className="pointer-events-none absolute inset-x-0 grid grid-cols-7"
+                  className={cn(
+                    "pointer-events-none absolute inset-x-0 grid grid-cols-7",
+                    barOpacity
+                  )}
                   style={{
                     top: DATE_AREA_H,
                     gridTemplateRows: `repeat(${MAX_LANES}, ${BAR_H}px)`,
@@ -219,25 +192,17 @@ export default function MonthCalendar({
                         gridRow: bar.lane + 1,
                       }}
                       className={cn(
-                        "flex items-center gap-0.5 overflow-hidden pl-0.5 text-[9px] leading-none",
+                        "flex items-center overflow-hidden text-[9px] leading-none",
                         bar.isStart && bar.isEnd
-                          ? "mx-0.5 rounded-full pr-1"
+                          ? "mx-0.5 rounded-full px-1.5"
                           : bar.isStart
-                          ? "ml-0.5 rounded-l-full"
+                          ? "ml-0.5 rounded-l-full pl-1.5"
                           : bar.isEnd
                           ? "rounded-r-full pr-1"
                           : "",
                         getBarBgClass(bar.event, meId)
                       )}
                     >
-                      {bar.isStart && (
-                        <ParticipantAvatar
-                          event={bar.event}
-                          meId={meId}
-                          meName={meName ?? null}
-                          partnerName={partnerName ?? null}
-                        />
-                      )}
                       {bar.isStart && (
                         <span className="truncate text-haru-text">{bar.event.title}</span>
                       )}
@@ -246,26 +211,6 @@ export default function MonthCalendar({
                 </div>
               )}
 
-              {/* 오버플로우 카운트 */}
-              {Object.keys(overflowByIso).length > 0 && (
-                <div
-                  className="pointer-events-none absolute inset-x-0 grid grid-cols-7"
-                  style={{ bottom: 3 }}
-                >
-                  {weekCells.map((cell) =>
-                    overflowByIso[cell.iso] ? (
-                      <span
-                        key={cell.iso}
-                        className="text-center text-[8px] text-haru-muted"
-                      >
-                        +{overflowByIso[cell.iso]}
-                      </span>
-                    ) : (
-                      <span key={cell.iso} />
-                    )
-                  )}
-                </div>
-              )}
             </div>
           );
         })}

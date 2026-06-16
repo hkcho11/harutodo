@@ -10,6 +10,7 @@ interface Props {
   isSelected: boolean;
   isSunday: boolean;
   hasMark?: boolean;
+  overflowCount?: number;
   onClick: () => void;
 }
 
@@ -21,6 +22,7 @@ export default function DayCell({
   isSelected,
   isSunday,
   hasMark = false,
+  overflowCount = 0,
   onClick,
 }: Props) {
   const dayNum = date.getDate();
@@ -36,22 +38,29 @@ export default function DayCell({
         !inMonth && "opacity-30"
       )}
     >
-      <span
-        className={cn(
-          "flex h-6 w-6 items-center justify-center rounded-full text-xs leading-none",
-          isToday && isSelected
-            ? "bg-haru-primary/25 ring-2 ring-haru-primary-active"
-            : isToday
-            ? "ring-2 ring-haru-primary-active"
-            : isSelected
-            ? "bg-haru-primary/25"
-            : isSunday
-            ? "text-haru-danger"
-            : "text-haru-text"
+      <div className="relative flex w-full justify-center">
+        <span
+          className={cn(
+            "flex h-6 w-6 items-center justify-center rounded-full text-xs leading-none",
+            isToday && isSelected
+              ? "bg-haru-primary/25 ring-2 ring-haru-primary-active"
+              : isToday
+              ? "ring-2 ring-haru-primary-active"
+              : isSelected
+              ? "bg-haru-primary/25"
+              : isSunday
+              ? "text-haru-danger"
+              : "text-haru-text"
+          )}
+        >
+          {dayNum}
+        </span>
+        {overflowCount > 0 && (
+          <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[8px] leading-none text-haru-muted">
+            +{overflowCount}
+          </span>
         )}
-      >
-        {dayNum}
-      </span>
+      </div>
       {hasMark && (
         <span className="mt-1 h-1 w-1 rounded-full bg-haru-primary" />
       )}
