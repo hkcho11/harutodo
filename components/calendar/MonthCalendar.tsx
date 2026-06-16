@@ -215,18 +215,18 @@ export default function MonthCalendar({
                         className={cn(
                           "flex items-center overflow-hidden text-[11px] font-medium leading-none",
                           bar.isStart && bar.isEnd
-                            ? "mx-0.5 rounded-full px-2"
+                            ? "mx-0.5 rounded-md pl-2"
                             : bar.isStart
-                            ? "ml-0.5 rounded-l-full pl-2"
+                            ? "ml-0.5 rounded-l-md pl-2"
                             : bar.isEnd
-                            ? "rounded-r-full pr-1"
+                            ? "rounded-r-md"
                             : "",
                           inCurrentMonth ? "" : "opacity-40",
                           getBarBgClass(bar.event, meId, resolvedMeColor, resolvedPartnerColor)
                         )}
                       >
                         {bar.isStart && (
-                          <span className="truncate text-haru-text">{bar.event.title}</span>
+                          <span className="whitespace-nowrap text-haru-text">{bar.event.title}</span>
                         )}
                       </div>
                     );
