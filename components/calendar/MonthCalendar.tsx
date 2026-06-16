@@ -220,12 +220,14 @@ export default function MonthCalendar({
                             ? "ml-0.5 rounded-l-md pl-2"
                             : bar.isEnd
                             ? "rounded-r-md"
+                            : bar.startCol === 0
+                            ? "pl-2"
                             : "",
                           inCurrentMonth ? "" : "opacity-40",
                           getBarBgClass(bar.event, meId, resolvedMeColor, resolvedPartnerColor)
                         )}
                       >
-                        {bar.isStart && (
+                        {(bar.isStart || bar.startCol === 0) && (
                           <span className="whitespace-nowrap text-haru-text">{bar.event.title}</span>
                         )}
                       </div>
