@@ -20,6 +20,7 @@ interface NotifyPayload {
   entity_type: "todo" | "event";
   entity_title?: string;
   entity_date?: string;
+  entity_time?: string; // "HH:MM" — 종일 일정이면 undefined
 }
 
 const ACTION_LABEL: Record<string, string> = {
@@ -46,6 +47,13 @@ function formatKoreanDate(iso: string): string {
   const parts = iso.split("-");
   if (parts.length < 3) return iso;
   return `${parseInt(parts[1])}월 ${parseInt(parts[2])}일`;
+}
+
+// "HH:MM" → "n시 n분"
+function formatKoreanTime(time: string): string {
+  const parts = time.split(":");
+  if (parts.length < 2) return time;
+  return `${parseInt(parts[0])}시 ${parseInt(parts[1])}분`;
 }
 
 Deno.serve(async (req) => {
@@ -81,7 +89,7 @@ Deno.serve(async (req) => {
     }
 
     const body: NotifyPayload = await req.json();
-    const { partner_id, actor_name, action, entity_type, entity_title, entity_date } = body;
+    const { partner_id, actor_name, action, entity_type, entity_title, entity_date, entity_time } = body;
 
     // C3: 커플 관계 검증 — caller와 partner_id가 실제 커플인지 확인
     const { data: coupleRow } = await supabase
@@ -125,7 +133,7 @@ Deno.serve(async (req) => {
     const detailLine =
       showContent && entity_title
         ? entity_date
-          ? `${formatKoreanDate(entity_date)} - ${entity_title}`
+          ? `${formatKoreanDate(entity_date)}${entity_time ? ` ${formatKoreanTime(entity_time)}` : ""} - ${entity_title}`
           : entity_title
         : null;
     const notifBody = detailLine ? `${baseLine}\n${detailLine}` : baseLine;

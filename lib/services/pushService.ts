@@ -68,6 +68,7 @@ export async function notifyPartner(params: {
   entityType: NotifyEntityType;
   entityTitle?: string;
   entityDate?: string;
+  entityTime?: string;
 }): Promise<void> {
   const supabase = createClient();
   await supabase.functions.invoke("notify-partner", {
@@ -78,6 +79,7 @@ export async function notifyPartner(params: {
       entity_type: params.entityType,
       entity_title: params.entityTitle,
       entity_date: params.entityDate,
+      entity_time: params.entityTime,
     },
   });
 }
