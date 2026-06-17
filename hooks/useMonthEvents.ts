@@ -236,6 +236,7 @@ export function useMonthEvents(year: number, month: number) {
           action: "add",
           entityType: "event",
           entityTitle: input.title,
+          entityDate: input.date,
         }).catch((e) => console.error("[notify]", e));
       }
     },
@@ -315,6 +316,7 @@ export function useMonthEvents(year: number, month: number) {
           action: "update",
           entityType: "event",
           entityTitle: typeof input.title === "string" ? input.title : undefined,
+          entityDate: input.date,
         }).catch((e) => console.error("[notify]", e));
       }
     },
@@ -324,7 +326,12 @@ export function useMonthEvents(year: number, month: number) {
   const remove = useCallback(
     async (id: string) => {
       if (!coupleId) throw new Error("no_couple");
-      setEvents((cur) => cur.filter((e) => e.id !== id));
+      let removed: { title: string; date: string } | undefined;
+      setEvents((cur) => {
+        const found = cur.find((e) => e.id === id);
+        if (found) removed = { title: found.title, date: found.date };
+        return cur.filter((e) => e.id !== id);
+      });
       const { error } = await supabase
         .from("events")
         .delete()
@@ -340,6 +347,8 @@ export function useMonthEvents(year: number, month: number) {
           actorName: me.display_name,
           action: "delete",
           entityType: "event",
+          entityTitle: removed?.title,
+          entityDate: removed?.date,
         }).catch((e) => console.error("[notify]", e));
       }
     },

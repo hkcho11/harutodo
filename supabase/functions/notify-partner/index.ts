@@ -19,10 +19,11 @@ interface NotifyPayload {
   action: "add" | "update" | "delete";
   entity_type: "todo" | "event";
   entity_title?: string;
+  entity_date?: string;
 }
 
 const ACTION_LABEL: Record<string, string> = {
-  add: "추가했어요",
+  add: "등록했어요",
   update: "수정했어요",
   delete: "삭제했어요",
 };
@@ -31,6 +32,21 @@ const ENTITY_LABEL: Record<string, string> = {
   todo: "할 일을",
   event: "일정을",
 };
+
+// 이름 마지막 글자의 받침 유무에 따라 주격 조사 반환
+function subjectParticle(name: string): string {
+  if (!name) return "이";
+  const code = name.charCodeAt(name.length - 1);
+  if (code < 0xAC00 || code > 0xD7A3) return "이";
+  return (code - 0xAC00) % 28 === 0 ? "가" : "이";
+}
+
+// "YYYY-MM-DD" → "n월 n일"
+function formatKoreanDate(iso: string): string {
+  const parts = iso.split("-");
+  if (parts.length < 3) return iso;
+  return `${parseInt(parts[1])}월 ${parseInt(parts[2])}일`;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -65,7 +81,7 @@ Deno.serve(async (req) => {
     }
 
     const body: NotifyPayload = await req.json();
-    const { partner_id, actor_name, action, entity_type, entity_title } = body;
+    const { partner_id, actor_name, action, entity_type, entity_title, entity_date } = body;
 
     // C3: 커플 관계 검증 — caller와 partner_id가 실제 커플인지 확인
     const { data: coupleRow } = await supabase
@@ -100,15 +116,19 @@ Deno.serve(async (req) => {
 
     const entityLabel = ENTITY_LABEL[entity_type] ?? "항목을";
     const actionLabel = ACTION_LABEL[action] ?? "변경했어요";
+    const particle = subjectParticle(actor_name);
 
     const showContent = recipientSettings?.show_content ?? false;
-    const hasTitle = showContent && entity_title;
 
-    // 내용이 있으면 항목명을 제목으로, 없으면 보낸 사람 이름을 제목으로
-    const notifTitle = hasTitle ? entity_title! : actor_name;
-    const notifBody = hasTitle
-      ? `${actor_name} · ${entityLabel} ${actionLabel}`
-      : `${entityLabel} ${actionLabel}`;
+    const notifTitle = "Harutodo";
+    const baseLine = `${actor_name}${particle} ${entityLabel} ${actionLabel}.`;
+    const detailLine =
+      showContent && entity_title
+        ? entity_date
+          ? `${formatKoreanDate(entity_date)} - ${entity_title}`
+          : entity_title
+        : null;
+    const notifBody = detailLine ? `${baseLine}\n${detailLine}` : baseLine;
 
     const { data: subs } = await supabase
       .from("push_subscriptions")

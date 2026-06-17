@@ -152,6 +152,7 @@ export function useDateTodos(date: string) {
           action: "add",
           entityType: "todo",
           entityTitle: input.title,
+          entityDate: input.date,
         }).catch((e) => console.error("[notify]", e));
       }
     },
@@ -186,6 +187,7 @@ export function useDateTodos(date: string) {
           action: "update",
           entityType: "todo",
           entityTitle: typeof input.title === "string" ? input.title : undefined,
+          entityDate: input.date ?? date,
         }).catch((e) => console.error("[notify]", e));
       }
     },
@@ -201,7 +203,12 @@ export function useDateTodos(date: string) {
   const remove = useCallback(
     async (id: string) => {
       if (!coupleId) throw new Error("no_couple");
-      setTodos((cur) => cur.filter((t) => t.id !== id));
+      let removed: { title: string; date: string } | undefined;
+      setTodos((cur) => {
+        const found = cur.find((t) => t.id === id);
+        if (found?.date) removed = { title: found.title, date: found.date };
+        return cur.filter((t) => t.id !== id);
+      });
       const { error } = await supabase
         .from("todo_items")
         .delete()
@@ -217,6 +224,8 @@ export function useDateTodos(date: string) {
           actorName: me.display_name,
           action: "delete",
           entityType: "todo",
+          entityTitle: removed?.title,
+          entityDate: removed?.date,
         }).catch((e) => console.error("[notify]", e));
       }
     },
