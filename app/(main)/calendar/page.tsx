@@ -16,14 +16,12 @@ import EventList from "@/components/calendar/EventList";
 import EventSheet from "@/components/calendar/EventSheet";
 import type { Event, EventFormValues } from "@/types/event";
 
-function parsePushDate(fallbackDate: string, fallbackYear: number, fallbackMonth: number) {
-  if (typeof window === "undefined") return { date: fallbackDate, year: fallbackYear, month: fallbackMonth };
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("source") !== "push") return { date: fallbackDate, year: fallbackYear, month: fallbackMonth };
-  const raw = params.get("date");
-  if (!raw) return { date: fallbackDate, year: fallbackYear, month: fallbackMonth };
-  const d = new Date(raw);
-  if (isNaN(d.getTime())) return { date: fallbackDate, year: fallbackYear, month: fallbackMonth };
+function parsePushDate(fallbackYear: number, fallbackMonth: number) {
+  if (typeof window === "undefined") return { date: null, year: fallbackYear, month: fallbackMonth };
+  const raw = new URLSearchParams(window.location.search).get("date");
+  if (!raw || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return { date: null, year: fallbackYear, month: fallbackMonth };
+  const d = new Date(`${raw}T00:00:00`);
+  if (isNaN(d.getTime())) return { date: null, year: fallbackYear, month: fallbackMonth };
   return { date: raw, year: d.getFullYear(), month: d.getMonth() };
 }
 
@@ -31,9 +29,10 @@ export default function CalendarPage() {
   const today = new Date();
   const todayStr = todayISO();
 
-  const [viewYear, setViewYear] = useState(() => parsePushDate(todayStr, today.getFullYear(), today.getMonth()).year);
-  const [viewMonth, setViewMonth] = useState(() => parsePushDate(todayStr, today.getFullYear(), today.getMonth()).month); // 0-based
-  const [selectedDate, setSelectedDate] = useState(() => parsePushDate(todayStr, today.getFullYear(), today.getMonth()).date);
+  const [pushDate] = useState(() => parsePushDate(today.getFullYear(), today.getMonth()).date);
+  const [viewYear, setViewYear] = useState(() => parsePushDate(today.getFullYear(), today.getMonth()).year);
+  const [viewMonth, setViewMonth] = useState(() => parsePushDate(today.getFullYear(), today.getMonth()).month); // 0-based
+  const [selectedDate, setSelectedDate] = useState(() => parsePushDate(today.getFullYear(), today.getMonth()).date ?? todayStr);
 
   const [daySheetOpen, setDaySheetOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -46,6 +45,25 @@ export default function CalendarPage() {
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
   const showToast = useToastStore((s) => s.show);
+
+  // Push 알림 진입 시 해당 날짜의 DaySheet 자동 오픈 (한 번만)
+  const autoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (!pushDate || loading || autoOpenedRef.current) return;
+    autoOpenedRef.current = true;
+    const dayEvents = eventsByDate[pushDate] ?? [];
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (dayEvents.length > 0) setDaySheetOpen(true);
+  }, [loading, pushDate, eventsByDate]);
+
+  // date URL 파라미터 정리 — 한 번만 실행
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("date")) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("date");
+    window.history.replaceState({}, "", url.toString());
+  }, []);
 
   useEffect(() => {
     if (!me?.id) return;
