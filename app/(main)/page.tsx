@@ -18,8 +18,23 @@ import type { Todo } from "@/types/todo";
 
 export default function HomePage() {
   const todayStr = todayISO();
-  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    if (typeof window !== "undefined") {
+      const d = new URLSearchParams(window.location.search).get("date");
+      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    }
+    return todayISO();
+  });
   const me = useCoupleStore((s) => s.me);
+
+  // Push 날짜 파라미터 정리 — 한 번만 실행
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("date") && params.get("source") !== "push") return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("date");
+    window.history.replaceState({}, "", url.toString());
+  }, []);
 
   useEffect(() => {
     if (!me?.id) return;

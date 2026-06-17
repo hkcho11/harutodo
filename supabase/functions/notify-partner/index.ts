@@ -142,11 +142,15 @@ Deno.serve(async (req) => {
     }
 
     // M3: data.url 형식 (Service Worker와 일치)
+    const todoUrl =
+      entity_type === "todo" && entity_date
+        ? `/?date=${entity_date}`
+        : "/";
     const payload = JSON.stringify({
       title: notifTitle,
       body: notifBody,
       data: {
-        url: entity_type === "event" ? "/calendar" : "/",
+        url: entity_type === "event" ? "/calendar" : todoUrl,
       },
     });
 
