@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { MapPin, Search, X } from "lucide-react";
 import type { SelectedLocation } from "@/types/event";
 
@@ -33,17 +33,7 @@ export default function LocationInput({ value, onChange }: Props) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const coordsRef = useRef<{ lat: number; lng: number } | null>(null);
-
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        coordsRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      },
-      () => {},
-      { timeout: 5000 }
-    );
-  }, []);
+  const geoRequestedRef = useRef(false);
 
   const search = useCallback(async (q: string) => {
     if (q.trim().length < 2) {
@@ -96,6 +86,18 @@ export default function LocationInput({ value, onChange }: Props) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const q = e.target.value;
     setQuery(q);
+
+    // 첫 타이핑 시점에 위치 권한 요청 — 마운트 시 즉시 요청하면 매번 권한 팝업이 뜸
+    if (!geoRequestedRef.current && navigator.geolocation) {
+      geoRequestedRef.current = true;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          coordsRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        },
+        () => {},
+        { timeout: 5000 }
+      );
+    }
     if (!q.trim()) {
       setOpen(false);
       setResults([]);
