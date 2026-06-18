@@ -59,6 +59,8 @@ export default function LocationInput({ value, onChange }: Props) {
 
     setLoading(true);
     setHasError(null);
+    setResults([]);
+    setOpen(true);
 
     try {
       const params = new URLSearchParams({ query: q.trim() });
@@ -156,11 +158,9 @@ export default function LocationInput({ value, onChange }: Props) {
           value={query}
           onChange={handleChange}
           placeholder="장소 검색"
-          className="min-h-[44px] w-full rounded-2xl border border-haru-border bg-haru-surface pl-9 pr-3 text-sm text-haru-text placeholder:text-haru-muted focus:border-haru-primary focus:outline-none"
+          style={{ fontSize: 16 }}
+          className="min-h-[44px] w-full rounded-2xl border border-haru-border bg-haru-surface pl-9 pr-3 text-haru-text placeholder:text-haru-muted focus:border-haru-primary focus:outline-none"
         />
-        {loading && (
-          <div className="absolute right-3 h-4 w-4 animate-spin rounded-full border-2 border-haru-muted border-t-haru-primary" />
-        )}
       </div>
 
       {open && (
@@ -171,6 +171,11 @@ export default function LocationInput({ value, onChange }: Props) {
                 ? "카카오맵 API 권한 오류예요. 카카오 개발자 콘솔에서 카카오맵 제품을 활성화해주세요."
                 : "검색 중 오류가 발생했어요. 잠시 후 다시 시도해주세요."}
             </p>
+          ) : loading ? (
+            <div className="flex items-center gap-2 px-3 py-3">
+              <div className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-haru-border border-t-haru-primary" />
+              <p className="text-sm text-haru-muted">검색 중...</p>
+            </div>
           ) : results.length > 0 ? (
             <ul>
               {results.map((doc, i) => (
@@ -191,9 +196,9 @@ export default function LocationInput({ value, onChange }: Props) {
                 </li>
               ))}
             </ul>
-          ) : !loading ? (
+          ) : (
             <p className="px-3 py-3 text-sm text-haru-muted">검색 결과가 없어요</p>
-          ) : null}
+          )}
         </div>
       )}
     </div>
