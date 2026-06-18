@@ -250,8 +250,25 @@ export default function EventSheet({
         open={open}
         onClose={onClose}
         title={event ? "일정 편집" : "일정 추가"}
+        footer={
+          <div className="flex gap-2">
+            {event && onDelete && (
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(true)}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-haru-border text-haru-danger active:bg-haru-primary-soft"
+                aria-label="삭제"
+              >
+                <Trash2 className="h-5 w-5" />
+              </button>
+            )}
+            <Button type="submit" form="event-form" isLoading={isSubmitting}>
+              {event ? "저장" : "추가"}
+            </Button>
+          </div>
+        }
       >
-        <form onSubmit={handleSubmit(onValid)} className="flex flex-col gap-4">
+        <form id="event-form" onSubmit={handleSubmit(onValid)} className="flex flex-col gap-4">
           <Input
             id="event-title"
             placeholder="일정 제목"
@@ -426,21 +443,6 @@ export default function EventSheet({
             {location && <LocationMapPreview location={location} />}
           </div>
 
-          <div className="sticky bottom-0 -mx-5 mt-2 flex gap-2 border-t border-haru-border bg-haru-surface px-5 pt-3 pb-1">
-            {event && onDelete && (
-              <button
-                type="button"
-                onClick={() => setConfirmOpen(true)}
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-haru-border text-haru-danger active:bg-haru-primary-soft"
-                aria-label="삭제"
-              >
-                <Trash2 className="h-5 w-5" />
-              </button>
-            )}
-            <Button type="submit" isLoading={isSubmitting}>
-              {event ? "저장" : "추가"}
-            </Button>
-          </div>
         </form>
       </BottomSheet>
 

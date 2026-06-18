@@ -8,6 +8,7 @@ interface Props {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
 // document.body 바로 아래에 portal로 렌더 — 레이아웃 어떤 자식의
@@ -18,7 +19,7 @@ interface Props {
 // - max-h-[90dvh]: 키보드 팝업 시 dvh가 자동 재계산되어 시트가 가려지지 않음
 // - 헤더(핸들/제목) shrink-0 + 본문 flex-1 overflow-y-auto: 콘텐츠 내부 스크롤
 // - 호출 측은 본문 마지막에 `sticky bottom-0` 액션 영역을 두어 저장 버튼이 항상 노출되게 한다
-export default function BottomSheet({ open, onClose, title, children }: Props) {
+export default function BottomSheet({ open, onClose, title, children, footer }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -56,9 +57,14 @@ export default function BottomSheet({ open, onClose, title, children }: Props) {
             <h2 className="mb-2 text-lg font-bold text-haru-text">{title}</h2>
           )}
         </div>
-        <div className="flex-1 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div className={`flex-1 overflow-y-auto px-5 ${footer ? "pb-4" : "pb-[max(1.25rem,env(safe-area-inset-bottom))]"}`}>
           {children}
         </div>
+        {footer && (
+          <div className="shrink-0 border-t border-haru-border bg-haru-surface px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            {footer}
+          </div>
+        )}
       </div>
     </div>,
     document.body
