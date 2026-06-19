@@ -338,6 +338,33 @@ export type Database = {
         }
         Relationships: []
       }
+      naver_calendar_tokens: {
+        Row: {
+          user_id: string
+          access_token: string
+          refresh_token: string
+          expires_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          access_token: string
+          refresh_token: string
+          expires_at: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          access_token?: string
+          refresh_token?: string
+          expires_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invite_codes: {
         Row: {
           code: string

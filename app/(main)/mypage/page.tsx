@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Link2Off } from "lucide-react";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
 import OptionSheet from "@/components/common/OptionSheet";
 import AvatarColorSheet from "@/components/mypage/AvatarColorSheet";
 import { signOut } from "@/lib/services/authService";
+import {
+  getNaverCalendarStatus,
+  connectNaverCalendar,
+  disconnectNaverCalendar,
+} from "@/lib/services/naverCalendarService";
 import { updateProfile } from "@/lib/services/profileService";
 import { disconnectCouple } from "@/lib/services/coupleService";
 import { getAvatarColor, AVATAR_COLOR_CLASSES, type AvatarColor } from "@/lib/utils/avatarColor";
@@ -69,6 +74,7 @@ function ToggleRow({
 
 export default function MyPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
   const coupleId = useCoupleStore((s) => s.coupleId);
@@ -207,6 +213,54 @@ export default function MyPage() {
 
   const [timePickerTarget, setTimePickerTarget] = useState<"morning" | "evening" | null>(null);
   const [leadMinPickerOpen, setLeadMinPickerOpen] = useState(false);
+
+  // 네이버 캘린더 연동 상태
+  const [naverConnected, setNaverConnected] = useState<boolean | null>(null);
+  const [naverLoading, setNaverLoading] = useState(false);
+
+  const loadNaverStatus = useCallback(async () => {
+    const connected = await getNaverCalendarStatus();
+    setNaverConnected(connected);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadNaverStatus();
+  }, [loadNaverStatus]);
+
+  // OAuth 콜백 후 쿼리 파라미터로 결과 표시
+  useEffect(() => {
+    const result = searchParams.get("naver_calendar");
+    if (!result) return;
+    if (result === "connected") {
+      showToast("네이버 캘린더가 연결됐어요");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNaverConnected(true);
+    } else if (result === "error") {
+      showToast("네이버 캘린더 연결에 실패했어요");
+    }
+    // URL 정리
+    const url = new URL(window.location.href);
+    url.searchParams.delete("naver_calendar");
+    window.history.replaceState({}, "", url.toString());
+  }, [searchParams, showToast]);
+
+  const handleNaverConnect = () => {
+    connectNaverCalendar();
+  };
+
+  const handleNaverDisconnect = async () => {
+    setNaverLoading(true);
+    try {
+      await disconnectNaverCalendar();
+      setNaverConnected(false);
+      showToast("네이버 캘린더 연결이 해제됐어요");
+    } catch {
+      showToast("연결 해제에 실패했어요. 다시 시도해주세요");
+    } finally {
+      setNaverLoading(false);
+    }
+  };
 
   // M1: Push 권한 상태 — SSR과 초기 클라이언트 렌더 일치를 위해 "unavailable"로 초기화
   const [pushPermission, setPushPermission] = useState<NotificationPermission | "unavailable">("unavailable");
@@ -590,6 +644,50 @@ export default function MyPage() {
             </div>
           </div>
         )}
+      </section>
+
+      {/* 네이버 캘린더 연동 */}
+      <section className="overflow-hidden rounded-2xl bg-haru-surface shadow-card">
+        <div className="flex items-center gap-2 border-b border-haru-border px-5 py-4">
+          <Link2 className="h-4 w-4 text-haru-muted" />
+          <h2 className="text-sm font-semibold text-haru-text">외부 캘린더 연동</h2>
+        </div>
+        <div className="px-5 py-4">
+          {naverConnected === null ? (
+            <p className="text-sm text-haru-muted">불러오는 중...</p>
+          ) : naverConnected ? (
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-haru-text">네이버 캘린더</p>
+                <p className="mt-0.5 text-xs text-haru-muted">일정 추가 시 네이버 캘린더에 자동 등록돼요</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void handleNaverDisconnect()}
+                disabled={naverLoading}
+                className="flex shrink-0 items-center gap-1.5 rounded-xl border border-haru-border px-3 py-2 text-xs font-medium text-haru-muted active:bg-haru-primary-soft disabled:opacity-40"
+              >
+                <Link2Off className="h-3.5 w-3.5" />
+                연결 해제
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-haru-text">네이버 캘린더</p>
+                <p className="mt-0.5 text-xs text-haru-muted">연결하면 하루투두 일정이 자동으로 등록돼요</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleNaverConnect}
+                className="flex shrink-0 items-center gap-1.5 rounded-xl bg-haru-primary px-3 py-2 text-xs font-semibold text-haru-text active:bg-haru-primary-active"
+              >
+                <Link2 className="h-3.5 w-3.5" />
+                연결하기
+              </button>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* 계정 — Settings 스타일 행 */}
