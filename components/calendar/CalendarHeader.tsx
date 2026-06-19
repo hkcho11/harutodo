@@ -1,12 +1,10 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
 
 interface Props {
   year: number;
   month: number; // 0-based
-  isCurrentMonth?: boolean;
   onPrev: () => void;
   onNext: () => void;
   onToday: () => void;
@@ -15,7 +13,6 @@ interface Props {
 export default function CalendarHeader({
   year,
   month,
-  isCurrentMonth = false,
   onPrev,
   onNext,
   onToday,
@@ -45,12 +42,7 @@ export default function CalendarHeader({
         type="button"
         onClick={onToday}
         aria-label="오늘로 이동"
-        className={cn(
-          "ml-1 min-h-[44px] rounded-xl px-3 text-sm font-semibold transition-colors",
-          isCurrentMonth
-            ? "invisible pointer-events-none"
-            : "bg-haru-primary-soft text-haru-text active:bg-haru-primary"
-        )}
+        className="ml-1 min-h-[44px] rounded-xl bg-haru-primary-soft px-3 text-sm font-semibold text-haru-text transition-colors active:bg-haru-primary"
       >
         오늘
       </button>

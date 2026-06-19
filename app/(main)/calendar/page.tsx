@@ -82,8 +82,6 @@ export default function CalendarPage() {
     window.history.replaceState({}, "", url.toString());
   }, [me?.id]);
 
-  const isCurrentMonth =
-    viewYear === today.getFullYear() && viewMonth === today.getMonth();
 
   const handleSubmit = async (values: EventFormValues) => {
     try {
@@ -180,7 +178,6 @@ export default function CalendarPage() {
         <CalendarHeader
           year={viewYear}
           month={viewMonth}
-          isCurrentMonth={isCurrentMonth}
           onPrev={handlePrev}
           onNext={handleNext}
           onToday={handleToday}
