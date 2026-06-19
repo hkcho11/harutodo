@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Link2Off } from "lucide-react";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
 import OptionSheet from "@/components/common/OptionSheet";
@@ -74,7 +74,6 @@ function ToggleRow({
 
 export default function MyPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
   const coupleId = useCoupleStore((s) => s.coupleId);
@@ -223,27 +222,33 @@ export default function MyPage() {
     setNaverConnected(connected);
   }, []);
 
+  // OAuth 콜백 결과 처리 — URL param → localStorage → 토스트
+  // localStorage 경유로 저장해두면 PWA가 재실행된 뒤 마이페이지 재진입 시에도 토스트가 표시됨
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadNaverStatus();
-  }, [loadNaverStatus]);
-
-  // OAuth 콜백 후 쿼리 파라미터로 결과 표시
-  useEffect(() => {
-    const result = searchParams.get("naver_calendar");
-    if (!result) return;
-    if (result === "connected") {
-      showToast("네이버 캘린더가 연결됐어요");
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setNaverConnected(true);
-    } else if (result === "error") {
-      showToast("네이버 캘린더 연결에 실패했어요");
+    const params = new URLSearchParams(window.location.search);
+    const urlResult = params.get("naver_calendar");
+    if (urlResult) {
+      localStorage.setItem("naverCalendarResult", urlResult);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("naver_calendar");
+      window.history.replaceState({}, "", url.toString());
     }
-    // URL 정리
-    const url = new URL(window.location.href);
-    url.searchParams.delete("naver_calendar");
-    window.history.replaceState({}, "", url.toString());
-  }, [searchParams, showToast]);
+    const pending = localStorage.getItem("naverCalendarResult");
+    if (pending) {
+      localStorage.removeItem("naverCalendarResult");
+      if (pending === "connected") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setNaverConnected(true);
+        showToast("네이버 캘린더가 연결됐어요");
+      } else if (pending === "error") {
+        showToast("네이버 캘린더 연결에 실패했어요");
+      }
+    } else {
+      void loadNaverStatus();
+    }
+  // 마운트 1회만 실행 (showToast·loadNaverStatus는 안정된 레퍼런스)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleNaverConnect = () => {
     connectNaverCalendar();
