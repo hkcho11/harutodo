@@ -91,7 +91,9 @@ async function setup() {
 async function fetchMonth(token, year, month) {
   const req = new Request(`${APP_URL}/api/widget/month?year=${year}&month=${month}`);
   req.headers = { Authorization: `Bearer ${token}` };
-  return await req.loadJSON();
+  const data = await req.loadJSON();
+  if (data.error) throw new Error(data.error);
+  return data;
 }
 
 async function fetchToday(token) {
@@ -466,6 +468,10 @@ async function run() {
       await setup();
       return;
     }
+
+    // 스크립트를 최신 버전으로 조용히 업데이트 (다음 실행부터 반영)
+    selfUpdate();
+
     const alert = new Alert();
     alert.title = "하루투두 위젯";
     alert.addAction("Large 미리보기");
@@ -491,7 +497,7 @@ async function run() {
       const w = createLargeWidget(monthData);
       await w.presentLarge();
     } catch (e) {
-      const w = createErrorWidget("데이터를 불러오지 못했어요");
+      const w = createErrorWidget(String(e));
       await w.presentLarge();
     }
     return;
