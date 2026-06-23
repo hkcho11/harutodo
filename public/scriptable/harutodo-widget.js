@@ -139,17 +139,17 @@ function buildCalendarImage(monthData, imgW, imgH) {
     const isToday = dateStr === today;
     const marks = markedDates[dateStr] ?? [];
 
-    // 오늘 원형 배경
+    // 날짜 숫자 — dot 영역을 아래에 남긴 텍스트 영역
+    const textAreaH = CELL_H - DOT_SIZE - 3;
+
+    // 오늘 원형 배경 — 텍스트 중심과 정확히 일치하도록 텍스트 영역 기준으로 배치
     if (isToday) {
       const cirSize = Math.min(CELL_W, CELL_H) * 0.72;
       const cirX = x + (CELL_W - cirSize) / 2;
-      const cirY = y + (CELL_H - cirSize) / 2 - DOT_SIZE - 1;
+      const cirY = y + (textAreaH - cirSize) / 2;
       ctx.setFillColor(new Color(C.today));
       ctx.fillEllipse(new Rect(cirX, cirY, cirSize, cirSize));
     }
-
-    // 날짜 숫자 — dot 영역(DOT_SIZE + 2px)을 아래에 남기고 나머지 영역 중앙에 배치
-    const textAreaH = CELL_H - DOT_SIZE - 3;
     ctx.setFont(isToday ? Font.boldSystemFont(FONT_SIZE) : Font.systemFont(FONT_SIZE));
     ctx.setTextColor(new Color(
       isToday ? C.text :
@@ -229,7 +229,7 @@ function createSmallWidget(monthData, todayData) {
 function createMediumWidget(monthData) {
   const w = new ListWidget();
   w.backgroundColor = new Color(C.bg);
-  w.setPadding(12, 10, 8, 10);
+  w.setPadding(14, 14, 10, 14);
   w.url = APP_URL;
 
   // 월 헤더
@@ -263,8 +263,8 @@ function createMediumWidget(monthData) {
 
   w.addSpacer(6);
 
-  // 달력 이미지
-  const IMG_W = 309;
+  // 달력 이미지 — IMG_W = widget_width(338) - padding*2(28) = 310
+  const IMG_W = 310;
   const IMG_H = 118;
   const calImg = w.addImage(buildCalendarImage(monthData, IMG_W, IMG_H));
   calImg.imageSize = new Size(IMG_W, IMG_H);
@@ -276,7 +276,7 @@ function createMediumWidget(monthData) {
 function createLargeWidget(monthData, todayData) {
   const w = new ListWidget();
   w.backgroundColor = new Color(C.bg);
-  w.setPadding(14, 12, 14, 12);
+  w.setPadding(16, 16, 16, 16);
   w.url = APP_URL;
 
   // 월 헤더
@@ -308,8 +308,8 @@ function createLargeWidget(monthData, todayData) {
 
   w.addSpacer(8);
 
-  // 달력 이미지
-  const IMG_W = 305;
+  // 달력 이미지 — IMG_W = widget_width(338) - padding*2(32) = 306
+  const IMG_W = 306;
   const IMG_H = 168;
   const calImg = w.addImage(buildCalendarImage(monthData, IMG_W, IMG_H));
   calImg.imageSize = new Size(IMG_W, IMG_H);
@@ -321,7 +321,7 @@ function createLargeWidget(monthData, todayData) {
   dividerRow.layoutHorizontally();
   const divLine = dividerRow.addStack();
   divLine.backgroundColor = new Color(C.border);
-  divLine.size = new Size(305, 1);
+  divLine.size = new Size(306, 1);
 
   w.addSpacer(10);
 
