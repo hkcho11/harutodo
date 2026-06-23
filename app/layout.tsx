@@ -35,8 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko">
-      <body>
+    <html lang="ko" style={{ backgroundColor: "#FAFCF5" }}>
+      <body style={{ backgroundColor: "#FAFCF5" }}>
         <SplashScreen />
         {children}
       </body>

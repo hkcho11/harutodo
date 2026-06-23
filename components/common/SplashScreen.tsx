@@ -25,6 +25,7 @@ export default function SplashScreen() {
         "fixed inset-0 z-[200] flex flex-col items-center justify-center bg-haru-bg transition-opacity duration-500",
         fading ? "opacity-0" : "opacity-100"
       )}
+      style={{ backgroundColor: "#FAFCF5" }}
     >
       <Image
         src="/icons/icon-logo.png"
