@@ -110,7 +110,7 @@ function buildCalendarImage(monthData, imgW, imgH) {
   const HEADER_H = 17;
   const CELL_W = imgW / 7;
   const CELL_H = (imgH - HEADER_H) / 6;
-  const FONT_SIZE = Math.floor(CELL_H * 0.55);
+  const FONT_SIZE = Math.floor(CELL_H * 0.52);
   const DOT_SIZE = 3;
 
   const ctx = new DrawContext();
@@ -141,17 +141,15 @@ function buildCalendarImage(monthData, imgW, imgH) {
 
     // 오늘 원형 배경
     if (isToday) {
-      const size = Math.min(CELL_W, CELL_H) * 0.78;
+      const cirSize = Math.min(CELL_W, CELL_H) * 0.72;
+      const cirX = x + (CELL_W - cirSize) / 2;
+      const cirY = y + (CELL_H - cirSize) / 2 - DOT_SIZE - 1;
       ctx.setFillColor(new Color(C.today));
-      ctx.fillEllipse(new Rect(
-        x + (CELL_W - size) / 2,
-        y + (CELL_H - size) / 2 - (DOT_SIZE + 1),
-        size,
-        size
-      ));
+      ctx.fillEllipse(new Rect(cirX, cirY, cirSize, cirSize));
     }
 
-    // 날짜 숫자
+    // 날짜 숫자 — dot 영역(DOT_SIZE + 2px)을 아래에 남기고 나머지 영역 중앙에 배치
+    const textAreaH = CELL_H - DOT_SIZE - 3;
     ctx.setFont(isToday ? Font.boldSystemFont(FONT_SIZE) : Font.systemFont(FONT_SIZE));
     ctx.setTextColor(new Color(
       isToday ? C.text :
@@ -162,17 +160,16 @@ function buildCalendarImage(monthData, imgW, imgH) {
     ctx.setTextAlignedCenter();
     ctx.drawTextInRect(
       String(d),
-      new Rect(x, y + (CELL_H - FONT_SIZE - DOT_SIZE - 2) / 2, CELL_W, FONT_SIZE + 2)
+      new Rect(x, y + (textAreaH - FONT_SIZE) / 2, CELL_W, FONT_SIZE + 2)
     );
 
-    // 마커 dot
+    // 마커 dot — 셀 맨 아래
     if (marks.length > 0) {
       const hasEvent = marks.includes("event");
       const hasTodo = marks.includes("todo");
       const dotY = y + CELL_H - DOT_SIZE - 1;
 
       if (hasEvent && hasTodo) {
-        // 두 개 dot (이벤트 + 할 일)
         ctx.setFillColor(new Color(C.dotEvent));
         ctx.fillEllipse(new Rect(x + CELL_W / 2 - DOT_SIZE - 1, dotY, DOT_SIZE, DOT_SIZE));
         ctx.setFillColor(new Color(C.dotTodo));
@@ -275,7 +272,7 @@ function createMediumWidget(monthData) {
   return w;
 }
 
-// ===== 위젯 — Large (캘린더 + 오늘 할 일) =====
+// ===== 위젯 — Large (캘린더 + 할 일 / 일정 2열) =====
 function createLargeWidget(monthData, todayData) {
   const w = new ListWidget();
   w.backgroundColor = new Color(C.bg);
@@ -313,62 +310,103 @@ function createLargeWidget(monthData, todayData) {
 
   // 달력 이미지
   const IMG_W = 305;
-  const IMG_H = 165;
+  const IMG_H = 168;
   const calImg = w.addImage(buildCalendarImage(monthData, IMG_W, IMG_H));
   calImg.imageSize = new Size(IMG_W, IMG_H);
 
   w.addSpacer(10);
 
   // 구분선
-  const divider = w.addStack();
-  divider.backgroundColor = new Color(C.border);
-  divider.size = new Size(0, 1);
+  const dividerRow = w.addStack();
+  dividerRow.layoutHorizontally();
+  const divLine = dividerRow.addStack();
+  divLine.backgroundColor = new Color(C.border);
+  divLine.size = new Size(305, 1);
 
   w.addSpacer(10);
 
-  // 오늘 할 일
-  const todosHeader = w.addStack();
-  todosHeader.layoutHorizontally();
-
-  const days = ["일", "월", "화", "수", "목", "금", "토"];
-  const now = new Date();
-  const todayLabel = todosHeader.addText(
-    `${now.getMonth() + 1}월 ${now.getDate()}일 ${days[now.getDay()]} 할 일`
-  );
-  todayLabel.font = Font.boldSystemFont(12);
-  todayLabel.textColor = new Color(C.text);
-
-  w.addSpacer(6);
-
+  // 2열 섹션 (할 일 | 일정)
+  const dotColors = { me: C.today, together: C.dotTodo, partner: C.dotEvent, other: C.border };
   const incomplete = todayData?.todos?.filter(t => !t.is_completed) ?? [];
+  const events = todayData?.events ?? [];
+
+  const twoCol = w.addStack();
+  twoCol.layoutHorizontally();
+
+  // ── 왼쪽: 할 일 ──
+  const todoCol = twoCol.addStack();
+  todoCol.layoutVertically();
+  todoCol.spacing = 5;
+
+  const todoHeader = todoCol.addText("할 일");
+  todoHeader.font = Font.boldSystemFont(11);
+  todoHeader.textColor = new Color(C.text);
 
   if (incomplete.length === 0) {
-    const done = w.addText("오늘 할 일을 모두 완료했어요 ✓");
-    done.font = Font.mediumSystemFont(12);
+    const done = todoCol.addText("모두 완료 ✓");
+    done.font = Font.systemFont(11);
     done.textColor = new Color("#6B9F7A");
   } else {
-    const dotColors = { me: C.today, together: C.dotTodo, partner: C.dotEvent, other: C.border };
-    for (const todo of incomplete.slice(0, 5)) {
-      const row = w.addStack();
+    for (const todo of incomplete.slice(0, 6)) {
+      const row = todoCol.addStack();
       row.layoutHorizontally();
       row.centerAlignContent();
-      row.spacing = 6;
+      row.spacing = 5;
 
       const dot = row.addText("●");
       dot.font = Font.systemFont(7);
       dot.textColor = new Color(dotColors[todo.assignee] ?? C.border);
 
       const title = row.addText(todo.title);
-      title.font = Font.systemFont(12);
+      title.font = Font.systemFont(11);
+      title.textColor = new Color(C.text);
+      title.lineLimit = 1;
+    }
+    if (incomplete.length > 6) {
+      const more = todoCol.addText(`+${incomplete.length - 6}개 더`);
+      more.font = Font.systemFont(10);
+      more.textColor = new Color(C.muted);
+    }
+  }
+
+  // ── 세로 구분선 ──
+  twoCol.addSpacer(10);
+  const vDivider = twoCol.addStack();
+  vDivider.layoutVertically();
+  vDivider.backgroundColor = new Color(C.border);
+  vDivider.size = new Size(1, 100);
+  twoCol.addSpacer(10);
+
+  // ── 오른쪽: 일정 ──
+  const eventCol = twoCol.addStack();
+  eventCol.layoutVertically();
+  eventCol.spacing = 5;
+
+  const eventHeader = eventCol.addText("일정");
+  eventHeader.font = Font.boldSystemFont(11);
+  eventHeader.textColor = new Color(C.text);
+
+  if (events.length === 0) {
+    const noEv = eventCol.addText("일정 없음");
+    noEv.font = Font.systemFont(11);
+    noEv.textColor = new Color(C.muted);
+  } else {
+    for (const evt of events.slice(0, 6)) {
+      const row = eventCol.addStack();
+      row.layoutVertically();
+      row.spacing = 1;
+
+      const title = row.addText(evt.title);
+      title.font = Font.mediumSystemFont(11);
       title.textColor = new Color(C.text);
       title.lineLimit = 1;
 
-      w.addSpacer(4);
-    }
-    if (incomplete.length > 5) {
-      const more = w.addText(`  +${incomplete.length - 5}개 더`);
-      more.font = Font.systemFont(11);
-      more.textColor = new Color(C.muted);
+      if (evt.start_time) {
+        const timeStr = evt.start_time.slice(0, 5);
+        const time = row.addText(timeStr);
+        time.font = Font.systemFont(9);
+        time.textColor = new Color(C.muted);
+      }
     }
   }
 
@@ -417,19 +455,49 @@ async function run() {
     }
     const alert = new Alert();
     alert.title = "하루투두 위젯";
-    alert.addAction("캘린더 미리보기");
+    alert.addAction("Large 미리보기");
+    alert.addAction("Medium 미리보기");
     alert.addAction("다시 로그인");
     alert.addCancelAction("취소");
     const choice = await alert.presentAlert();
-    if (choice === 1) { await setup(); return; }
+    if (choice === 2) { await setup(); return; }
     if (choice === -1) return;
+
+    const token = await getAccessToken();
+    if (!token) {
+      const e = createErrorWidget("로그인이 필요합니다");
+      await e.presentLarge();
+      return;
+    }
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+
+    try {
+      if (choice === 0) {
+        const [monthData, todayData] = await Promise.all([
+          fetchMonth(token, year, month),
+          fetchToday(token),
+        ]);
+        const w = createLargeWidget(monthData, todayData);
+        await w.presentLarge();
+      } else {
+        const monthData = await fetchMonth(token, year, month);
+        const w = createMediumWidget(monthData);
+        await w.presentMedium();
+      }
+    } catch (e) {
+      const w = createErrorWidget("데이터를 불러오지 못했어요");
+      await w.presentLarge();
+    }
+    return;
   }
 
   const token = await getAccessToken();
   if (!token) {
     const w = createErrorWidget("Scriptable 앱에서 먼저 실행해 로그인하세요");
     Script.setWidget(w);
-    if (config.runsInApp) w.presentMedium();
     return;
   }
 
@@ -468,7 +536,6 @@ async function run() {
   }
 
   Script.setWidget(widget);
-  if (config.runsInApp) widget.presentLarge();
 }
 
 await run();
