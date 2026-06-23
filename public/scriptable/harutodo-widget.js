@@ -275,7 +275,10 @@ function buildCalendarImage(monthData, imgW, imgH) {
           : C.dotTodo;
 
       ctx.setFillColor(new Color(barColor));
-      ctx.fillRoundedRect(new Rect(barX, barY, barW, BAR_H), BAR_H / 2);
+      const barPath = new Path();
+      barPath.addRoundedRect(new Rect(barX, barY, barW, BAR_H), BAR_H / 2, BAR_H / 2);
+      ctx.addPath(barPath);
+      ctx.fillPath();
 
       // Show title only when event starts in this week or at left edge
       if (isStart || startCol === 0) {
