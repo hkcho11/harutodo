@@ -217,21 +217,15 @@ export default function MyPage() {
   const [naverConnected, setNaverConnected] = useState<boolean | null>(null);
   const [naverLoading, setNaverLoading] = useState(false);
 
-  const handleInstallWidget = () => {
-    // 소형 설치 스크립트가 프로덕션 URL에서 실제 위젯을 다운로드해 저장
-    const installer = [
-      `const r=new Request("https://harutodo.vercel.app/scriptable/harutodo-widget.js");`,
-      `const c=await r.loadString();`,
-      `const f=FileManager.iCloud();`,
-      `f.writeString(f.joinPath(f.documentsDirectory(),"하루투두 위젯.js"),c);`,
-      `const a=new Alert();`,
-      `a.title="설치 완료 ✓";`,
-      `a.message="하루투두 위젯이 설치됐어요.\\n스크립트 목록에서 실행해 로그인하세요.";`,
-      `a.addAction("확인");`,
-      `await a.presentAlert();`,
-    ].join("\n");
-    const name = encodeURIComponent("하루투두 설치");
-    window.location.href = `scriptable:///add?code=${encodeURIComponent(installer)}&name=${name}`;
+  const handleInstallWidget = async () => {
+    try {
+      const res = await fetch("/scriptable/harutodo-widget.js");
+      const code = await res.text();
+      await navigator.clipboard.writeText(code);
+      showToast("복사됐어요! Scriptable → + → 붙여넣기 후 실행해 주세요");
+    } catch {
+      showToast("복사에 실패했어요. 다시 시도해주세요");
+    }
   };
 
   const loadNaverStatus = useCallback(async () => {
@@ -720,7 +714,7 @@ export default function MyPage() {
         </div>
         <div className="px-5 py-4">
           <p className="mb-3 text-xs leading-relaxed text-haru-muted">
-            Scriptable 앱으로 홈 화면에 월간 캘린더 위젯을 추가할 수 있어요. 버튼을 누르면 설치 스크립트가 Scriptable에 추가되고, 실행하면 위젯이 자동으로 설치돼요.
+            Scriptable 앱으로 홈 화면에 월간 캘린더 위젯을 추가할 수 있어요. 버튼을 누르면 스크립트가 복사되고, Scriptable에서 새 스크립트를 만들어 붙여넣기 후 실행하면 돼요.
           </p>
           <button
             type="button"
@@ -728,7 +722,7 @@ export default function MyPage() {
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-haru-primary py-3 text-sm font-semibold text-haru-text active:bg-haru-primary-active"
           >
             <Download className="h-4 w-4" />
-            Scriptable로 설치하기
+            스크립트 복사하기
           </button>
           <p className="mt-2 text-center text-xs text-haru-muted">
             App Store에서 Scriptable 설치 후 이용 가능해요
