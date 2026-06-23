@@ -15,8 +15,6 @@ function createJWTClient(jwt: string) {
   );
 }
 
-type DayData = { events: { title: string; time: string | null }[]; hasTodo: boolean };
-
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
@@ -59,16 +57,21 @@ export async function GET(req: NextRequest) {
   const monthEnd = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
   const today = now.toLocaleDateString("en-CA");
 
+  // 달력 그리드에 표시될 수 있는 전체 범위 (이전달 말 ~ 다음달 초 포함)
+  const gridStart = new Date(Date.UTC(year, month - 1, 1));
+  gridStart.setUTCDate(gridStart.getUTCDate() - gridStart.getUTCDay()); // 해당 주 일요일
+  const gridStartStr = gridStart.toLocaleDateString("en-CA", { timeZone: "UTC" });
+
   const [eventsRes, todosRes] = await Promise.all([
     supabase
       .from("events")
-      .select("date, end_date, title, start_time")
+      .select("date, end_date, title, assignee_id")
       .eq("couple_id", couple.id)
       .lte("date", monthEnd)
       .or(
-        `end_date.gte.${monthStart},and(end_date.is.null,date.gte.${monthStart})`
+        `end_date.gte.${gridStartStr},and(end_date.is.null,date.gte.${gridStartStr})`
       )
-      .order("start_time", { ascending: true, nullsFirst: true }),
+      .order("date", { ascending: true }),
     supabase
       .from("todo_items")
       .select("date")
@@ -78,35 +81,22 @@ export async function GET(req: NextRequest) {
       .lte("date", monthEnd),
   ]);
 
-  const days: Record<string, DayData> = {};
+  const events = (eventsRes.data ?? []).map((e) => ({
+    date: e.date,
+    end_date: e.end_date ?? null,
+    title: e.title,
+    assignee:
+      e.assignee_id === null
+        ? "together"
+        : e.assignee_id === user.id
+          ? "me"
+          : "partner",
+  }));
 
-  const getDay = (d: string): DayData => {
-    if (!days[d]) days[d] = { events: [], hasTodo: false };
-    return days[d];
-  };
-
-  for (const event of eventsRes.data ?? []) {
-    const endDate = event.end_date ?? event.date;
-    const cur = new Date(event.date + "T00:00:00Z");
-    const end = new Date(endDate + "T00:00:00Z");
-    while (cur <= end) {
-      const d = cur.toLocaleDateString("en-CA", { timeZone: "UTC" });
-      if (d >= monthStart && d <= monthEnd) {
-        const day = getDay(d);
-        if (day.events.length < 4) {
-          day.events.push({
-            title: event.title,
-            time: d === event.date ? (event.start_time ?? null) : null,
-          });
-        }
-      }
-      cur.setUTCDate(cur.getUTCDate() + 1);
-    }
-  }
-
+  const hasTodoByDate: Record<string, boolean> = {};
   for (const todo of todosRes.data ?? []) {
-    if (todo.date) getDay(todo.date).hasTodo = true;
+    if (todo.date) hasTodoByDate[todo.date] = true;
   }
 
-  return NextResponse.json({ year, month, today, days });
+  return NextResponse.json({ year, month, today, events, hasTodoByDate });
 }

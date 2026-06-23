@@ -19,11 +19,11 @@ const C = {
   text:     "#334033",
   muted:    "#72806C",
   border:   "#E3ECD9",
-  today:    "#B9DFA7",  // 연두 — 오늘 배경
+  today:    "#B9DFA7",  // 연두 — 오늘 배경 / me 바
   sun:      "#C97264",  // 빨강 — 일요일
   sat:      "#6B9F7A",  // 초록 — 토요일
-  dotEvent: "#B8DCE8",  // 스카이 — 일정 dot
-  dotTodo:  "#F2C6A0",  // 살구 — 할 일 dot
+  dotEvent: "#B8DCE8",  // 스카이 — partner 바
+  dotTodo:  "#F2C6A0",  // 살구 — together 바 / 할 일 dot
 };
 
 // ===== 인증 =====
@@ -100,100 +100,223 @@ async function fetchToday(token) {
   return await req.loadJSON();
 }
 
-// ===== 캘린더 이미지 =====
+// ===== 캘린더 이미지 (월간 바 레이아웃) =====
 function buildCalendarImage(monthData, imgW, imgH) {
   const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
-  const { year, month, today, days } = monthData;
+  const { year, month, today, events, hasTodoByDate } = monthData;
+
   const firstDay = new Date(year, month - 1, 1).getDay();
   const daysInMonth = new Date(year, month, 0).getDate();
+  const prevMonthDays = new Date(year, month - 1, 0).getDate();
+  const ROWS = Math.max(5, Math.ceil((firstDay + daysInMonth) / 7));
 
-  const HEADER_H = 16;
+  const HEADER_H = 18;
   const CELL_W = imgW / 7;
-  const CELL_H = (imgH - HEADER_H) / 6;
-  const DATE_FONT = 10;
-  const DATE_H = DATE_FONT + 4;   // 날짜 숫자 영역 높이
-  const EV_FONT = 7;
-  const EV_ROW_H = EV_FONT + 2;   // 이벤트 한 줄 높이
-  const DOT_R = 3;                 // todo 점 크기
+  const CELL_H = (imgH - HEADER_H) / ROWS;
+
+  const DATE_FONT = 12;
+  const DATE_H = DATE_FONT + 4;   // 16 — date number + today circle area
+  const BAR_H = 8;                 // event bar height
+  const BAR_GAP = 1;               // vertical gap between lanes
+  const BAR_PAD = 1;               // gap between date area and first bar
+  const BAR_FONT = 8;
+  const DOT_R = 3;
+
+  // Dynamically fit 4 lanes in 5-row months, 3 lanes in 6-row months
+  const MAX_LANES = Math.min(4, Math.floor((CELL_H - DATE_H - BAR_PAD) / (BAR_H + BAR_GAP)));
+
+  // "YYYY-MM-DD" → integer day number (UTC, avoids timezone shifts)
+  function dateToDay(s) {
+    const [y, m, d] = s.split("-").map(Number);
+    return Math.floor(Date.UTC(y, m - 1, d) / 86400000);
+  }
+
+  // Date string for any grid cell (including prev/next month overflow cells)
+  function cellDateStr(cellIdx) {
+    const offset = cellIdx - firstDay;
+    let d, mo, y;
+    if (offset < 0) {
+      d = prevMonthDays + offset + 1; mo = month - 1; y = year;
+      if (mo === 0) { mo = 12; y--; }
+    } else if (offset >= daysInMonth) {
+      d = offset - daysInMonth + 1; mo = month + 1; y = year;
+      if (mo === 13) { mo = 1; y++; }
+    } else {
+      d = offset + 1; mo = month; y = year;
+    }
+    return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  }
+
+  // Greedy lane assignment for one week row (Sun..Sat)
+  // Returns [{evt, lane, startCol, endCol, isStart}]
+  function computeWeekBars(wsDayNum) {
+    const weDayNum = wsDayNum + 6;
+
+    const overlapping = (events ?? []).filter(evt => {
+      const evStart = dateToDay(evt.date);
+      const evEnd = dateToDay(evt.end_date ?? evt.date);
+      return evStart <= weDayNum && evEnd >= wsDayNum;
+    });
+
+    // Sort by clipped start col, then by span length descending (longest first)
+    overlapping.sort((a, b) => {
+      const aS = Math.max(dateToDay(a.date), wsDayNum);
+      const bS = Math.max(dateToDay(b.date), wsDayNum);
+      if (aS !== bS) return aS - bS;
+      const aE = Math.min(dateToDay(a.end_date ?? a.date), weDayNum);
+      const bE = Math.min(dateToDay(b.end_date ?? b.date), weDayNum);
+      return (bE - bS) - (aE - aS);
+    });
+
+    const bars = [];
+    const laneEnd = []; // laneEnd[l] = endCol of last bar placed in lane l
+
+    for (const evt of overlapping) {
+      const evStart = dateToDay(evt.date);
+      const evEnd = dateToDay(evt.end_date ?? evt.date);
+      const startCol = Math.max(evStart, wsDayNum) - wsDayNum;
+      const endCol = Math.min(evEnd, weDayNum) - wsDayNum;
+      const isStart = evStart >= wsDayNum;
+
+      // Find first lane with no overlap
+      let lane = laneEnd.findIndex(e => e < startCol);
+      if (lane === -1) lane = laneEnd.length;
+      laneEnd[lane] = endCol;
+
+      bars.push({ evt, lane, startCol, endCol, isStart });
+    }
+
+    return bars;
+  }
 
   const ctx = new DrawContext();
   ctx.size = new Size(imgW, imgH);
   ctx.opaque = false;
   ctx.respectScreenScale = true;
 
-  // 요일 헤더
+  // Day-of-week header
   for (let i = 0; i < 7; i++) {
-    ctx.setFont(Font.boldSystemFont(8));
+    ctx.setFont(Font.boldSystemFont(9));
     ctx.setTextColor(new Color(i === 0 ? C.sun : i === 6 ? C.sat : C.muted));
     ctx.setTextAlignedCenter();
     ctx.drawTextInRect(DAY_NAMES[i], new Rect(i * CELL_W, 0, CELL_W, HEADER_H));
   }
 
-  let col = firstDay;
-  let row = 0;
+  for (let row = 0; row < ROWS; row++) {
+    const cellIdx0 = row * 7;
+    const wsDayNum = dateToDay(cellDateStr(cellIdx0));
+    const bars = computeWeekBars(wsDayNum);
+    const rowY = HEADER_H + row * CELL_H;
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const x = col * CELL_W;
-    const y = HEADER_H + row * CELL_H;
-    const mm = String(month).padStart(2, "0");
-    const dd = String(d).padStart(2, "0");
-    const dateStr = `${year}-${mm}-${dd}`;
-    const isToday = dateStr === today;
-    const dayData = days[dateStr] ?? { events: [], hasTodo: false };
+    // Count overflow events per date (events assigned to lane >= MAX_LANES)
+    const overflowByDate = {};
+    for (const bar of bars) {
+      if (bar.lane >= MAX_LANES) {
+        for (let c = bar.startCol; c <= bar.endCol; c++) {
+          const ds = cellDateStr(cellIdx0 + c);
+          overflowByDate[ds] = (overflowByDate[ds] ?? 0) + 1;
+        }
+      }
+    }
 
-    // 오늘 원형 배경
-    if (isToday) {
-      const cirSize = DATE_H * 1.1;
+    // 1. Today highlight circle (drawn before date number)
+    for (let col = 0; col < 7; col++) {
+      const ds = cellDateStr(cellIdx0 + col);
+      if (ds !== today) continue;
+      const x = col * CELL_W;
+      const cirD = DATE_H;
       ctx.setFillColor(new Color(C.today));
-      ctx.fillEllipse(new Rect(
-        x + (CELL_W - cirSize) / 2,
-        y + 1,
-        cirSize,
-        cirSize
+      ctx.fillEllipse(new Rect(x + (CELL_W - cirD) / 2, rowY + 1, cirD, cirD));
+    }
+
+    // 2. Date numbers
+    for (let col = 0; col < 7; col++) {
+      const cellIdx = cellIdx0 + col;
+      const offset = cellIdx - firstDay;
+      const isCurMonth = offset >= 0 && offset < daysInMonth;
+      const d = offset < 0
+        ? prevMonthDays + offset + 1
+        : offset >= daysInMonth
+          ? offset - daysInMonth + 1
+          : offset + 1;
+      const ds = cellDateStr(cellIdx);
+      const isToday = ds === today;
+      const x = col * CELL_W;
+
+      ctx.setFont(isToday ? Font.boldSystemFont(DATE_FONT) : Font.systemFont(DATE_FONT));
+      ctx.setTextColor(new Color(
+        !isCurMonth ? C.border :
+        isToday     ? C.text  :
+        col === 0   ? C.sun   :
+        col === 6   ? C.sat   : C.text
       ));
+      ctx.setTextAlignedCenter();
+      ctx.drawTextInRect(String(d), new Rect(x, rowY + 2, CELL_W, DATE_FONT + 2));
     }
 
-    // 날짜 숫자
-    ctx.setFont(isToday ? Font.boldSystemFont(DATE_FONT) : Font.systemFont(DATE_FONT));
-    ctx.setTextColor(new Color(
-      isToday ? C.text : col === 0 ? C.sun : col === 6 ? C.sat : C.text
-    ));
-    ctx.setTextAlignedCenter();
-    ctx.drawTextInRect(String(d), new Rect(x, y + 1, CELL_W, DATE_H));
+    // 3. Event bars (lanes 0 .. MAX_LANES-1)
+    for (const bar of bars) {
+      if (bar.lane >= MAX_LANES) continue;
+      const { evt, lane, startCol, endCol, isStart } = bar;
 
-    // 일정 텍스트 (최대 4개)
-    const evStartY = y + DATE_H + 2;
-    const maxEvents = Math.min(dayData.events.length, 4);
-    for (let i = 0; i < maxEvents; i++) {
-      const evY = evStartY + i * EV_ROW_H;
-      if (evY + EV_FONT > y + CELL_H) break; // 셀 영역 초과 시 중단
+      const barX = startCol * CELL_W + 1.5;
+      const barW = (endCol - startCol + 1) * CELL_W - 3;
+      const barY = rowY + DATE_H + BAR_PAD + lane * (BAR_H + BAR_GAP);
 
-      // 이벤트 색상 점
-      ctx.setFillColor(new Color(C.dotEvent));
-      ctx.fillEllipse(new Rect(x + 2, evY + (EV_FONT - 3) / 2, 3, 3));
+      // Safety: skip if bar would draw outside the cell
+      if (barY + BAR_H > rowY + CELL_H - 1) continue;
 
-      // 이벤트 제목
-      ctx.setFont(Font.systemFont(EV_FONT));
-      ctx.setTextColor(new Color(C.text));
-      ctx.setTextAlignedLeft();
-      ctx.drawTextInRect(
-        dayData.events[i].title,
-        new Rect(x + 7, evY, CELL_W - 8, EV_FONT + 1)
-      );
+      const barColor = evt.assignee === "me"
+        ? C.today
+        : evt.assignee === "partner"
+          ? C.dotEvent
+          : C.dotTodo;
+
+      ctx.setFillColor(new Color(barColor));
+      ctx.fillRoundedRect(new Rect(barX, barY, barW, BAR_H), BAR_H / 2);
+
+      // Show title only when event starts in this week or at left edge
+      if (isStart || startCol === 0) {
+        ctx.setFont(Font.systemFont(BAR_FONT));
+        ctx.setTextColor(new Color(C.text));
+        ctx.setTextAlignedLeft();
+        ctx.drawTextInRect(
+          evt.title,
+          new Rect(barX + 3, barY + (BAR_H - BAR_FONT) / 2, barW - 4, BAR_FONT + 1)
+        );
+      }
     }
 
-    // 할 일 있을 때 셀 하단에 작은 점
-    if (dayData.hasTodo) {
-      ctx.setFillColor(new Color(C.dotTodo));
-      ctx.fillEllipse(new Rect(
-        x + CELL_W / 2 - DOT_R / 2,
-        y + CELL_H - DOT_R - 1,
-        DOT_R, DOT_R
-      ));
-    }
+    // 4. Overflow badge (+N) and todo dots
+    for (let col = 0; col < 7; col++) {
+      const cellIdx = cellIdx0 + col;
+      const offset = cellIdx - firstDay;
+      const isCurMonth = offset >= 0 && offset < daysInMonth;
+      const ds = cellDateStr(cellIdx);
+      const x = col * CELL_W;
+      const over = overflowByDate[ds] ?? 0;
 
-    col++;
-    if (col === 7) { col = 0; row++; }
+      // +N badge — only draw when there's actually vertical room
+      if (over > 0 && isCurMonth) {
+        const badgeY = rowY + DATE_H + BAR_PAD + MAX_LANES * (BAR_H + BAR_GAP);
+        if (badgeY + BAR_FONT + 1 <= rowY + CELL_H - DOT_R - 3) {
+          ctx.setFont(Font.systemFont(BAR_FONT));
+          ctx.setTextColor(new Color(C.muted));
+          ctx.setTextAlignedLeft();
+          ctx.drawTextInRect(`+${over}`, new Rect(x + 2, badgeY, CELL_W - 2, BAR_FONT + 2));
+        }
+      }
+
+      // Todo dot at bottom of cell
+      if (isCurMonth && (hasTodoByDate ?? {})[ds]) {
+        ctx.setFillColor(new Color(C.dotTodo));
+        ctx.fillEllipse(new Rect(
+          x + CELL_W / 2 - DOT_R / 2,
+          rowY + CELL_H - DOT_R - 2,
+          DOT_R, DOT_R
+        ));
+      }
+    }
   }
 
   return ctx.getImage();
@@ -237,11 +360,11 @@ function createSmallWidget(monthData, todayData) {
   return w;
 }
 
-// ===== 위젯 — Large (월간 캘린더 — 셀 안에 일정 표시) =====
+// ===== 위젯 — Large (월간 캘린더 — 다중 바 레이아웃) =====
 function createLargeWidget(monthData) {
   const w = new ListWidget();
   w.backgroundColor = new Color(C.bg);
-  w.setPadding(16, 16, 16, 16);
+  w.setPadding(12, 14, 12, 14);
   w.url = `${APP_URL}/calendar`;
   w.refreshAfterDate = new Date(Date.now() + 5 * 60 * 1000);
 
@@ -251,7 +374,7 @@ function createLargeWidget(monthData) {
   header.centerAlignContent();
 
   const monthTitle = header.addText(`${monthData.year}년 ${monthData.month}월`);
-  monthTitle.font = Font.boldSystemFont(14);
+  monthTitle.font = Font.boldSystemFont(13);
   monthTitle.textColor = new Color(C.text);
 
   header.addSpacer();
@@ -260,12 +383,11 @@ function createLargeWidget(monthData) {
   todayDot.font = Font.systemFont(9);
   todayDot.textColor = new Color(C.today);
 
-  w.addSpacer(8);
+  w.addSpacer(4);
 
-  // 달력 — padding(32) + header(~18) + spacer(8) 제외한 전체 높이
-  // Large widget ~354pt → 354 - 32 - 18 - 8 = 296pt
-  const IMG_W = 306;
-  const IMG_H = 296;
+  // Large widget ~364pt wide, padding 14×2=28 → available 336pt
+  const IMG_W = 336;
+  const IMG_H = 310;
   const calImg = w.addImage(buildCalendarImage(monthData, IMG_W, IMG_H));
   calImg.imageSize = new Size(IMG_W, IMG_H);
   calImg.centerAlignImage();
