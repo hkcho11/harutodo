@@ -24,7 +24,13 @@ export async function GET(req: NextRequest) {
 
   const clientId = process.env.NAVER_CLIENT_ID;
   const clientSecret = process.env.NAVER_CLIENT_SECRET;
+  console.log("[naver-calendar/callback] env:", {
+    hasClientId: !!clientId,
+    hasClientSecret: !!clientSecret,
+    appUrl,
+  });
   if (!clientId || !clientSecret) {
+    console.error("[naver-calendar/callback] 환경변수 누락");
     return NextResponse.redirect(`${appUrl}/mypage?naver_calendar=error`);
   }
 
@@ -38,6 +44,8 @@ export async function GET(req: NextRequest) {
     state,
   });
 
+  console.log("[naver-calendar/callback] 토큰 교환 시작:", { redirectUri });
+
   let tokenData: NaverTokenResponse;
   try {
     const res = await fetch(
@@ -45,7 +53,13 @@ export async function GET(req: NextRequest) {
       { method: "GET", cache: "no-store" }
     );
     tokenData = (await res.json()) as NaverTokenResponse;
-  } catch {
+    console.log("[naver-calendar/callback] 네이버 응답:", {
+      hasAccessToken: !!tokenData.access_token,
+      error: tokenData.error,
+      errorDescription: tokenData.error_description,
+    });
+  } catch (e) {
+    console.error("[naver-calendar/callback] 토큰 교환 fetch 실패:", e);
     return NextResponse.redirect(`${appUrl}/mypage?naver_calendar=error`);
   }
 
@@ -59,9 +73,14 @@ export async function GET(req: NextRequest) {
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  console.log("[naver-calendar/callback] Supabase user:", {
+    hasUser: !!user,
+    stateMatch: user?.id === state,
+  });
 
   // state값 == userId 검증 (CSRF 방어)
   if (!user || user.id !== state) {
+    console.error("[naver-calendar/callback] CSRF 검증 실패 또는 세션 없음");
     return NextResponse.redirect(`${appUrl}/mypage?naver_calendar=error`);
   }
 
