@@ -222,6 +222,19 @@ export default function MyPage() {
       const res = await fetch("/scriptable/harutodo-widget.js");
       const code = await res.text();
       await navigator.clipboard.writeText(code);
+
+      // 앱 미설치 시 앱스토어로 폴백 (1.5초 후)
+      const fallback = setTimeout(() => {
+        window.location.href = "https://apps.apple.com/app/scriptable/id1405459188";
+      }, 1500);
+
+      // 앱이 열려 페이지가 백그라운드로 전환되면 폴백 취소
+      const cancel = () => {
+        if (document.hidden) clearTimeout(fallback);
+        document.removeEventListener("visibilitychange", cancel);
+      };
+      document.addEventListener("visibilitychange", cancel);
+
       window.location.href = "scriptable:///";
     } catch {
       showToast("복사에 실패했어요. 다시 시도해주세요");
