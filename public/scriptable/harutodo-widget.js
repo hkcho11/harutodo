@@ -288,10 +288,11 @@ function createLargeWidget(monthData, todayData) {
   const twoCol = w.addStack();
   twoCol.layoutHorizontally();
 
-  // ── 왼쪽: 할 일 ──
+  // ── 왼쪽: 할 일 (133pt 고정) ──
   const todoCol = twoCol.addStack();
   todoCol.layoutVertically();
   todoCol.spacing = 5;
+  todoCol.size = new Size(133, 0);
 
   const todoHeader = todoCol.addText("할 일");
   todoHeader.font = Font.boldSystemFont(11);
@@ -325,17 +326,18 @@ function createLargeWidget(monthData, todayData) {
   }
 
   // ── 세로 구분선 ──
-  twoCol.addSpacer(10);
+  twoCol.addSpacer(8);
   const vDivider = twoCol.addStack();
   vDivider.layoutVertically();
   vDivider.backgroundColor = new Color(C.border);
   vDivider.size = new Size(1, 100);
-  twoCol.addSpacer(10);
+  twoCol.addSpacer(8);
 
-  // ── 오른쪽: 일정 ──
+  // ── 오른쪽: 일정 (133pt 고정) ──
   const eventCol = twoCol.addStack();
   eventCol.layoutVertically();
   eventCol.spacing = 5;
+  eventCol.size = new Size(133, 0);
 
   const eventHeader = eventCol.addText("일정");
   eventHeader.font = Font.boldSystemFont(11);
