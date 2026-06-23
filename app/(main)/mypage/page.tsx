@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Link2Off } from "lucide-react";
+import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Link2Off, Smartphone, Download } from "lucide-react";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
 import OptionSheet from "@/components/common/OptionSheet";
 import AvatarColorSheet from "@/components/mypage/AvatarColorSheet";
@@ -216,6 +216,23 @@ export default function MyPage() {
   // 네이버 캘린더 연동 상태
   const [naverConnected, setNaverConnected] = useState<boolean | null>(null);
   const [naverLoading, setNaverLoading] = useState(false);
+
+  const handleInstallWidget = () => {
+    // 소형 설치 스크립트가 프로덕션 URL에서 실제 위젯을 다운로드해 저장
+    const installer = [
+      `const r=new Request("https://harutodo.vercel.app/scriptable/harutodo-widget.js");`,
+      `const c=await r.loadString();`,
+      `const f=FileManager.iCloud();`,
+      `f.writeString(f.joinPath(f.documentsDirectory(),"하루투두 위젯.js"),c);`,
+      `const a=new Alert();`,
+      `a.title="설치 완료 ✓";`,
+      `a.message="하루투두 위젯이 설치됐어요.\\n스크립트 목록에서 실행해 로그인하세요.";`,
+      `a.addAction("확인");`,
+      `await a.presentAlert();`,
+    ].join("\n");
+    const name = encodeURIComponent("하루투두 설치");
+    window.location.href = `scriptable:///add?code=${encodeURIComponent(installer)}&name=${name}`;
+  };
 
   const loadNaverStatus = useCallback(async () => {
     const connected = await getNaverCalendarStatus();
@@ -692,6 +709,30 @@ export default function MyPage() {
               </button>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* 홈 화면 위젯 */}
+      <section className="overflow-hidden rounded-2xl bg-haru-surface shadow-card">
+        <div className="flex items-center gap-2 border-b border-haru-border px-5 py-4">
+          <Smartphone className="h-4 w-4 text-haru-muted" />
+          <h2 className="text-sm font-semibold text-haru-text">홈 화면 위젯</h2>
+        </div>
+        <div className="px-5 py-4">
+          <p className="mb-3 text-xs leading-relaxed text-haru-muted">
+            Scriptable 앱으로 홈 화면에 월간 캘린더 위젯을 추가할 수 있어요. 버튼을 누르면 설치 스크립트가 Scriptable에 추가되고, 실행하면 위젯이 자동으로 설치돼요.
+          </p>
+          <button
+            type="button"
+            onClick={() => void handleInstallWidget()}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-haru-primary py-3 text-sm font-semibold text-haru-text active:bg-haru-primary-active"
+          >
+            <Download className="h-4 w-4" />
+            Scriptable로 설치하기
+          </button>
+          <p className="mt-2 text-center text-xs text-haru-muted">
+            App Store에서 Scriptable 설치 후 이용 가능해요
+          </p>
         </div>
       </section>
 
