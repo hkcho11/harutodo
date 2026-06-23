@@ -225,53 +225,6 @@ function createSmallWidget(monthData, todayData) {
   return w;
 }
 
-// ===== 위젯 — Medium (캘린더) =====
-function createMediumWidget(monthData) {
-  const w = new ListWidget();
-  w.backgroundColor = new Color(C.bg);
-  w.setPadding(14, 14, 10, 14);
-  w.url = APP_URL;
-
-  // 월 헤더
-  const header = w.addStack();
-  header.layoutHorizontally();
-  header.centerAlignContent();
-
-  const monthTitle = header.addText(`${monthData.year}년 ${monthData.month}월`);
-  monthTitle.font = Font.boldSystemFont(13);
-  monthTitle.textColor = new Color(C.text);
-
-  header.addSpacer();
-
-  // 범례
-  const legend = header.addStack();
-  legend.layoutHorizontally();
-  legend.centerAlignContent();
-  legend.spacing = 4;
-
-  const addLegend = (stack, color, label) => {
-    const dot = stack.addText("●");
-    dot.font = Font.systemFont(8);
-    dot.textColor = new Color(color);
-    const txt = stack.addText(label);
-    txt.font = Font.systemFont(9);
-    txt.textColor = new Color(C.muted);
-  };
-  addLegend(legend, C.dotEvent, "일정");
-  legend.addSpacer(6);
-  addLegend(legend, C.dotTodo, "할 일");
-
-  w.addSpacer(6);
-
-  // 달력 이미지 — IMG_W = widget_width(338) - padding*2(28) = 310
-  const IMG_W = 310;
-  const IMG_H = 118;
-  const calImg = w.addImage(buildCalendarImage(monthData, IMG_W, IMG_H));
-  calImg.imageSize = new Size(IMG_W, IMG_H);
-
-  return w;
-}
-
 // ===== 위젯 — Large (캘린더 + 할 일 / 일정 2열) =====
 function createLargeWidget(monthData, todayData) {
   const w = new ListWidget();
@@ -456,11 +409,10 @@ async function run() {
     const alert = new Alert();
     alert.title = "하루투두 위젯";
     alert.addAction("Large 미리보기");
-    alert.addAction("Medium 미리보기");
     alert.addAction("다시 로그인");
     alert.addCancelAction("취소");
     const choice = await alert.presentAlert();
-    if (choice === 2) { await setup(); return; }
+    if (choice === 1) { await setup(); return; }
     if (choice === -1) return;
 
     const token = await getAccessToken();
@@ -475,18 +427,12 @@ async function run() {
     const month = now.getMonth() + 1;
 
     try {
-      if (choice === 0) {
-        const [monthData, todayData] = await Promise.all([
-          fetchMonth(token, year, month),
-          fetchToday(token),
-        ]);
-        const w = createLargeWidget(monthData, todayData);
-        await w.presentLarge();
-      } else {
-        const monthData = await fetchMonth(token, year, month);
-        const w = createMediumWidget(monthData);
-        await w.presentMedium();
-      }
+      const [monthData, todayData] = await Promise.all([
+        fetchMonth(token, year, month),
+        fetchToday(token),
+      ]);
+      const w = createLargeWidget(monthData, todayData);
+      await w.presentLarge();
     } catch (e) {
       const w = createErrorWidget("데이터를 불러오지 못했어요");
       await w.presentLarge();
@@ -527,9 +473,11 @@ async function run() {
       widget = createLockWidget(todayData);
 
     } else {
-      // medium (기본)
-      const monthData = await fetchMonth(token, year, month);
-      widget = createMediumWidget(monthData);
+      const [monthData, todayData] = await Promise.all([
+        fetchMonth(token, year, month),
+        fetchToday(token),
+      ]);
+      widget = createLargeWidget(monthData, todayData);
     }
   } catch {
     widget = createErrorWidget("데이터를 불러오지 못했어요");
