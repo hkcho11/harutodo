@@ -225,13 +225,12 @@ function createSmallWidget(monthData, todayData) {
   return w;
 }
 
-// ===== 위젯 — Large (캘린더 + 할 일 / 일정 2열) =====
-function createLargeWidget(monthData, todayData) {
+// ===== 위젯 — Large (월간 캘린더 전체) =====
+function createLargeWidget(monthData) {
   const w = new ListWidget();
   w.backgroundColor = new Color(C.bg);
   w.setPadding(16, 16, 16, 16);
   w.url = `${APP_URL}/calendar`;
-  // iOS 위젯은 실시간 불가 — 5분마다 갱신 요청 (OS 예산 초과 시 무시될 수 있음)
   w.refreshAfterDate = new Date(Date.now() + 5 * 60 * 1000);
 
   // 월 헤더
@@ -263,109 +262,12 @@ function createLargeWidget(monthData, todayData) {
 
   w.addSpacer(8);
 
-  // 달력 이미지 — IMG_W = widget_width(338) - padding*2(32) = 306
+  // 달력 이미지 — 헤더(16pt) + spacer(8pt) 제외한 나머지 높이 채우기
+  // Large widget ~354pt - padding(32) - header(16) - spacer(8) = 298pt
   const IMG_W = 306;
-  const IMG_H = 168;
+  const IMG_H = 290;
   const calImg = w.addImage(buildCalendarImage(monthData, IMG_W, IMG_H));
   calImg.imageSize = new Size(IMG_W, IMG_H);
-
-  w.addSpacer(10);
-
-  // 구분선
-  const dividerRow = w.addStack();
-  dividerRow.layoutHorizontally();
-  const divLine = dividerRow.addStack();
-  divLine.backgroundColor = new Color(C.border);
-  divLine.size = new Size(306, 1);
-
-  w.addSpacer(10);
-
-  // 2열 섹션 (할 일 | 일정)
-  const dotColors = { me: C.today, together: C.dotTodo, partner: C.dotEvent, other: C.border };
-  const incomplete = todayData?.todos?.filter(t => !t.is_completed) ?? [];
-  const events = todayData?.events ?? [];
-
-  const twoCol = w.addStack();
-  twoCol.layoutHorizontally();
-
-  // ── 왼쪽: 할 일 (133pt 고정) ──
-  const todoCol = twoCol.addStack();
-  todoCol.layoutVertically();
-  todoCol.spacing = 5;
-  todoCol.size = new Size(133, 0);
-
-  const todoHeader = todoCol.addText("할 일");
-  todoHeader.font = Font.boldSystemFont(11);
-  todoHeader.textColor = new Color(C.text);
-
-  if (incomplete.length === 0) {
-    const done = todoCol.addText("모두 완료 ✓");
-    done.font = Font.systemFont(11);
-    done.textColor = new Color("#6B9F7A");
-  } else {
-    for (const todo of incomplete.slice(0, 6)) {
-      const row = todoCol.addStack();
-      row.layoutHorizontally();
-      row.centerAlignContent();
-      row.spacing = 5;
-
-      const dot = row.addText("●");
-      dot.font = Font.systemFont(7);
-      dot.textColor = new Color(dotColors[todo.assignee] ?? C.border);
-
-      const title = row.addText(todo.title);
-      title.font = Font.systemFont(11);
-      title.textColor = new Color(C.text);
-      title.lineLimit = 1;
-    }
-    if (incomplete.length > 6) {
-      const more = todoCol.addText(`+${incomplete.length - 6}개 더`);
-      more.font = Font.systemFont(10);
-      more.textColor = new Color(C.muted);
-    }
-  }
-
-  // ── 세로 구분선 ──
-  twoCol.addSpacer(8);
-  const vDivider = twoCol.addStack();
-  vDivider.layoutVertically();
-  vDivider.backgroundColor = new Color(C.border);
-  vDivider.size = new Size(1, 100);
-  twoCol.addSpacer(8);
-
-  // ── 오른쪽: 일정 (133pt 고정) ──
-  const eventCol = twoCol.addStack();
-  eventCol.layoutVertically();
-  eventCol.spacing = 5;
-  eventCol.size = new Size(133, 0);
-
-  const eventHeader = eventCol.addText("일정");
-  eventHeader.font = Font.boldSystemFont(11);
-  eventHeader.textColor = new Color(C.text);
-
-  if (events.length === 0) {
-    const noEv = eventCol.addText("일정 없음");
-    noEv.font = Font.systemFont(11);
-    noEv.textColor = new Color(C.muted);
-  } else {
-    for (const evt of events.slice(0, 6)) {
-      const row = eventCol.addStack();
-      row.layoutVertically();
-      row.spacing = 1;
-
-      const title = row.addText(evt.title);
-      title.font = Font.mediumSystemFont(11);
-      title.textColor = new Color(C.text);
-      title.lineLimit = 1;
-
-      if (evt.start_time) {
-        const timeStr = evt.start_time.slice(0, 5);
-        const time = row.addText(timeStr);
-        time.font = Font.systemFont(9);
-        time.textColor = new Color(C.muted);
-      }
-    }
-  }
 
   return w;
 }
@@ -454,11 +356,8 @@ async function run() {
     const month = now.getMonth() + 1;
 
     try {
-      const [monthData, todayData] = await Promise.all([
-        fetchMonth(token, year, month),
-        fetchToday(token),
-      ]);
-      const w = createLargeWidget(monthData, todayData);
+      const monthData = await fetchMonth(token, year, month);
+      const w = createLargeWidget(monthData);
       await w.presentLarge();
     } catch (e) {
       const w = createErrorWidget("데이터를 불러오지 못했어요");
@@ -489,22 +388,16 @@ async function run() {
       widget = createSmallWidget(monthData, todayData);
 
     } else if (family === "large") {
-      const [monthData, todayData] = await Promise.all([
-        fetchMonth(token, year, month),
-        fetchToday(token),
-      ]);
-      widget = createLargeWidget(monthData, todayData);
+      const monthData = await fetchMonth(token, year, month);
+      widget = createLargeWidget(monthData);
 
     } else if (family === "accessoryRectangular") {
       const todayData = await fetchToday(token);
       widget = createLockWidget(todayData);
 
     } else {
-      const [monthData, todayData] = await Promise.all([
-        fetchMonth(token, year, month),
-        fetchToday(token),
-      ]);
-      widget = createLargeWidget(monthData, todayData);
+      const monthData = await fetchMonth(token, year, month);
+      widget = createLargeWidget(monthData);
     }
   } catch {
     widget = createErrorWidget("데이터를 불러오지 못했어요");
