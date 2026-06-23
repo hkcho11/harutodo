@@ -225,8 +225,8 @@ function createSmallWidget(monthData, todayData) {
   return w;
 }
 
-// ===== 위젯 — Large (월간 캘린더 전체) =====
-function createLargeWidget(monthData) {
+// ===== 위젯 — Large (월간 캘린더 + 오늘 일정) =====
+function createLargeWidget(monthData, todayData) {
   const w = new ListWidget();
   w.backgroundColor = new Color(C.bg);
   w.setPadding(16, 16, 16, 16);
@@ -262,12 +262,64 @@ function createLargeWidget(monthData) {
 
   w.addSpacer(8);
 
-  // 달력 이미지 — 헤더(16pt) + spacer(8pt) 제외한 나머지 높이 채우기
-  // Large widget ~354pt - padding(32) - header(16) - spacer(8) = 298pt
+  // 달력 이미지 — Large ~354pt, padding 32, header ~16, spacer 8, 이벤트 영역 ~120 → 178pt
   const IMG_W = 306;
-  const IMG_H = 290;
+  const IMG_H = 178;
   const calImg = w.addImage(buildCalendarImage(monthData, IMG_W, IMG_H));
   calImg.imageSize = new Size(IMG_W, IMG_H);
+
+  w.addSpacer(8);
+
+  // 구분선
+  const divLine = w.addStack();
+  divLine.backgroundColor = new Color(C.border);
+  divLine.size = new Size(306, 1);
+
+  w.addSpacer(8);
+
+  // 오늘 날짜 레이블
+  const events = todayData?.events ?? [];
+  const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
+  const now = new Date();
+  const dateLabel = w.addText(
+    `${now.getMonth() + 1}월 ${now.getDate()}일 ${DAY_NAMES[now.getDay()]} 일정`
+  );
+  dateLabel.font = Font.boldSystemFont(11);
+  dateLabel.textColor = new Color(C.text);
+
+  w.addSpacer(6);
+
+  if (events.length === 0) {
+    const noEv = w.addText("오늘 일정이 없어요");
+    noEv.font = Font.systemFont(11);
+    noEv.textColor = new Color(C.muted);
+  } else {
+    for (const evt of events.slice(0, 4)) {
+      const row = w.addStack();
+      row.layoutHorizontally();
+      row.centerAlignContent();
+      row.spacing = 8;
+
+      // 시간 또는 종일 표시
+      const timeStr = evt.start_time ? evt.start_time.slice(0, 5) : "종일";
+      const time = row.addText(timeStr);
+      time.font = Font.systemFont(10);
+      time.textColor = new Color(C.muted);
+      time.minimumScaleFactor = 1;
+
+      const title = row.addText(evt.title);
+      title.font = Font.mediumSystemFont(11);
+      title.textColor = new Color(C.text);
+      title.lineLimit = 1;
+
+      w.addSpacer(4);
+    }
+    if (events.length > 4) {
+      const more = w.addText(`+${events.length - 4}개 더`);
+      more.font = Font.systemFont(10);
+      more.textColor = new Color(C.muted);
+    }
+  }
 
   return w;
 }
@@ -356,8 +408,11 @@ async function run() {
     const month = now.getMonth() + 1;
 
     try {
-      const monthData = await fetchMonth(token, year, month);
-      const w = createLargeWidget(monthData);
+      const [monthData, todayData] = await Promise.all([
+        fetchMonth(token, year, month),
+        fetchToday(token),
+      ]);
+      const w = createLargeWidget(monthData, todayData);
       await w.presentLarge();
     } catch (e) {
       const w = createErrorWidget("데이터를 불러오지 못했어요");
@@ -388,16 +443,22 @@ async function run() {
       widget = createSmallWidget(monthData, todayData);
 
     } else if (family === "large") {
-      const monthData = await fetchMonth(token, year, month);
-      widget = createLargeWidget(monthData);
+      const [monthData, todayData] = await Promise.all([
+        fetchMonth(token, year, month),
+        fetchToday(token),
+      ]);
+      widget = createLargeWidget(monthData, todayData);
 
     } else if (family === "accessoryRectangular") {
       const todayData = await fetchToday(token);
       widget = createLockWidget(todayData);
 
     } else {
-      const monthData = await fetchMonth(token, year, month);
-      widget = createLargeWidget(monthData);
+      const [monthData, todayData] = await Promise.all([
+        fetchMonth(token, year, month),
+        fetchToday(token),
+      ]);
+      widget = createLargeWidget(monthData, todayData);
     }
   } catch {
     widget = createErrorWidget("데이터를 불러오지 못했어요");
