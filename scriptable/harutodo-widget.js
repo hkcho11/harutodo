@@ -268,6 +268,7 @@ function createLargeWidget(monthData) {
   const IMG_H = 296;
   const calImg = w.addImage(buildCalendarImage(monthData, IMG_W, IMG_H));
   calImg.imageSize = new Size(IMG_W, IMG_H);
+  calImg.centerAlignImage();
 
   return w;
 }
@@ -294,23 +295,31 @@ function createLockWidget(todayData) {
 
 // ===== 자동 업데이트 =====
 async function selfUpdate() {
-  try {
+  const fetchLatest = async () => {
     const req = new Request(`${APP_URL}/scriptable/harutodo-widget.js`);
     req.timeoutInterval = 5;
-    const latest = await req.loadString();
-    if (!latest || latest.length < 500) return;
+    const text = await req.loadString();
+    // HTML 에러 페이지가 내려오면 덮어쓰기 금지
+    if (!text || text.length < 500 || !text.startsWith("//")) return null;
+    return text;
+  };
+  try {
+    const latest = await fetchLatest();
+    if (!latest) return;
     const fm = FileManager.iCloud();
-    const path = fm.joinPath(fm.documentsDirectory(), `${Script.name()}.js`);
-    fm.writeString(path, latest);
+    fm.writeString(
+      fm.joinPath(fm.documentsDirectory(), `${Script.name()}.js`),
+      latest
+    );
   } catch {
     try {
-      const req = new Request(`${APP_URL}/scriptable/harutodo-widget.js`);
-      req.timeoutInterval = 5;
-      const latest = await req.loadString();
-      if (!latest || latest.length < 500) return;
+      const latest = await fetchLatest();
+      if (!latest) return;
       const fm = FileManager.local();
-      const path = fm.joinPath(fm.documentsDirectory(), `${Script.name()}.js`);
-      fm.writeString(path, latest);
+      fm.writeString(
+        fm.joinPath(fm.documentsDirectory(), `${Script.name()}.js`),
+        latest
+      );
     } catch {}
   }
 }
