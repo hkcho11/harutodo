@@ -217,11 +217,35 @@ export default function MyPage() {
   const [naverConnected, setNaverConnected] = useState<boolean | null>(null);
   const [naverLoading, setNaverLoading] = useState(false);
 
+  // 위젯 스크립트 프리패치 — 버튼 클릭 시 await 없이 즉시 복사해 유저 제스처 유실 방지
+  const [widgetScript, setWidgetScript] = useState<string | null>(null);
+  useEffect(() => {
+    fetch("/scriptable/harutodo-widget.js")
+      .then((r) => r.text())
+      .then(setWidgetScript)
+      .catch(() => {});
+  }, []);
+
   const handleInstallWidget = async () => {
     try {
-      const res = await fetch("/scriptable/harutodo-widget.js");
-      const code = await res.text();
-      await navigator.clipboard.writeText(code);
+      const code =
+        widgetScript ??
+        (await (await fetch("/scriptable/harutodo-widget.js")).text());
+
+      // HTTP 로컬 등 보안 컨텍스트 아닌 환경은 execCommand 폴백
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(code);
+      } else {
+        const el = document.createElement("textarea");
+        el.value = code;
+        el.style.cssText = "position:fixed;left:-9999px;top:-9999px";
+        document.body.appendChild(el);
+        el.focus();
+        el.setSelectionRange(0, el.value.length);
+        const ok = document.execCommand("copy");
+        document.body.removeChild(el);
+        if (!ok) throw new Error("copy failed");
+      }
 
       // 앱 미설치 시 앱스토어로 폴백 (1.5초 후)
       const fallback = setTimeout(() => {
