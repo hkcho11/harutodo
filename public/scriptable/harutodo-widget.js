@@ -230,7 +230,9 @@ function createLargeWidget(monthData, todayData) {
   const w = new ListWidget();
   w.backgroundColor = new Color(C.bg);
   w.setPadding(16, 16, 16, 16);
-  w.url = APP_URL;
+  w.url = `${APP_URL}/calendar`;
+  // iOS 위젯은 실시간 불가 — 15분마다 갱신 요청 (OS가 최종 결정)
+  w.refreshAfterDate = new Date(Date.now() + 15 * 60 * 1000);
 
   // 월 헤더
   const header = w.addStack();
