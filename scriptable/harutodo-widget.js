@@ -388,6 +388,29 @@ function createLockWidget(todayData) {
   return w;
 }
 
+// ===== 자동 업데이트 =====
+async function selfUpdate() {
+  try {
+    const req = new Request(`${APP_URL}/scriptable/harutodo-widget.js`);
+    req.timeoutInterval = 5;
+    const latest = await req.loadString();
+    if (!latest || latest.length < 500) return;
+    const fm = FileManager.iCloud();
+    const path = fm.joinPath(fm.documentsDirectory(), `${Script.name()}.js`);
+    fm.writeString(path, latest);
+  } catch {
+    try {
+      const req = new Request(`${APP_URL}/scriptable/harutodo-widget.js`);
+      req.timeoutInterval = 5;
+      const latest = await req.loadString();
+      if (!latest || latest.length < 500) return;
+      const fm = FileManager.local();
+      const path = fm.joinPath(fm.documentsDirectory(), `${Script.name()}.js`);
+      fm.writeString(path, latest);
+    } catch {}
+  }
+}
+
 // ===== 에러 위젯 =====
 function createErrorWidget(msg) {
   const w = new ListWidget();
@@ -486,6 +509,7 @@ async function run() {
   }
 
   Script.setWidget(widget);
+  await selfUpdate();
 }
 
 await run();
