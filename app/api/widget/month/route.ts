@@ -15,6 +15,8 @@ function createJWTClient(jwt: string) {
   );
 }
 
+type DayData = { events: { title: string; time: string | null }[]; hasTodo: boolean };
+
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
@@ -60,12 +62,13 @@ export async function GET(req: NextRequest) {
   const [eventsRes, todosRes] = await Promise.all([
     supabase
       .from("events")
-      .select("date, end_date")
+      .select("date, end_date, title, start_time")
       .eq("couple_id", couple.id)
       .lte("date", monthEnd)
       .or(
         `end_date.gte.${monthStart},and(end_date.is.null,date.gte.${monthStart})`
-      ),
+      )
+      .order("start_time", { ascending: true, nullsFirst: true }),
     supabase
       .from("todo_items")
       .select("date")
@@ -75,11 +78,11 @@ export async function GET(req: NextRequest) {
       .lte("date", monthEnd),
   ]);
 
-  const markedDates: Record<string, string[]> = {};
+  const days: Record<string, DayData> = {};
 
-  const mark = (date: string, type: "event" | "todo") => {
-    if (!markedDates[date]) markedDates[date] = [];
-    if (!markedDates[date].includes(type)) markedDates[date].push(type);
+  const getDay = (d: string): DayData => {
+    if (!days[d]) days[d] = { events: [], hasTodo: false };
+    return days[d];
   };
 
   for (const event of eventsRes.data ?? []) {
@@ -88,14 +91,22 @@ export async function GET(req: NextRequest) {
     const end = new Date(endDate + "T00:00:00Z");
     while (cur <= end) {
       const d = cur.toLocaleDateString("en-CA", { timeZone: "UTC" });
-      if (d >= monthStart && d <= monthEnd) mark(d, "event");
+      if (d >= monthStart && d <= monthEnd) {
+        const day = getDay(d);
+        if (day.events.length < 4) {
+          day.events.push({
+            title: event.title,
+            time: d === event.date ? (event.start_time ?? null) : null,
+          });
+        }
+      }
       cur.setUTCDate(cur.getUTCDate() + 1);
     }
   }
 
   for (const todo of todosRes.data ?? []) {
-    if (todo.date) mark(todo.date, "todo");
+    if (todo.date) getDay(todo.date).hasTodo = true;
   }
 
-  return NextResponse.json({ year, month, today, markedDates });
+  return NextResponse.json({ year, month, today, days });
 }
