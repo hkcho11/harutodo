@@ -222,7 +222,7 @@ export default function MyPage() {
       const res = await fetch("/scriptable/harutodo-widget.js");
       const code = await res.text();
       await navigator.clipboard.writeText(code);
-      showToast("복사됐어요! Scriptable → + → 붙여넣기 후 실행해 주세요");
+      window.location.href = "scriptable:///";
     } catch {
       showToast("복사에 실패했어요. 다시 시도해주세요");
     }
@@ -714,7 +714,7 @@ export default function MyPage() {
         </div>
         <div className="px-5 py-4">
           <p className="mb-3 text-xs leading-relaxed text-haru-muted">
-            Scriptable 앱으로 홈 화면에 월간 캘린더 위젯을 추가할 수 있어요. 버튼을 누르면 스크립트가 복사되고, Scriptable에서 새 스크립트를 만들어 붙여넣기 후 실행하면 돼요.
+            Scriptable 앱으로 홈 화면에 월간 캘린더 위젯을 추가할 수 있어요. 버튼을 누르면 스크립트가 복사되고 Scriptable이 열려요. 새 스크립트를 만들어 붙여넣기 후 실행하면 돼요.
           </p>
           <button
             type="button"
@@ -722,10 +722,10 @@ export default function MyPage() {
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-haru-primary py-3 text-sm font-semibold text-haru-text active:bg-haru-primary-active"
           >
             <Download className="h-4 w-4" />
-            스크립트 복사하기
+            복사하고 Scriptable 열기
           </button>
           <p className="mt-2 text-center text-xs text-haru-muted">
-            App Store에서 Scriptable 설치 후 이용 가능해요
+            Scriptable이 설치돼 있어야 해요 (App Store 무료)
           </p>
         </div>
       </section>
