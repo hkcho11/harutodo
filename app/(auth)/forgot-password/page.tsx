@@ -29,9 +29,14 @@ export default function ForgotPasswordPage() {
     setServerError("");
     try {
       await sendPasswordResetEmail(values.email);
-    } catch {
+    } catch (err) {
       // rate limit 등 실패 시에만 에러 노출, 이메일 미존재는 성공으로 처리
-      setServerError("잠시 후 다시 시도해주세요");
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("rate limit") || message.includes("429")) {
+        setServerError("요청이 너무 많아요. 잠시 후 다시 시도해주세요");
+      } else {
+        setServerError("잠시 후 다시 시도해주세요");
+      }
       return;
     }
     setEmailSent(true);
