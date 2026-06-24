@@ -7,8 +7,7 @@ import { z } from "zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { resetPassword } from "@/lib/services/authService";
+import { exchangePasswordResetCode, resetPassword } from "@/lib/services/authService";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
@@ -69,16 +68,8 @@ function ResetPasswordContent() {
       setPageState("error");
       return;
     }
-    const supabase = createClient();
-    supabase.auth
-      .exchangeCodeForSession(code)
-      .then(({ error }) => {
-        if (error) {
-          setPageState("error");
-        } else {
-          setPageState("ready");
-        }
-      })
+    exchangePasswordResetCode(code)
+      .then(() => setPageState("ready"))
       .catch(() => setPageState("error"));
   }, [searchParams]);
 

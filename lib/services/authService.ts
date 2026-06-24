@@ -30,6 +30,12 @@ export async function sendPasswordResetEmail(email: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function exchangePasswordResetCode(code: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) throw error;
+}
+
 export async function resetPassword(newPassword: string): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.auth.updateUser({ password: newPassword });
