@@ -7,7 +7,11 @@ import { z } from "zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { exchangePasswordResetCode, resetPassword } from "@/lib/services/authService";
+import {
+  exchangePasswordResetCode,
+  resetPassword,
+  subscribeToPasswordRecovery,
+} from "@/lib/services/authService";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
@@ -63,14 +67,30 @@ function ResetPasswordContent() {
 
   useEffect(() => {
     const code = searchParams.get("code");
-    if (!code) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPageState("error");
+
+    if (code) {
+      // PKCE flow: URL에 ?code= 파라미터가 있는 경우
+      exchangePasswordResetCode(code)
+        .then(() => setPageState("ready"))
+        .catch(() => setPageState("error"));
       return;
     }
-    exchangePasswordResetCode(code)
-      .then(() => setPageState("ready"))
-      .catch(() => setPageState("error"));
+
+    // Implicit flow: Supabase가 hash(#access_token=...&type=recovery)를 자동 감지해
+    // 세션을 설정하고 PASSWORD_RECOVERY 이벤트를 발화한다.
+    const timer = setTimeout(() => {
+      setPageState((cur) => (cur === "loading" ? "error" : cur));
+    }, 2000);
+
+    const unsubscribe = subscribeToPasswordRecovery(() => {
+      clearTimeout(timer);
+      setPageState("ready");
+    });
+
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, [searchParams]);
 
   const onSubmit = async (values: FormValues) => {

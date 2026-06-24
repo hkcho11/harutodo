@@ -41,3 +41,17 @@ export async function resetPassword(newPassword: string): Promise<void> {
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) throw error;
 }
+
+// implicit flow(hash 방식)에서 Supabase가 자동으로 세션을 설정한 뒤 발화하는
+// PASSWORD_RECOVERY 이벤트를 구독한다. unsubscribe 함수를 반환한다.
+export function subscribeToPasswordRecovery(onRecovery: () => void): () => void {
+  const supabase = createClient();
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event) => {
+    if (event === "PASSWORD_RECOVERY") {
+      onRecovery();
+    }
+  });
+  return () => subscription.unsubscribe();
+}
