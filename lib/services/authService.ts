@@ -21,3 +21,17 @@ export async function signOut(): Promise<void> {
   //   - Service Worker로 `CLEAR_USER_CACHE` postMessage 전송
   //   - 또는 caches.keys() 순회하여 사용자 ID 포함 캐시 삭제
 }
+
+export async function sendPasswordResetEmail(email: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/reset-password`,
+  });
+  if (error) throw error;
+}
+
+export async function resetPassword(newPassword: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
+}
