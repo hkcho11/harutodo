@@ -103,15 +103,27 @@ export default function LoginPage() {
               {...register("email")}
               error={errors.email?.message}
             />
-            <Input
-              label="비밀번호"
-              id="password"
-              type="password"
-              placeholder="비밀번호"
-              autoComplete="current-password"
-              {...register("password")}
-              error={errors.password?.message}
-            />
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-sm font-medium text-haru-text">
+                  비밀번호
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-haru-muted hover:text-haru-text transition-colors"
+                >
+                  비밀번호 찾기
+                </Link>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="비밀번호"
+                autoComplete="current-password"
+                {...register("password")}
+                error={errors.password?.message}
+              />
+            </div>
 
             {/* 이메일 기억하기 */}
             <label className="flex cursor-pointer items-center gap-2.5 self-start">
