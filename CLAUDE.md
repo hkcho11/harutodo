@@ -156,24 +156,42 @@ UI 작업 전 반드시 [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)를 먼저 확�
 - `/signup` — 회원가입
 - `/couple/connect` — 초대 코드 입력/생성
 
-## 작업 방식 (Superpowers 기반)
+## 작업 방식
 
-모든 기능 개발은 아래 6단계 구조화 워크플로우로 진행한다.
+모든 기능 개발은 Superpowers 스킬(`obra/superpowers-marketplace`)을 활용한 구조화된 워크플로우로 진행한다.
 
-### 1. 요구사항 정리
+### Superpowers 스킬 활용 기준
+
+| 상황 | 사용할 스킬 |
+|------|------------|
+| 기능/컴포넌트 구현 전 요구사항 탐색 | `superpowers:brainstorming` |
+| 스펙/요구사항 기반 멀티스텝 구현 계획 작성 | `superpowers:writing-plans` |
+| 작성된 계획을 별도 세션에서 실행 | `superpowers:executing-plans` |
+| 독립 태스크 병렬 서브에이전트 실행 | `superpowers:subagent-driven-development` |
+| 2개 이상 독립 작업 동시 처리 | `superpowers:dispatching-parallel-agents` |
+| 기능/버그픽스 구현 (TDD 사이클) | `superpowers:test-driven-development` |
+| 버그·테스트 실패·예상 외 동작 발생 | `superpowers:systematic-debugging` |
+| 완료 선언 전 검증 | `superpowers:verification-before-completion` |
+| 작업 완료 후 코드 리뷰 요청 | `superpowers:requesting-code-review` |
+| 코드 리뷰 피드백 수신 및 반영 판단 | `superpowers:receiving-code-review` |
+| 기능 작업 격리가 필요할 때 | `superpowers:using-git-worktrees` |
+
+### 단계별 워크플로우
+
+#### 1. 요구사항 정리 (`superpowers:brainstorming`)
 
 - 대표의 요청을 제품 목표로 재해석한다.
 - 핵심 사용자 시나리오를 정의한다.
 - 지금 해야 할 것과 나중에 해도 되는 것을 분리한다.
-- MVP 범위를 벗어나는 항목은 백로그로 둔다.
+- 범위를 벗어나는 항목은 백로그로 둔다.
 
-### 2. 기획 / 설계
+#### 2. 기획 / 설계 (`superpowers:writing-plans`)
 
-- superpowers spec 또는 plan 문서로 작업 범위를 정리한다.
+- 스펙 문서(`docs/superpowers/specs/`)로 작업 범위를 정리한다.
 - 사용자 플로우, 화면 영향, 데이터 영향, 알림/동기화 영향, 모바일 UX 영향을 검토한다.
-- DB 스키마 변경, RLS 변경, 새 라이브러리 추가가 필요하면 반드시 대표 승인 전에는 구현하지 않는다.
+- DB 스키마 변경, RLS 변경, 새 라이브러리 추가가 필요하면 반드시 대표 승인 후 진행한다.
 
-### 3. 구현 계획 보고
+#### 3. 구현 계획 보고
 
 작업 전 아래 항목을 먼저 정리해 보고한다.
 
@@ -183,7 +201,7 @@ UI 작업 전 반드시 [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)를 먼저 확�
 - 테스트 방법
 - 롤백 가능성
 
-### 4. 구현
+#### 4. 구현 (`superpowers:test-driven-development` / `superpowers:subagent-driven-development`)
 
 - 기존 구조와 패턴을 우선 따른다.
 - Next.js App Router, React, Tailwind, Supabase, Zustand의 기존 사용 방식을 유지한다.
@@ -195,20 +213,17 @@ UI 작업 전 반드시 [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)를 먼저 확�
 - 모르는 구조나 불확실한 내용은 추측으로 구현하지 말고 먼저 확인한다.
 - 미승인 기능 요청은 구현하지 않고 백로그로 분리 제안한다.
 
-### 5. 테스트
+#### 5. 테스트 (`superpowers:verification-before-completion`)
 
-변경 범위에 맞는 테스트를 실행한다.
+완료 선언 전 반드시 아래를 실행하고 결과를 확인한다.
 
-최소 기준:
 - `npm run lint`
 - `npm run type-check`
-- 관련 테스트
-- 필요 시 `npm run build`
+- `npm run build`
+- 모바일 375px 기준 UX 검수
+- 투두 CRUD, 일정 CRUD, 커플 동기화, 알림, PWA 관련 변경은 수동 검수 체크리스트 포함
 
-모바일 375px 기준으로 UX 검수 항목을 정리한다.
-투두 CRUD, 일정 CRUD, 커플 동기화, 알림, PWA 관련 변경은 수동 검수 체크리스트를 반드시 포함한다.
-
-### 6. 검증 보고
+#### 6. 검증 보고 (`superpowers:requesting-code-review`)
 
 작업 후 아래 항목을 간결하게 보고한다.
 
