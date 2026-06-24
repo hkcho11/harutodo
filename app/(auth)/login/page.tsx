@@ -110,7 +110,7 @@ export default function LoginPage() {
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-haru-muted hover:text-haru-text transition-colors"
+                  className="text-xs text-haru-muted hover:text-haru-text transition-colors py-3 -my-3"
                 >
                   비밀번호 찾기
                 </Link>
