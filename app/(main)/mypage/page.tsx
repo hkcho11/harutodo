@@ -689,7 +689,7 @@ export default function MyPage() {
             <div className="px-5 py-4">
               <ToggleRow
                 label="알림에 내용 표시"
-                description="잠금화면에 일정·할 일 제목이 보여요"
+                description="알림 배너에 일정·할 일 제목과 날짜가 표시돼요"
                 checked={notifSettings.show_content}
                 onChange={(v) => saveNotif({ show_content: v })}
                 disabled={notifUpdating}
