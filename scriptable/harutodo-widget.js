@@ -102,7 +102,7 @@ async function fetchToday(token) {
   return await req.loadJSON();
 }
 
-// ===== 캘린더 이미지 (월간 바 레이아웃) =====
+// ===== 캘린더 이미지 (월간 바 레이아웃, 타이틀 포함) =====
 function buildCalendarImage(monthData, imgW, imgH) {
   const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
   const { year, month, today, events, hasTodoByDate } = monthData;
@@ -112,19 +112,22 @@ function buildCalendarImage(monthData, imgW, imgH) {
   const prevMonthDays = new Date(year, month - 1, 0).getDate();
   const ROWS = Math.max(5, Math.ceil((firstDay + daysInMonth) / 7));
 
-  const HEADER_H = 18;
+  const TITLE_H = 36;  // 월/년 타이틀 영역 (아래 여백 포함)
+  const HEADER_H = 16; // 요일 헤더 영역
   const CELL_W = imgW / 7;
-  const CELL_H = (imgH - HEADER_H) / ROWS;
+  const CELL_H = (imgH - TITLE_H - HEADER_H) / ROWS;
 
   const DATE_FONT = 12;
-  const DATE_H = DATE_FONT + 4;   // 16 — date number + today circle area
-  const BAR_H = 8;                 // event bar height
-  const BAR_GAP = 1;               // vertical gap between lanes
-  const BAR_PAD = 1;               // gap between date area and first bar
+  const DATE_H = DATE_FONT + 4;   // 16 — 날짜 숫자 + 오늘 원형 영역
+  // 앱 스펙 비례: ROW_H=112px, BAR_H=18px, BAR_GAP=2px, DATE_AREA_H=28px, MAX_LANES=4
+  // 위젯 CELL_H≈61pt → 비례 적용, 4 lanes 확보 위해 BAR_H=9 유지
+  const BAR_H = 9;
+  const BAR_GAP = 1;
+  const BAR_PAD = 2;               // DATE_H 아래 여백 (앱의 pt-1.5 상당)
   const BAR_FONT = 8;
   const DOT_R = 3;
 
-  // Dynamically fit 4 lanes in 5-row months, 3 lanes in 6-row months
+  // 5행 → 4 lanes, 6행 → 3 lanes (셀 높이에 따라 자동 조정)
   const MAX_LANES = Math.min(4, Math.floor((CELL_H - DATE_H - BAR_PAD) / (BAR_H + BAR_GAP)));
 
   // "YYYY-MM-DD" → integer day number (UTC, avoids timezone shifts)
@@ -196,19 +199,30 @@ function buildCalendarImage(monthData, imgW, imgH) {
   ctx.opaque = false;
   ctx.respectScreenScale = true;
 
-  // Day-of-week header
+  // 월/년 타이틀 (이미지 최상단 — 텍스트는 상단 고정, 아래 여백이 달력과의 간격)
+  ctx.setFont(Font.boldSystemFont(13));
+  ctx.setTextColor(new Color(C.text));
+  ctx.setTextAlignedLeft();
+  ctx.drawTextInRect(`${year}년 ${month}월`, new Rect(2, 4, imgW - 52, 16));
+
+  ctx.setFont(Font.systemFont(9));
+  ctx.setTextColor(new Color(C.today));
+  ctx.setTextAlignedRight();
+  ctx.drawTextInRect("● 오늘", new Rect(0, 5, imgW - 2, 12));
+
+  // 요일 헤더
   for (let i = 0; i < 7; i++) {
     ctx.setFont(Font.boldSystemFont(9));
     ctx.setTextColor(new Color(i === 0 ? C.sun : i === 6 ? C.sat : C.muted));
     ctx.setTextAlignedCenter();
-    ctx.drawTextInRect(DAY_NAMES[i], new Rect(i * CELL_W, 0, CELL_W, HEADER_H));
+    ctx.drawTextInRect(DAY_NAMES[i], new Rect(i * CELL_W, TITLE_H, CELL_W, HEADER_H));
   }
 
   for (let row = 0; row < ROWS; row++) {
     const cellIdx0 = row * 7;
     const wsDayNum = dateToDay(cellDateStr(cellIdx0));
     const bars = computeWeekBars(wsDayNum);
-    const rowY = HEADER_H + row * CELL_H;
+    const rowY = TITLE_H + HEADER_H + row * CELL_H;
 
     // Count overflow events per date (events assigned to lane >= MAX_LANES)
     const overflowByDate = {};
@@ -268,59 +282,39 @@ function buildCalendarImage(monthData, imgW, imgH) {
       // Safety: skip if bar would draw outside the cell
       if (barY + BAR_H > rowY + CELL_H - 1) continue;
 
-      const barColor = evt.assignee === "me"
-        ? C.today
-        : evt.assignee === "partner"
-          ? C.dotEvent
-          : C.dotTodo;
-
-      ctx.setFillColor(new Color(barColor));
+      // 앱과 동일: 반투명 soft 색상 (me=연두, partner=스카이, together=살구)
+      const barHex = evt.assignee === "me" ? "#B9DFA7"
+        : evt.assignee === "partner" ? "#B8DCE8"
+        : "#F2C6A0";
+      ctx.setFillColor(new Color(barHex, 0.55));
       const barPath = new Path();
-      barPath.addRoundedRect(new Rect(barX, barY, barW, BAR_H), BAR_H / 2, BAR_H / 2);
+      barPath.addRoundedRect(new Rect(barX, barY, barW, BAR_H), 3, 3);
       ctx.addPath(barPath);
       ctx.fillPath();
 
-      // Show title only when event starts in this week or at left edge
+      // 바 시작점 또는 주 왼쪽 끝에서만 제목 표시 (앱과 동일)
       if (isStart || startCol === 0) {
-        ctx.setFont(Font.systemFont(BAR_FONT));
+        ctx.setFont(Font.mediumSystemFont(BAR_FONT));
         ctx.setTextColor(new Color(C.text));
         ctx.setTextAlignedLeft();
         ctx.drawTextInRect(
           evt.title,
-          new Rect(barX + 3, barY + (BAR_H - BAR_FONT) / 2, barW - 4, BAR_FONT + 1)
+          new Rect(barX + 4, barY + (BAR_H - BAR_FONT) / 2, barW - 5, BAR_FONT + 1)
         );
       }
     }
 
-    // 4. Overflow badge (+N) and todo dots
+    // 4. Overflow badge (+N) — 앱과 동일: 날짜 숫자 우측에 표시
     for (let col = 0; col < 7; col++) {
-      const cellIdx = cellIdx0 + col;
-      const offset = cellIdx - firstDay;
-      const isCurMonth = offset >= 0 && offset < daysInMonth;
-      const ds = cellDateStr(cellIdx);
-      const x = col * CELL_W;
+      const ds = cellDateStr(cellIdx0 + col);
       const over = overflowByDate[ds] ?? 0;
+      if (over === 0) continue;
 
-      // +N badge — only draw when there's actually vertical room
-      if (over > 0 && isCurMonth) {
-        const badgeY = rowY + DATE_H + BAR_PAD + MAX_LANES * (BAR_H + BAR_GAP);
-        if (badgeY + BAR_FONT + 1 <= rowY + CELL_H - DOT_R - 3) {
-          ctx.setFont(Font.systemFont(BAR_FONT));
-          ctx.setTextColor(new Color(C.muted));
-          ctx.setTextAlignedLeft();
-          ctx.drawTextInRect(`+${over}`, new Rect(x + 2, badgeY, CELL_W - 2, BAR_FONT + 2));
-        }
-      }
-
-      // Todo dot at bottom of cell
-      if (isCurMonth && (hasTodoByDate ?? {})[ds]) {
-        ctx.setFillColor(new Color(C.dotTodo));
-        ctx.fillEllipse(new Rect(
-          x + CELL_W / 2 - DOT_R / 2,
-          rowY + CELL_H - DOT_R - 2,
-          DOT_R, DOT_R
-        ));
-      }
+      const x = col * CELL_W;
+      ctx.setFont(Font.systemFont(7));
+      ctx.setTextColor(new Color(C.muted));
+      ctx.setTextAlignedRight();
+      ctx.drawTextInRect(`+${over}`, new Rect(x, rowY + (DATE_H - 8) / 2, CELL_W - 2, 9));
     }
   }
 
@@ -365,34 +359,18 @@ function createSmallWidget(monthData, todayData) {
   return w;
 }
 
-// ===== 위젯 — Large (월간 캘린더 — 다중 바 레이아웃) =====
+// ===== 위젯 — Large (월간 캘린더, 타이틀 포함 이미지) =====
 function createLargeWidget(monthData) {
   const w = new ListWidget();
   w.backgroundColor = new Color(C.bg);
-  w.setPadding(12, 14, 12, 14);
+  // 타이틀을 이미지 안에 그리므로 위아래 패딩 최소화 → 캘린더 최대 확보
+  // Large widget: 364×354pt → 좌우 패딩 8×2=16, 위아래 패딩 4×2=8 → 이미지 348×346
+  w.setPadding(4, 8, 4, 8);
   w.url = `${APP_URL}/calendar`;
   w.refreshAfterDate = new Date(Date.now() + 5 * 60 * 1000);
 
-  // 월 헤더
-  const header = w.addStack();
-  header.layoutHorizontally();
-  header.centerAlignContent();
-
-  const monthTitle = header.addText(`${monthData.year}년 ${monthData.month}월`);
-  monthTitle.font = Font.boldSystemFont(13);
-  monthTitle.textColor = new Color(C.text);
-
-  header.addSpacer();
-
-  const todayDot = header.addText("● 오늘");
-  todayDot.font = Font.systemFont(9);
-  todayDot.textColor = new Color(C.today);
-
-  w.addSpacer(4);
-
-  // Large widget ~364pt wide, padding 14×2=28 → available 336pt
-  const IMG_W = 336;
-  const IMG_H = 310;
+  const IMG_W = 348;
+  const IMG_H = 346;
   const calImg = w.addImage(buildCalendarImage(monthData, IMG_W, IMG_H));
   calImg.imageSize = new Size(IMG_W, IMG_H);
   calImg.centerAlignImage();

@@ -57,17 +57,23 @@ export async function GET(req: NextRequest) {
   const monthEnd = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
   const today = now.toLocaleDateString("en-CA");
 
-  // 달력 그리드에 표시될 수 있는 전체 범위 (이전달 말 ~ 다음달 초 포함)
+  // 달력 그리드 전체 범위 계산 (이전달 말 ~ 다음달 초 포함)
   const gridStart = new Date(Date.UTC(year, month - 1, 1));
-  gridStart.setUTCDate(gridStart.getUTCDate() - gridStart.getUTCDay()); // 해당 주 일요일
+  gridStart.setUTCDate(gridStart.getUTCDate() - gridStart.getUTCDay()); // 그리드 첫 셀(일요일)
   const gridStartStr = gridStart.toLocaleDateString("en-CA", { timeZone: "UTC" });
+
+  const firstDayOfMonth = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+  const rows = Math.max(5, Math.ceil((firstDayOfMonth + lastDay) / 7));
+  const gridEnd = new Date(gridStart);
+  gridEnd.setUTCDate(gridEnd.getUTCDate() + rows * 7 - 1); // 그리드 마지막 셀(토요일)
+  const gridEndStr = gridEnd.toLocaleDateString("en-CA", { timeZone: "UTC" });
 
   const [eventsRes, todosRes] = await Promise.all([
     supabase
       .from("events")
       .select("date, end_date, title, assignee_id")
       .eq("couple_id", couple.id)
-      .lte("date", monthEnd)
+      .lte("date", gridEndStr) // 다음달 그리드 셀까지 포함
       .or(
         `end_date.gte.${gridStartStr},and(end_date.is.null,date.gte.${gridStartStr})`
       )
