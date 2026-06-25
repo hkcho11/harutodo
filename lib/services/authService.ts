@@ -1,13 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { useCoupleStore } from "@/store/useCoupleStore";
 
-/**
- * 사용자 로그아웃 + 클라이언트 컨텍스트 초기화.
- *
- * - Supabase 세션 종료
- * - zustand 사용자 컨텍스트(`useCoupleStore`) 초기화
- * - 향후 PWA 사용자 캐시 삭제(#7)도 여기서 연결한다.
- */
 export async function signOut(): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.auth.signOut();
@@ -24,15 +17,20 @@ export async function signOut(): Promise<void> {
 
 export async function sendPasswordResetEmail(email: string): Promise<void> {
   const supabase = createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/reset-password`,
-  });
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
   if (error) throw error;
 }
 
-export async function exchangePasswordResetCode(code: string): Promise<void> {
+export async function verifyPasswordResetOtp(
+  email: string,
+  token: string
+): Promise<void> {
   const supabase = createClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: "recovery",
+  });
   if (error) throw error;
 }
 
@@ -40,22 +38,4 @@ export async function resetPassword(newPassword: string): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) throw error;
-}
-
-// implicit flow(hash 방식) 복구 세션 감지 구독.
-// PASSWORD_RECOVERY: hash가 구독 등록 이후에 처리된 경우
-// INITIAL_SESSION + session: hash가 구독 등록 전에 이미 처리된 경우 (race condition 대응)
-export function subscribeToPasswordRecovery(onRecovery: () => void): () => void {
-  const supabase = createClient();
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((event, session) => {
-    if (
-      event === "PASSWORD_RECOVERY" ||
-      (event === "INITIAL_SESSION" && session !== null)
-    ) {
-      onRecovery();
-    }
-  });
-  return () => subscription.unsubscribe();
 }
