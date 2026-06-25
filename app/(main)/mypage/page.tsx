@@ -133,6 +133,7 @@ export default function MyPage() {
   };
 
   // 로그아웃
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -142,6 +143,7 @@ export default function MyPage() {
     } catch {
       showToast("로그아웃에 실패했어요. 다시 시도해주세요");
       setIsLoggingOut(false);
+      setLogoutOpen(false);
     }
   };
 
@@ -771,7 +773,7 @@ export default function MyPage() {
       <section className="overflow-hidden rounded-2xl bg-haru-surface shadow-card">
         <button
           type="button"
-          onClick={handleLogout}
+          onClick={() => setLogoutOpen(true)}
           disabled={isLoggingOut}
           className="flex h-[52px] w-full items-center gap-3 px-5 transition-colors active:bg-haru-primary-soft disabled:opacity-40"
         >
@@ -853,6 +855,18 @@ export default function MyPage() {
         isLoading={isDeleting}
         onConfirm={confirmDeleteGroup}
         onClose={() => setPendingDelete(null)}
+      />
+
+      {/* 다이얼로그: 로그아웃 */}
+      <ConfirmDialog
+        open={logoutOpen}
+        title="로그아웃할까요?"
+        description="로그아웃하면 다시 로그인해야 해요."
+        confirmLabel="로그아웃"
+        cancelLabel="취소"
+        isLoading={isLoggingOut}
+        onConfirm={handleLogout}
+        onClose={() => setLogoutOpen(false)}
       />
 
       {/* 다이얼로그: 커플 연결 해제 */}
