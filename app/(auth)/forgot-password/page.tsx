@@ -24,8 +24,8 @@ const emailSchema = z.object({
 const codeSchema = z.object({
   code: z
     .string()
-    .length(6, "코드는 6자리입니다")
-    .regex(/^\d{6}$/, "숫자 6자리를 입력해주세요"),
+    .min(1, "코드를 입력해주세요")
+    .regex(/^\d+$/, "숫자를 입력해주세요"),
 });
 
 const passwordSchema = z
@@ -66,7 +66,6 @@ export default function ForgotPasswordPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
   const [serverError, setServerError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -97,36 +96,34 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  const onSubmitCode = (values: CodeValues) => {
-    setCode(values.code);
+  const onSubmitCode = async (values: CodeValues) => {
     setServerError("");
-    setStep("password");
+    try {
+      await verifyPasswordResetOtp(email, values.code);
+      setStep("password");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("expired") || message.includes("invalid")) {
+        setServerError("코드가 만료됐거나 올바르지 않아요. 이메일을 다시 요청해주세요");
+      } else {
+        setServerError("코드 확인에 실패했어요. 다시 시도해주세요");
+      }
+    }
   };
 
   const onSubmitPassword = async (values: PasswordValues) => {
     setServerError("");
     try {
-      await verifyPasswordResetOtp(email, code);
       await resetPassword(values.password);
       router.push("/login");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "";
-      if (message.includes("expired") || message.includes("invalid")) {
-        setServerError("코드가 만료됐거나 올바르지 않아요. 이메일을 다시 요청해주세요");
-        setStep("email");
-        setCode("");
-        codeForm.reset();
-        passwordForm.reset();
-      } else {
-        setServerError("잠시 후 다시 시도해주세요");
-      }
+    } catch {
+      setServerError("비밀번호 변경에 실패했어요. 다시 시도해주세요");
     }
   };
 
   const goBackToEmail = () => {
     setStep("email");
     setServerError("");
-    setCode("");
     codeForm.reset();
   };
 
@@ -137,7 +134,7 @@ export default function ForgotPasswordPage() {
     },
     code: {
       title: "코드 입력",
-      desc: `${email}로 보낸 6자리 코드를 입력해주세요`,
+      desc: `${email}로 보낸 재설정 코드를 입력해주세요`,
     },
     password: {
       title: "새 비밀번호 설정",
@@ -193,9 +190,9 @@ export default function ForgotPasswordPage() {
                 id="code"
                 type="text"
                 inputMode="numeric"
-                placeholder="6자리 코드"
+                placeholder="재설정 코드"
                 autoComplete="one-time-code"
-                maxLength={6}
+                maxLength={10}
                 autoFocus
                 {...codeForm.register("code")}
                 error={codeForm.formState.errors.code?.message}
