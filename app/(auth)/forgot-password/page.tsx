@@ -215,7 +215,7 @@ export default function ForgotPasswordPage() {
                 onClick={goBackToEmail}
                 className="py-2 text-sm text-haru-muted underline underline-offset-2"
               >
-                이메일 다시 보내기
+                이메일 다시 요청하기
               </button>
             </form>
           )}
