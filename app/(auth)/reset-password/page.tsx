@@ -1,17 +1,12 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import {
-  exchangePasswordResetCode,
-  resetPassword,
-  subscribeToPasswordRecovery,
-} from "@/lib/services/authService";
+import { resetPassword } from "@/lib/services/authService";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
@@ -27,7 +22,13 @@ const schema = z
 
 type FormValues = z.infer<typeof schema>;
 
-function EyeToggle({ show, onToggle }: { show: boolean; onToggle: () => void }) {
+function EyeToggle({
+  show,
+  onToggle,
+}: {
+  show: boolean;
+  onToggle: () => void;
+}) {
   return (
     <button
       type="button"
@@ -41,20 +42,8 @@ function EyeToggle({ show, onToggle }: { show: boolean; onToggle: () => void }) 
   );
 }
 
-type PageState = "loading" | "ready" | "error";
-
-function Spinner() {
-  return (
-    <div className="flex min-h-dvh items-center justify-center">
-      <span className="h-8 w-8 animate-spin rounded-full border-2 border-haru-primary border-t-transparent" />
-    </div>
-  );
-}
-
-function ResetPasswordContent() {
+export default function ResetPasswordPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [pageState, setPageState] = useState<PageState>("loading");
   const [serverError, setServerError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -65,34 +54,6 @@ function ResetPasswordContent() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
-  useEffect(() => {
-    const code = searchParams.get("code");
-
-    if (code) {
-      // PKCE flow: URL에 ?code= 파라미터가 있는 경우
-      exchangePasswordResetCode(code)
-        .then(() => setPageState("ready"))
-        .catch(() => setPageState("error"));
-      return;
-    }
-
-    // Implicit flow: Supabase가 hash(#access_token=...&type=recovery)를 자동 감지해
-    // 세션을 설정하고 PASSWORD_RECOVERY 이벤트를 발화한다.
-    const timer = setTimeout(() => {
-      setPageState((cur) => (cur === "loading" ? "error" : cur));
-    }, 2000);
-
-    const unsubscribe = subscribeToPasswordRecovery(() => {
-      clearTimeout(timer);
-      setPageState("ready");
-    });
-
-    return () => {
-      clearTimeout(timer);
-      unsubscribe();
-    };
-  }, [searchParams]);
-
   const onSubmit = async (values: FormValues) => {
     setServerError("");
     try {
@@ -102,32 +63,6 @@ function ResetPasswordContent() {
       setServerError("비밀번호 변경에 실패했어요. 다시 시도해주세요");
     }
   };
-
-  if (pageState === "loading") {
-    return <Spinner />;
-  }
-
-  if (pageState === "error") {
-    return (
-      <div className="flex min-h-dvh flex-col items-center justify-center px-4">
-        <div className="w-full max-w-sm rounded-3xl bg-haru-surface p-8 shadow-card text-center">
-          <div className="mb-4 text-4xl">🔗</div>
-          <h1 className="mb-2 text-xl font-bold text-haru-text">
-            링크를 사용할 수 없어요
-          </h1>
-          <p className="text-sm text-haru-muted">
-            링크가 만료됐거나 이미 사용된 링크예요.
-          </p>
-          <Link
-            href="/forgot-password"
-            className="mt-6 inline-block text-sm font-semibold text-haru-text underline underline-offset-2 decoration-haru-primary-active"
-          >
-            다시 요청하기
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8">
@@ -181,13 +116,5 @@ function ResetPasswordContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function ResetPasswordPage() {
-  return (
-    <Suspense fallback={<Spinner />}>
-      <ResetPasswordContent />
-    </Suspense>
   );
 }
