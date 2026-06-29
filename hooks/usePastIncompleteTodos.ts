@@ -126,5 +126,5 @@ export function usePastIncompleteTodos() {
     [coupleId, supabase, refetch]
   );
 
-  return { todos, count: todos.length, loading, moveTodos, deleteTodos };
+  return { todos, count: todos.length, loading, refetch, moveTodos, deleteTodos };
 }

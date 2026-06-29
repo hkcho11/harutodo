@@ -68,7 +68,15 @@ export function useMonthTodoDates(year: number, month: number): Set<string> {
       table: "todo_items",
       coupleId,
       onChange: ({ type, new: newRow, old: oldRow }) => {
-        const affectedDate = type === "DELETE" ? oldRow?.date : newRow?.date;
+        if (type === "DELETE") {
+          // oldRow fields unreliable without REPLICA IDENTITY FULL — always refetch
+          const knownDate = oldRow?.date;
+          if (!knownDate || (knownDate >= first && knownDate <= last)) {
+            void refetch();
+          }
+          return;
+        }
+        const affectedDate = newRow?.date;
         if (affectedDate && affectedDate >= first && affectedDate <= last) {
           void refetch();
         }

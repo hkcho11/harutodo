@@ -229,11 +229,6 @@ export default function PastIncompleteTodoSheet({
                         <p className="truncate text-sm text-haru-text">
                           {todo.title}
                         </p>
-                        {todo.date && (
-                          <p className="mt-0.5 text-xs text-haru-muted">
-                            {formatDateShort(todo.date)}
-                          </p>
-                        )}
                       </div>
                       {badge && (
                         <span

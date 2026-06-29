@@ -63,6 +63,7 @@ export default function HomePage() {
     loading: pastLoading,
     moveTodos,
     deleteTodos,
+    refetch: pastRefetch,
   } = usePastIncompleteTodos();
   const showToast = useToastStore((s) => s.show);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -96,6 +97,7 @@ export default function HomePage() {
       } else {
         await add(values);
       }
+      void pastRefetch();
     } catch {
       showToast("저장에 실패했어요. 잠시 후 다시 시도해주세요");
       throw new Error("submit_failed");
