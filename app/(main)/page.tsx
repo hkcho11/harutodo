@@ -62,6 +62,7 @@ export default function HomePage() {
     count: pastCount,
     loading: pastLoading,
     moveTodos,
+    deleteTodos,
   } = usePastIncompleteTodos();
   const showToast = useToastStore((s) => s.show);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -332,6 +333,7 @@ export default function HomePage() {
         todos={pastTodos}
         loading={pastLoading}
         onMove={handleMove}
+        onDelete={deleteTodos}
       />
       </div>
     </div>

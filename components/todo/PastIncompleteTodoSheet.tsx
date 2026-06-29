@@ -15,6 +15,7 @@ interface Props {
   todos: Todo[];
   loading: boolean;
   onMove: (ids: string[], targetDate: string) => Promise<void>;
+  onDelete: (ids: string[]) => Promise<void>;
 }
 
 export default function PastIncompleteTodoSheet({
@@ -23,6 +24,7 @@ export default function PastIncompleteTodoSheet({
   todos,
   loading,
   onMove,
+  onDelete,
 }: Props) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -90,6 +92,23 @@ export default function PastIncompleteTodoSheet({
     }
   };
 
+  const handleDelete = async () => {
+    if (selectedIds.size === 0 || moving) return;
+    const idsToDelete = [...selectedIds];
+    const remaining = todos.filter((t) => !idsToDelete.includes(t.id));
+    setMoving(true);
+    try {
+      await onDelete(idsToDelete);
+      showToast("선택한 할 일을 삭제했어요", "success");
+      setSelectedIds(new Set());
+      if (remaining.length === 0) onClose();
+    } catch {
+      showToast("삭제에 실패했어요. 잠시 후 다시 시도해주세요");
+    } finally {
+      setMoving(false);
+    }
+  };
+
   const getBadge = (todo: Todo) => {
     if (todo.group === "together") {
       return { label: "함께", className: "bg-haru-secondary text-haru-text" };
@@ -125,7 +144,7 @@ export default function PastIncompleteTodoSheet({
             <p className="text-center text-xs text-haru-muted">
               {selectedIds.size > 0
                 ? `${selectedIds.size}개 선택됨`
-                : "이동할 할 일을 선택하세요"}
+                : "이동하거나 삭제할 할 일을 선택하세요"}
             </p>
             <div className="flex gap-2">
               <button
@@ -145,6 +164,14 @@ export default function PastIncompleteTodoSheet({
                 날짜 선택 후 이동
               </button>
             </div>
+            <button
+              type="button"
+              onClick={() => void handleDelete()}
+              disabled={selectedIds.size === 0 || moving}
+              className="w-full rounded-2xl border border-haru-danger py-3 text-sm font-semibold text-haru-danger disabled:opacity-40 active:bg-haru-danger/10"
+            >
+              삭제
+            </button>
           </div>
         }
       >

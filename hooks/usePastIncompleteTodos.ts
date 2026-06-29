@@ -109,5 +109,22 @@ export function usePastIncompleteTodos() {
     [coupleId, supabase, refetch]
   );
 
-  return { todos, count: todos.length, loading, moveTodos };
+  const deleteTodos = useCallback(
+    async (ids: string[]) => {
+      if (!coupleId || ids.length === 0) return;
+      setTodos((prev) => prev.filter((t) => !ids.includes(t.id)));
+      const { error } = await supabase
+        .from("todo_items")
+        .delete()
+        .in("id", ids)
+        .eq("couple_id", coupleId);
+      if (error) {
+        await refetch();
+        throw error;
+      }
+    },
+    [coupleId, supabase, refetch]
+  );
+
+  return { todos, count: todos.length, loading, moveTodos, deleteTodos };
 }
