@@ -4,12 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDateTodos, type TodoFormValues } from "@/hooks/useDateTodos";
 import { useCustomGroups } from "@/hooks/useCustomGroups";
+import { usePastIncompleteTodos } from "@/hooks/usePastIncompleteTodos";
 import { useToastStore } from "@/store/useToastStore";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { trackEvent } from "@/lib/services/analyticsService";
 import TodoSection from "@/components/todo/TodoSection";
 import IndividualSection from "@/components/todo/IndividualSection";
 import TodoSheet from "@/components/todo/TodoSheet";
+import PastIncompleteTodoSheet from "@/components/todo/PastIncompleteTodoSheet";
 import { todayISO, addDays, formatDateNavLabel } from "@/lib/utils/date";
 import CalendarPickerSheet from "@/components/common/CalendarPickerSheet";
 import LoadingScreen from "@/components/common/LoadingScreen";
@@ -55,10 +57,17 @@ export default function HomePage() {
   const { todos, loading, add, update, toggle, remove } =
     useDateTodos(selectedDate);
   const { groups: customGroups } = useCustomGroups();
+  const {
+    todos: pastTodos,
+    count: pastCount,
+    loading: pastLoading,
+    moveTodos,
+  } = usePastIncompleteTodos();
   const showToast = useToastStore((s) => s.show);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [pastSheetOpen, setPastSheetOpen] = useState(false);
 
   const isToday = selectedDate === todayStr;
 
@@ -226,6 +235,23 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* 지난 미완료 진입점 */}
+      {!pastLoading && pastCount > 0 && (
+        <div className="mb-4 flex items-center justify-between rounded-2xl bg-haru-surface px-4 py-3 shadow-card">
+          <p className="text-sm text-haru-muted">
+            지난 미완료 할 일{" "}
+            <span className="font-semibold text-haru-text">{pastCount}개</span>
+          </p>
+          <button
+            type="button"
+            onClick={() => setPastSheetOpen(true)}
+            className="rounded-full bg-haru-primary-soft px-3 py-1.5 text-xs font-semibold text-haru-text active:bg-haru-primary"
+          >
+            정리하기
+          </button>
+        </div>
+      )}
+
       {todos.length === 0 ? (
         <div className="rounded-3xl bg-haru-surface p-8 text-center shadow-card">
           <div className="mb-2 text-3xl">🌤️</div>
@@ -288,6 +314,14 @@ export default function HomePage() {
         selectedDate={selectedDate}
         onSelect={setSelectedDate}
         onClose={() => setPickerOpen(false)}
+      />
+
+      <PastIncompleteTodoSheet
+        open={pastSheetOpen}
+        onClose={() => setPastSheetOpen(false)}
+        todos={pastTodos}
+        loading={pastLoading}
+        onMove={moveTodos}
       />
       </div>
     </div>
