@@ -54,7 +54,7 @@ export default function HomePage() {
     }
   }, [me?.id]);
 
-  const { todos, loading, add, update, toggle, remove } =
+  const { todos, loading, add, update, toggle, remove, refetch } =
     useDateTodos(selectedDate);
   const { groups: customGroups } = useCustomGroups();
   const {
@@ -120,6 +120,16 @@ export default function HomePage() {
       throw new Error("delete_failed");
     }
   };
+
+  const handleMove = useCallback(
+    async (ids: string[], targetDate: string) => {
+      await moveTodos(ids, targetDate);
+      if (targetDate === selectedDate) {
+        await refetch();
+      }
+    },
+    [moveTodos, refetch, selectedDate]
+  );
 
   const togetherTodos = todos.filter((t) => t.group === "together");
   const individualTodos = todos.filter((t) => t.group === "individual");
@@ -321,7 +331,7 @@ export default function HomePage() {
         onClose={() => setPastSheetOpen(false)}
         todos={pastTodos}
         loading={pastLoading}
-        onMove={moveTodos}
+        onMove={handleMove}
       />
       </div>
     </div>

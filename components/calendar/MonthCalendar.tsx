@@ -103,6 +103,7 @@ interface Props {
   meColor?: string | null;
   partnerColor?: string | null;
   markedDates?: Set<string>;
+  minDate?: string;
   onSelectDate: (iso: string) => void;
 }
 
@@ -116,6 +117,7 @@ export default function MonthCalendar({
   meColor,
   partnerColor,
   markedDates,
+  minDate,
   onSelectDate,
 }: Props) {
   const resolvedMeColor = getAvatarColor(meColor);
@@ -184,6 +186,7 @@ export default function MonthCalendar({
                     isSunday={colIdx === 0}
                     hasMark={markedDates?.has(cell.iso) ?? false}
                     overflowCount={overflowByIso[cell.iso] ?? 0}
+                    disabled={minDate !== undefined && cell.iso < minDate}
                     onClick={() => onSelectDate(cell.iso)}
                   />
                 ))}

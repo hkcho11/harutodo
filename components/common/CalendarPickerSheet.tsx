@@ -12,6 +12,7 @@ interface Props {
   selectedDate: string;
   onSelect: (iso: string) => void;
   onClose: () => void;
+  minDate?: string;
 }
 
 export default function CalendarPickerSheet({
@@ -19,6 +20,7 @@ export default function CalendarPickerSheet({
   selectedDate,
   onSelect,
   onClose,
+  minDate,
 }: Props) {
   const today = todayISO();
   const [viewYear, setViewYear] = useState(() => {
@@ -86,6 +88,7 @@ export default function CalendarPickerSheet({
             todayISO={today}
             meId={null}
             markedDates={markedDates}
+            minDate={minDate}
             onSelectDate={handleSelectDate}
           />
         </div>

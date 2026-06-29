@@ -11,6 +11,7 @@ interface Props {
   isSunday: boolean;
   hasMark?: boolean;
   overflowCount?: number;
+  disabled?: boolean;
   onClick: () => void;
 }
 
@@ -23,6 +24,7 @@ export default function DayCell({
   isSunday,
   hasMark = false,
   overflowCount = 0,
+  disabled = false,
   onClick,
 }: Props) {
   const dayNum = date.getDate();
@@ -30,12 +32,15 @@ export default function DayCell({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
       aria-label={iso}
       aria-pressed={isSelected}
+      aria-disabled={disabled}
       className={cn(
-        "flex h-full w-full flex-col items-center pt-1.5 transition-colors active:bg-haru-primary-soft/60",
-        !inMonth && "opacity-30"
+        "flex h-full w-full flex-col items-center pt-1.5 transition-colors",
+        !disabled && "active:bg-haru-primary-soft/60",
+        !inMonth && "opacity-30",
+        disabled && inMonth && "opacity-30 cursor-default"
       )}
     >
       <div className="relative flex w-full justify-center">

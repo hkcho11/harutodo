@@ -228,6 +228,7 @@ export default function PastIncompleteTodoSheet({
         selectedDate={today}
         onSelect={(date) => void handleMoveToDate(date)}
         onClose={() => setDatePickerOpen(false)}
+        minDate={today}
       />
     </>
   );
