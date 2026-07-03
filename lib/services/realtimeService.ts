@@ -1,7 +1,7 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
-export type RealtimeTable = "todo_items" | "events" | "custom_groups";
+export type RealtimeTable = "todo_items" | "events" | "custom_groups" | "personal_cycles";
 
 export type RealtimeEventType = "INSERT" | "UPDATE" | "DELETE";
 

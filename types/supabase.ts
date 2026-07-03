@@ -365,6 +365,60 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_cycles: {
+        Row: {
+          id: string
+          couple_id: string
+          user_id: string
+          start_date: string
+          end_date: string | null
+          symptom_tags: string[]
+          note: string | null
+          share_level: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          couple_id: string
+          user_id: string
+          start_date: string
+          end_date?: string | null
+          symptom_tags?: string[]
+          note?: string | null
+          share_level?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          couple_id?: string
+          user_id?: string
+          start_date?: string
+          end_date?: string | null
+          symptom_tags?: string[]
+          note?: string | null
+          share_level?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_cycles_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_cycles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invite_codes: {
         Row: {
           code: string
@@ -405,6 +459,7 @@ export type Database = {
           avatar_color: string
           avatar_url: string | null
           created_at: string
+          cycle_enabled: boolean
           display_name: string
           id: string
         }
@@ -412,6 +467,7 @@ export type Database = {
           avatar_color?: string
           avatar_url?: string | null
           created_at?: string
+          cycle_enabled?: boolean
           display_name: string
           id: string
         }
@@ -419,6 +475,7 @@ export type Database = {
           avatar_color?: string
           avatar_url?: string | null
           created_at?: string
+          cycle_enabled?: boolean
           display_name?: string
           id?: string
         }
