@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { useMonthEvents } from "@/hooks/useMonthEvents";
+import { usePersonalCycles } from "@/hooks/usePersonalCycles";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { useToastStore } from "@/store/useToastStore";
 import { trackEvent } from "@/lib/services/analyticsService";
@@ -11,10 +12,12 @@ import { formatDateLabel } from "@/lib/utils/calendar";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import MonthCalendar from "@/components/calendar/MonthCalendar";
 import EventDaySheet from "@/components/calendar/EventDaySheet";
+import CycleSheet from "@/components/calendar/CycleSheet";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import EventList from "@/components/calendar/EventList";
 import EventSheet from "@/components/calendar/EventSheet";
 import type { Event, EventFormValues } from "@/types/event";
+import type { PersonalCycle, CycleFormValues } from "@/types/cycle";
 
 function parsePushDate(fallbackYear: number, fallbackMonth: number) {
   if (typeof window === "undefined") return { date: null, year: fallbackYear, month: fallbackMonth };
@@ -45,6 +48,12 @@ export default function CalendarPage() {
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
   const showToast = useToastStore((s) => s.show);
+
+  const { cycleRanges, getCycleForDate, addCycle, updateCycle, deleteCycle } =
+    usePersonalCycles(viewYear, viewMonth);
+
+  const [cycleSheetOpen, setCycleSheetOpen] = useState(false);
+  const [editingCycle, setEditingCycle] = useState<PersonalCycle | null>(null);
 
   // Push 알림 진입 시 해당 날짜의 DaySheet 자동 오픈 (한 번만)
   const autoOpenedRef = useRef(false);
@@ -155,6 +164,35 @@ export default function CalendarPage() {
     setEditingEvent(null);
   };
 
+  const openAddCycle = () => {
+    setEditingCycle(null);
+    setDaySheetOpen(false);
+    setCycleSheetOpen(true);
+  };
+
+  const openEditCycle = (cycle: PersonalCycle) => {
+    setEditingCycle(cycle);
+    setDaySheetOpen(false);
+    setCycleSheetOpen(true);
+  };
+
+  const closeCycleSheet = () => {
+    setCycleSheetOpen(false);
+    setEditingCycle(null);
+  };
+
+  const handleCycleSubmit = async (values: CycleFormValues) => {
+    if (editingCycle) {
+      await updateCycle(editingCycle.id, values);
+    } else {
+      await addCycle(values);
+    }
+  };
+
+  const handleCycleDelete = async (id: string) => {
+    await deleteCycle(id);
+  };
+
   const selectedEvents = eventsByDate[selectedDate] ?? [];
 
   const swipeStartX = useRef<number | null>(null);
@@ -192,6 +230,7 @@ export default function CalendarPage() {
           meId={me?.id ?? null}
           meColor={me?.avatar_color ?? null}
           partnerColor={partner?.avatar_color ?? null}
+          cycleRanges={me?.cycle_enabled ? cycleRanges : undefined}
           onSelectDate={handleSelectDate}
         />
       </div>
@@ -243,6 +282,10 @@ export default function CalendarPage() {
         events={selectedEvents}
         onClose={() => setDaySheetOpen(false)}
         onItemClick={openEdit}
+        cycleEnabled={me?.cycle_enabled ?? false}
+        myCycle={me?.cycle_enabled ? getCycleForDate(selectedDate) : null}
+        onAddCycle={openAddCycle}
+        onEditCycle={openEditCycle}
       />
 
       <EventSheet
@@ -252,6 +295,15 @@ export default function CalendarPage() {
         onClose={closeSheet}
         onSubmit={handleSubmit}
         onDelete={editingEvent ? handleRemove : undefined}
+      />
+
+      <CycleSheet
+        open={cycleSheetOpen}
+        cycle={editingCycle}
+        defaultDate={selectedDate}
+        onClose={closeCycleSheet}
+        onSubmit={handleCycleSubmit}
+        onDelete={editingCycle ? handleCycleDelete : undefined}
       />
     </div>
   );
