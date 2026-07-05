@@ -31,6 +31,10 @@
   --color-haru-success: #6B9F7A;
   --color-haru-danger: #C97264;
 
+  /* ── 내 주기 (연한 로즈) ─────────────────── */
+  --color-haru-cycle: #F2AEB5;         /* 주기 강조 */
+  --color-haru-cycle-soft: #FDF0F1;    /* 주기 배경 베일 */
+
   /* ── 아바타 색상 (프로필 커스텀 — mint/lavender/blush) ── */
   --color-haru-avatar-mint: #B5E8D5;
   --color-haru-avatar-mint-soft: #E0F5EE;

@@ -12,6 +12,7 @@ interface Props {
   hasMark?: boolean;
   overflowCount?: number;
   disabled?: boolean;
+  cycleType?: "recorded" | null;
   onClick: () => void;
 }
 
@@ -25,6 +26,7 @@ export default function DayCell({
   hasMark = false,
   overflowCount = 0,
   disabled = false,
+  cycleType,
   onClick,
 }: Props) {
   const dayNum = date.getDate();
@@ -38,6 +40,7 @@ export default function DayCell({
       aria-disabled={disabled}
       className={cn(
         "flex h-full w-full flex-col items-center pt-1.5 transition-colors",
+        cycleType === "recorded" && inMonth && "bg-haru-cycle-soft",
         !disabled && "active:bg-haru-primary-soft/60",
         !inMonth && "opacity-30",
         disabled && inMonth && "opacity-30 cursor-default"
