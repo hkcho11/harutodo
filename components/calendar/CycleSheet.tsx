@@ -55,6 +55,7 @@ export default function CycleSheet({
   useEffect(() => {
     if (!open) return;
     if (cycle) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStartDate(cycle.start_date);
       setEndDate(cycle.end_date);
       setOngoing(cycle.end_date === null);
