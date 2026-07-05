@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Link2Off, Smartphone, Download } from "lucide-react";
+import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Link2Off, Smartphone, Download, Heart } from "lucide-react";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
 import OptionSheet from "@/components/common/OptionSheet";
 import AvatarColorSheet from "@/components/mypage/AvatarColorSheet";
@@ -80,6 +80,16 @@ export default function MyPage() {
   const updateMe = useCoupleStore((s) => s.updateMe);
   const reset = useCoupleStore((s) => s.reset);
   const { groups, loading, error, refetch, add, remove } = useCustomGroups();
+
+  const handleCycleToggle = async (enabled: boolean) => {
+    if (!me) return;
+    try {
+      await updateProfile(me.id, { cycle_enabled: enabled });
+      updateMe({ cycle_enabled: enabled });
+    } catch {
+      showToast("설정 저장에 실패했어요. 다시 시도해주세요");
+    }
+  };
   const showToast = useToastStore((s) => s.show);
 
   // 프로필 수정
@@ -453,6 +463,27 @@ export default function MyPage() {
             </button>
           </div>
         )}
+      </section>
+
+      {/* 내 주기 */}
+      <section className="overflow-hidden rounded-2xl bg-haru-surface shadow-card">
+        <div className="flex items-center gap-2 border-b border-haru-border px-5 py-4">
+          <Heart className="h-4 w-4 text-haru-muted" />
+          <h2 className="text-sm font-semibold text-haru-text">내 주기</h2>
+        </div>
+        <div className="px-5 py-4">
+          <ToggleRow
+            label="내 주기 기록 기능"
+            description="캘린더에서 개인 주기를 기록하고 필요 시 파트너와 공유할 수 있어요"
+            checked={me?.cycle_enabled ?? false}
+            onChange={(v) => void handleCycleToggle(v)}
+          />
+          {me?.cycle_enabled && (
+            <p className="mt-3 rounded-xl bg-haru-surface-soft px-3 py-2 text-xs leading-relaxed text-haru-muted">
+              기록은 나만 볼 수 있어요. 파트너 공유는 주기 기록 시 직접 설정할 수 있어요.
+            </p>
+          )}
+        </div>
       </section>
 
       {/* 커스텀 그룹 카드 */}
