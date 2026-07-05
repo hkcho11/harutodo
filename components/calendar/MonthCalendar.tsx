@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils/cn";
 import { getAvatarColor, AVATAR_COLOR_CLASSES, type AvatarColor } from "@/lib/utils/avatarColor";
 import DayCell from "./DayCell";
 import type { Event } from "@/types/event";
+import type { CycleRange } from "@/types/cycle";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const MAX_LANES = 4;
@@ -104,6 +105,7 @@ interface Props {
   partnerColor?: string | null;
   markedDates?: Set<string>;
   minDate?: string;
+  cycleRanges?: CycleRange[];
   onSelectDate: (iso: string) => void;
 }
 
@@ -118,6 +120,7 @@ export default function MonthCalendar({
   partnerColor,
   markedDates,
   minDate,
+  cycleRanges,
   onSelectDate,
 }: Props) {
   const resolvedMeColor = getAvatarColor(meColor);
@@ -144,6 +147,24 @@ export default function MonthCalendar({
     }
     return weeks.map((weekCells) => computeWeekBars(weekCells, events));
   }, [weeks, events]);
+
+  // 주기 날짜 집합 계산
+  const cycleDateSet = useMemo(() => {
+    const set = new Set<string>();
+    if (!cycleRanges) return set;
+    for (const cycle of cycleRanges) {
+      const endIso = cycle.end_date ?? todayISO;
+      let cur = cycle.start_date;
+      while (cur <= endIso) {
+        set.add(cur);
+        // 날짜 +1일
+        const d = new Date(cur + "T00:00:00");
+        d.setDate(d.getDate() + 1);
+        cur = d.toISOString().slice(0, 10);
+      }
+    }
+    return set;
+  }, [cycleRanges, todayISO]);
 
   return (
     <div>
@@ -187,6 +208,7 @@ export default function MonthCalendar({
                     hasMark={markedDates?.has(cell.iso) ?? false}
                     overflowCount={overflowByIso[cell.iso] ?? 0}
                     disabled={minDate !== undefined && cell.iso < minDate}
+                    cycleType={cycleDateSet.has(cell.iso) ? "recorded" : null}
                     onClick={() => onSelectDate(cell.iso)}
                   />
                 ))}
