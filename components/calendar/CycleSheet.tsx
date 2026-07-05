@@ -88,6 +88,10 @@ export default function CycleSheet({
       showToast("시작일을 선택해주세요");
       return;
     }
+    if (!ongoing && !endDate) {
+      showToast("종료일을 선택해주세요");
+      return;
+    }
     if (!ongoing && endDate && endDate < startDate) {
       showToast("종료일은 시작일 이후여야 해요");
       return;
