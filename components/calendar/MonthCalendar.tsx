@@ -105,6 +105,7 @@ interface Props {
   partnerColor?: string | null;
   markedDates?: Set<string>;
   minDate?: string;
+  maxDate?: string;
   cycleRanges?: CycleRange[];
   onSelectDate: (iso: string) => void;
 }
@@ -120,6 +121,7 @@ export default function MonthCalendar({
   partnerColor,
   markedDates,
   minDate,
+  maxDate,
   cycleRanges,
   onSelectDate,
 }: Props) {
@@ -207,7 +209,7 @@ export default function MonthCalendar({
                     isSunday={colIdx === 0}
                     hasMark={markedDates?.has(cell.iso) ?? false}
                     overflowCount={overflowByIso[cell.iso] ?? 0}
-                    disabled={minDate !== undefined && cell.iso < minDate}
+                    disabled={(minDate !== undefined && cell.iso < minDate) || (maxDate !== undefined && cell.iso > maxDate)}
                     cycleType={cycleDateSet.has(cell.iso) ? "recorded" : null}
                     onClick={() => onSelectDate(cell.iso)}
                   />
