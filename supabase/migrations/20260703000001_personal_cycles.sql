@@ -41,7 +41,14 @@ CREATE POLICY "personal_cycles_owner_all"
   ON personal_cycles
   FOR ALL
   USING  (user_id = auth.uid())
-  WITH CHECK (user_id = auth.uid());
+  WITH CHECK (
+    user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM couples
+      WHERE id = couple_id
+        AND (user1_id = auth.uid() OR user2_id = auth.uid())
+    )
+  );
 
 -- 파트너: share_level이 private가 아닌 행만 SELECT
 CREATE POLICY "personal_cycles_partner_select"
@@ -55,3 +62,6 @@ CREATE POLICY "personal_cycles_partner_select"
     )
     AND share_level != 'private'
   );
+
+-- personal_cycles를 Realtime 게시물에 추가
+ALTER PUBLICATION supabase_realtime ADD TABLE personal_cycles;

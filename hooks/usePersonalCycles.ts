@@ -64,14 +64,14 @@ export function usePersonalCycles(year: number, month: number) {
   useEffect(() => {
     if (!coupleId) return;
     const channel = subscribeCoupleTable<PersonalCycle>({
-      channelName: `personal_cycles:couple=${coupleId}:${year}-${month}`,
+      channelName: `personal_cycles:couple=${coupleId}`,
       table: "personal_cycles",
       coupleId,
       onChange: () => { void refetch(); },
       onStatus: (status) => { if (status === "SUBSCRIBED") void refetch(); },
     });
     return () => { unsubscribeCouple(channel); };
-  }, [coupleId, year, month, refetch]);
+  }, [coupleId, refetch]);
 
   // MonthCalendar 전달용 경량 데이터
   const cycleRanges: CycleRange[] = useMemo(

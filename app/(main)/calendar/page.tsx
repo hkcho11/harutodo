@@ -144,7 +144,7 @@ export default function CalendarPage() {
   const handleSelectDate = (date: string) => {
     setSelectedDate(date);
     const dayEvents = eventsByDate[date] ?? [];
-    if (dayEvents.length > 0) {
+    if (dayEvents.length > 0 || me?.cycle_enabled) {
       setDaySheetOpen(true);
     }
   };
