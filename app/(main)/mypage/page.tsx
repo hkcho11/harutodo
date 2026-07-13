@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Link2Off, Smartphone, Download } from "lucide-react";
+import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Link2Off, Download } from "lucide-react";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
 import OptionSheet from "@/components/common/OptionSheet";
 import AvatarColorSheet from "@/components/mypage/AvatarColorSheet";
@@ -726,71 +726,63 @@ export default function MyPage() {
         )}
       </section>
 
-      {/* 네이버 캘린더 연동 */}
+      {/* 연동 */}
       <section className="overflow-hidden rounded-2xl bg-haru-surface shadow-card">
         <div className="flex items-center gap-2 border-b border-haru-border px-5 py-4">
           <Link2 className="h-4 w-4 text-haru-muted" />
-          <h2 className="text-sm font-semibold text-haru-text">외부 캘린더 연동</h2>
+          <h2 className="text-sm font-semibold text-haru-text">연동</h2>
         </div>
-        <div className="px-5 py-4">
-          {naverConnected === null ? (
-            <p className="text-sm text-haru-muted">불러오는 중...</p>
-          ) : naverConnected ? (
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-haru-text">네이버 캘린더</p>
-                <p className="mt-0.5 text-xs text-haru-muted">일정 추가 시 네이버 캘린더에 자동 등록돼요</p>
+        <div className="divide-y divide-haru-border">
+          {/* 네이버 캘린더 */}
+          <div className="px-5 py-4">
+            <p className="mb-3 text-xs font-semibold text-haru-muted">네이버 캘린더</p>
+            {naverConnected === null ? (
+              <p className="text-sm text-haru-muted">불러오는 중...</p>
+            ) : naverConnected ? (
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs text-haru-muted">일정 추가 시 네이버 캘린더에 자동 등록돼요</p>
+                <button
+                  type="button"
+                  onClick={() => void handleNaverDisconnect()}
+                  disabled={naverLoading}
+                  className="flex shrink-0 items-center gap-1.5 rounded-xl border border-haru-border px-3 py-2 text-xs font-medium text-haru-muted active:bg-haru-primary-soft disabled:opacity-40"
+                >
+                  <Link2Off className="h-3.5 w-3.5" />
+                  연결 해제
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => void handleNaverDisconnect()}
-                disabled={naverLoading}
-                className="flex shrink-0 items-center gap-1.5 rounded-xl border border-haru-border px-3 py-2 text-xs font-medium text-haru-muted active:bg-haru-primary-soft disabled:opacity-40"
-              >
-                <Link2Off className="h-3.5 w-3.5" />
-                연결 해제
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-haru-text">네이버 캘린더</p>
-                <p className="mt-0.5 text-xs text-haru-muted">연결하면 하루투두 일정이 자동으로 등록돼요</p>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs text-haru-muted">연결하면 하루투두 일정이 자동으로 등록돼요</p>
+                <button
+                  type="button"
+                  onClick={handleNaverConnect}
+                  className="flex shrink-0 items-center gap-1.5 rounded-xl bg-haru-primary px-3 py-2 text-xs font-semibold text-haru-text active:bg-haru-primary-active"
+                >
+                  <Link2 className="h-3.5 w-3.5" />
+                  연결하기
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleNaverConnect}
-                className="flex shrink-0 items-center gap-1.5 rounded-xl bg-haru-primary px-3 py-2 text-xs font-semibold text-haru-text active:bg-haru-primary-active"
-              >
-                <Link2 className="h-3.5 w-3.5" />
-                연결하기
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 홈 화면 위젯 */}
-      <section className="overflow-hidden rounded-2xl bg-haru-surface shadow-card">
-        <div className="flex items-center gap-2 border-b border-haru-border px-5 py-4">
-          <Smartphone className="h-4 w-4 text-haru-muted" />
-          <h2 className="text-sm font-semibold text-haru-text">홈 화면 위젯</h2>
-        </div>
-        <div className="px-5 py-4">
-          <p className="mb-3 text-xs leading-relaxed text-haru-muted">
-            Scriptable 앱으로 홈 화면에 월간 캘린더 위젯을 추가할 수 있어요. 버튼을 누르면 스크립트가 복사되고 Scriptable이 열려요. 새 스크립트를 만들어 붙여넣기 후 실행하면 돼요.
-          </p>
-          <button
-            type="button"
-            onClick={() => void handleInstallWidget()}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-haru-primary py-3 text-sm font-semibold text-haru-text active:bg-haru-primary-active"
-          >
-            <Download className="h-4 w-4" />
-            복사하고 Scriptable 열기
-          </button>
-          <p className="mt-2 text-center text-xs text-haru-muted">
-            Scriptable이 설치돼 있어야 해요 (App Store 무료)
-          </p>
+            )}
+          </div>
+          {/* 홈 화면 위젯 */}
+          <div className="px-5 py-4">
+            <p className="mb-2 text-xs font-semibold text-haru-muted">홈 화면 위젯</p>
+            <p className="mb-3 text-xs leading-relaxed text-haru-muted">
+              Scriptable 앱으로 홈 화면에 월간 캘린더 위젯을 추가할 수 있어요. 버튼을 누르면 스크립트가 복사되고 Scriptable이 열려요. 새 스크립트를 만들어 붙여넣기 후 실행하면 돼요.
+            </p>
+            <button
+              type="button"
+              onClick={() => void handleInstallWidget()}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-haru-primary py-3 text-sm font-semibold text-haru-text active:bg-haru-primary-active"
+            >
+              <Download className="h-4 w-4" />
+              복사하고 Scriptable 열기
+            </button>
+            <p className="mt-2 text-center text-xs text-haru-muted">
+              Scriptable이 설치돼 있어야 해요 (App Store 무료)
+            </p>
+          </div>
         </div>
       </section>
 
