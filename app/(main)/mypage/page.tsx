@@ -786,7 +786,7 @@ export default function MyPage() {
         </div>
       </section>
 
-      {/* 계정 — Settings 스타일 행 */}
+      {/* 계정 */}
       <section className="overflow-hidden rounded-2xl bg-haru-surface shadow-card">
         <button
           type="button"
@@ -802,25 +802,17 @@ export default function MyPage() {
             <ChevronRight className="h-4 w-4 text-haru-muted" />
           )}
         </button>
-      </section>
-
-      {/* 위험 구역 — 커플 연결 해제 */}
-      <section className="rounded-2xl border border-haru-danger/20 bg-haru-surface p-5 shadow-card">
-        <div className="mb-4 flex items-start gap-2.5">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-haru-danger" />
-          <div>
-            <p className="text-sm font-semibold text-haru-text">커플 연결 해제</p>
-            <p className="mt-1 text-xs leading-relaxed text-haru-muted">
-              연결 해제하면 공유된 할 일·일정·그룹이 모두 삭제되고 복구할 수 없어요.
-            </p>
-          </div>
-        </div>
         <button
           type="button"
           onClick={() => setDisconnectOpen(true)}
-          className="min-h-[44px] w-full rounded-2xl bg-haru-danger/10 py-2.5 text-sm font-semibold text-haru-danger transition-colors active:bg-haru-danger/20"
+          className="flex w-full items-center gap-3 border-t border-haru-border px-5 py-4 transition-colors active:bg-haru-danger/5"
         >
-          커플 연결 해제하기
+          <AlertTriangle className="h-4 w-4 shrink-0 text-haru-danger" />
+          <div className="flex-1 text-left">
+            <p className="text-base text-haru-danger">커플 연결 해제</p>
+            <p className="mt-0.5 text-xs text-haru-muted">해제 시 공유 데이터가 모두 삭제돼요</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-haru-danger" />
         </button>
       </section>
 
