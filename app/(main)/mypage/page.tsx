@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Link2Off, Smartphone, Download, Heart } from "lucide-react";
+import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Link2Off, Smartphone, Download } from "lucide-react";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
 import OptionSheet from "@/components/common/OptionSheet";
 import AvatarColorSheet from "@/components/mypage/AvatarColorSheet";
@@ -463,18 +463,12 @@ export default function MyPage() {
             </button>
           </div>
         )}
-      </section>
 
-      {/* 내 주기 */}
-      <section className="overflow-hidden rounded-2xl bg-haru-surface shadow-card">
-        <div className="flex items-center gap-2 border-b border-haru-border px-5 py-4">
-          <Heart className="h-4 w-4 text-haru-muted" />
-          <h2 className="text-sm font-semibold text-haru-text">내 주기</h2>
-        </div>
-        <div className="px-5 py-4">
+        {/* 내 주기 */}
+        <div className="mt-4 border-t border-haru-border pt-4">
           <ToggleRow
-            label="내 주기 기록 기능"
-            description="캘린더에서 개인 주기를 기록하고 필요 시 파트너와 공유할 수 있어요"
+            label="내 주기 기록"
+            description="캘린더에서 개인 주기를 기록할 수 있어요"
             checked={me?.cycle_enabled ?? false}
             onChange={(v) => void handleCycleToggle(v)}
           />
