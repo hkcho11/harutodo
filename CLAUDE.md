@@ -160,14 +160,15 @@ UI 작업 전 반드시 [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)를 먼저 확�
 
 모든 기능 개발은 Superpowers 스킬(`obra/superpowers-marketplace`)을 활용한 구조화된 워크플로우로 진행한다.
 
+**계획 실행 방식: 항상 `superpowers:subagent-driven-development`를 사용한다.** `writing-plans` 완료 후 실행 방식을 묻지 않고 바로 서브에이전트 방식으로 진행한다. `superpowers:executing-plans`는 사용하지 않는다.
+
 ### Superpowers 스킬 활용 기준
 
 | 상황 | 사용할 스킬 |
 |------|------------|
 | 기능/컴포넌트 구현 전 요구사항 탐색 | `superpowers:brainstorming` |
 | 스펙/요구사항 기반 멀티스텝 구현 계획 작성 | `superpowers:writing-plans` |
-| 작성된 계획을 별도 세션에서 실행 | `superpowers:executing-plans` |
-| 독립 태스크 병렬 서브에이전트 실행 | `superpowers:subagent-driven-development` |
+| 계획 실행 (항상 이 방식) | `superpowers:subagent-driven-development` |
 | 2개 이상 독립 작업 동시 처리 | `superpowers:dispatching-parallel-agents` |
 | 기능/버그픽스 구현 (TDD 사이클) | `superpowers:test-driven-development` |
 | 버그·테스트 실패·예상 외 동작 발생 | `superpowers:systematic-debugging` |
