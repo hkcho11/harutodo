@@ -186,7 +186,7 @@ export default function MonthCalendar({
             key={d}
             className={cn(
               "text-center text-xs font-medium",
-              i === 0 ? "text-haru-danger" : "text-haru-muted"
+              i === 0 ? "text-haru-danger" : i === 6 ? "text-haru-saturday" : "text-haru-muted"
             )}
           >
             {d}

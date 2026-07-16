@@ -38,6 +38,7 @@ Claude Code는 UI 작업 전 이 문서를 반드시 확인하고, 정의된 토
 | `haru-secondary-soft` | `#FFF0E2` | 살구 베일 |
 | `haru-accent` | `#B8DCE8` | 파스텔 스카이 — 그 외/파트너/알림 포인트 |
 | `haru-accent-soft` | `#E8F4F8` | 스카이 베일 — 파트너 컬럼 |
+| `haru-saturday` | `#2878BE` | 토요일 날짜/헤더 텍스트 |
 | `haru-text` | `#334033` | 본문 (딥 올리브) — **모든 fill 위 텍스트의 기본** |
 | `haru-muted` | `#72806C` | 보조 텍스트 (muted 올리브 그레이) |
 | `haru-border` | `#E3ECD9` | 보더, 구분선 (연한 그린 베이지) |

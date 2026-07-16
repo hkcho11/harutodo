@@ -20,6 +20,9 @@
   --color-haru-accent: #B8DCE8;        /* 알림/캘린더 포인트 */
   --color-haru-accent-soft: #E8F4F8;   /* 스카이 베일 */
 
+  /* ── 토요일 텍스트 ─────────────────────── */
+  --color-haru-saturday: #2878BE;      /* 토요일 날짜 텍스트 */
+
   /* ── 텍스트 ──────────────────────────────── */
   --color-haru-text: #334033;          /* 딥 올리브 */
   --color-haru-muted: #72806C;         /* muted 올리브 그레이 */

@@ -63,7 +63,7 @@ export default function DayCell({
               : isHoliday || isSunday
               ? "text-haru-danger"
               : isSaturday
-              ? "text-haru-accent"
+              ? "text-haru-saturday"
               : "text-haru-text"
           )}
         >
