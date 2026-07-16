@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { getMonthDays, type DayCell as DayCellData } from "@/lib/utils/calendar";
 import { cn } from "@/lib/utils/cn";
 import { getAvatarColor, AVATAR_COLOR_CLASSES, type AvatarColor } from "@/lib/utils/avatarColor";
+import { isHoliday } from "holiday-kr";
 import DayCell from "./DayCell";
 import type { Event } from "@/types/event";
 import type { CycleRange } from "@/types/cycle";
@@ -137,6 +138,14 @@ export default function MonthCalendar({
 
   const cells = useMemo(() => getMonthDays(year, month), [year, month]);
 
+  const holidaySet = useMemo(() => {
+    const set = new Set<string>();
+    for (const cell of cells) {
+      if (isHoliday(cell.date)) set.add(cell.iso);
+    }
+    return set;
+  }, [cells]);
+
   const weeks = useMemo(() => {
     const result: DayCellData[][] = [];
     for (let i = 0; i < cells.length; i += 7) result.push(cells.slice(i, i + 7));
@@ -207,6 +216,8 @@ export default function MonthCalendar({
                     isToday={cell.iso === todayISO}
                     isSelected={cell.iso === selectedDate}
                     isSunday={colIdx === 0}
+                    isSaturday={colIdx === 6}
+                    isHoliday={holidaySet.has(cell.iso)}
                     hasMark={markedDates?.has(cell.iso) ?? false}
                     overflowCount={overflowByIso[cell.iso] ?? 0}
                     disabled={(minDate !== undefined && cell.iso < minDate) || (maxDate !== undefined && cell.iso > maxDate)}
