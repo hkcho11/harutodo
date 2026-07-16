@@ -9,6 +9,8 @@ interface Props {
   isToday: boolean;
   isSelected: boolean;
   isSunday: boolean;
+  isSaturday?: boolean;
+  isHoliday?: boolean;
   hasMark?: boolean;
   overflowCount?: number;
   disabled?: boolean;
@@ -23,6 +25,8 @@ export default function DayCell({
   isToday,
   isSelected,
   isSunday,
+  isSaturday = false,
+  isHoliday = false,
   hasMark = false,
   overflowCount = 0,
   disabled = false,
@@ -56,8 +60,10 @@ export default function DayCell({
               ? "ring-2 ring-haru-primary-active"
               : isSelected
               ? "bg-haru-primary/25"
-              : isSunday
+              : isHoliday || isSunday
               ? "text-haru-danger"
+              : isSaturday
+              ? "text-haru-accent"
               : "text-haru-text"
           )}
         >
