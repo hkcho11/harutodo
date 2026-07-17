@@ -123,6 +123,6 @@ npx supabase gen types typescript --project-id <project-id> > types/supabase.ts
 
 | 문서 | 내용 |
 |---|---|
-| [CLAUDE.md](./CLAUDE.md) | Claude Code 페르소나, 제품 기능 현황, 작업 방식, 완료 정의 |
-| [AGENTS.md](./AGENTS.md) | 에이전트 협업 방식, Codex 리뷰 반영 규칙 |
+| [CLAUDE.md](./CLAUDE.md) | 과거 도구 호환용 파일. 현재 내용은 Codex 단독 운영 기준, 제품 기능 현황, 작업 방식, 완료 정의 |
+| [AGENTS.md](./AGENTS.md) | Codex 단독 역할, 작업 순서, 자체 리뷰 및 피드백 반영 규칙 |
 | [PROJECT_RULES.md](./PROJECT_RULES.md) | 기술 스택, 폴더 구조, 네이밍, PWA/모바일 기준 |

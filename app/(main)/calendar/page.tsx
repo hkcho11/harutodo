@@ -49,7 +49,7 @@ export default function CalendarPage() {
   const partner = useCoupleStore((s) => s.partner);
   const showToast = useToastStore((s) => s.show);
 
-  const { cycleRanges, getCycleForDate, addCycle, updateCycle, deleteCycle } =
+  const { cycleRanges, cyclePredictions, getCycleForDate, addCycle, updateCycle, deleteCycle } =
     usePersonalCycles(viewYear, viewMonth);
 
   const [cycleSheetOpen, setCycleSheetOpen] = useState(false);
@@ -194,6 +194,15 @@ export default function CalendarPage() {
   };
 
   const selectedEvents = eventsByDate[selectedDate] ?? [];
+  const cyclePredictionItems = cyclePredictions.map((prediction) => ({
+    prediction,
+    label:
+      prediction.userId === me?.id
+        ? "내"
+        : prediction.userId === partner?.id
+        ? `${partner.display_name}의`
+        : "",
+  }));
 
   const swipeStartX = useRef<number | null>(null);
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -231,6 +240,7 @@ export default function CalendarPage() {
           meColor={me?.avatar_color ?? null}
           partnerColor={partner?.avatar_color ?? null}
           cycleRanges={me?.cycle_enabled ? cycleRanges : undefined}
+          cyclePredictions={me?.cycle_enabled ? cyclePredictions : undefined}
           onSelectDate={handleSelectDate}
         />
       </div>
@@ -284,6 +294,7 @@ export default function CalendarPage() {
         onItemClick={openEdit}
         cycleEnabled={me?.cycle_enabled ?? false}
         myCycle={me?.cycle_enabled ? getCycleForDate(selectedDate) : null}
+        cyclePredictionItems={me?.cycle_enabled ? cyclePredictionItems : []}
         onAddCycle={openAddCycle}
         onEditCycle={openEditCycle}
       />

@@ -6,8 +6,9 @@ import { cn } from "@/lib/utils/cn";
 import { getAvatarColor, AVATAR_COLOR_CLASSES, type AvatarColor } from "@/lib/utils/avatarColor";
 import { isHoliday } from "holiday-kr";
 import DayCell from "./DayCell";
+import { addDays } from "@/lib/utils/date";
 import type { Event } from "@/types/event";
-import type { CycleRange } from "@/types/cycle";
+import type { CycleDayType, CycleRange, CyclePrediction } from "@/types/cycle";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const MAX_LANES = 4;
@@ -108,6 +109,7 @@ interface Props {
   minDate?: string;
   maxDate?: string;
   cycleRanges?: CycleRange[];
+  cyclePredictions?: CyclePrediction[];
   onSelectDate: (iso: string) => void;
 }
 
@@ -124,6 +126,7 @@ export default function MonthCalendar({
   minDate,
   maxDate,
   cycleRanges,
+  cyclePredictions,
   onSelectDate,
 }: Props) {
   const resolvedMeColor = getAvatarColor(meColor);
@@ -137,6 +140,8 @@ export default function MonthCalendar({
   })();
 
   const cells = useMemo(() => getMonthDays(year, month), [year, month]);
+  const visibleFirst = cells[0]?.iso ?? monthFirst;
+  const visibleLast = cells[cells.length - 1]?.iso ?? monthLast;
 
   const holidaySet = useMemo(() => {
     const set = new Set<string>();
@@ -159,23 +164,33 @@ export default function MonthCalendar({
     return weeks.map((weekCells) => computeWeekBars(weekCells, events));
   }, [weeks, events]);
 
-  // 주기 날짜 집합 계산
-  const cycleDateSet = useMemo(() => {
-    const set = new Set<string>();
-    if (!cycleRanges) return set;
+  // 주기 날짜 표시 계산. addDays는 로컬 날짜 기준이라 KST에서 같은 날짜로 되돌아가는
+  // toISOString 기반 무한 루프를 피한다.
+  const cycleDateTypeMap = useMemo(() => {
+    const map = new Map<string, CycleDayType>();
+    if (!cycleRanges) return map;
     for (const cycle of cycleRanges) {
       const endIso = cycle.end_date ?? todayISO;
-      let cur = cycle.start_date;
-      while (cur <= endIso) {
-        set.add(cur);
-        // 날짜 +1일
-        const d = new Date(cur + "T00:00:00");
-        d.setDate(d.getDate() + 1);
-        cur = d.toISOString().slice(0, 10);
+      if (endIso < visibleFirst || cycle.start_date > visibleLast) continue;
+      let cur = cycle.start_date > visibleFirst ? cycle.start_date : visibleFirst;
+      const rangeEnd = endIso < visibleLast ? endIso : visibleLast;
+      while (cur <= rangeEnd) {
+        map.set(cur, "recorded");
+        cur = addDays(cur, 1);
       }
     }
-    return set;
-  }, [cycleRanges, todayISO]);
+    if (cyclePredictions) {
+      for (const prediction of cyclePredictions) {
+        if (!map.has(prediction.ovulationDate)) {
+          map.set(prediction.ovulationDate, "ovulation");
+        }
+        if (!map.has(prediction.expectedStartDate)) {
+          map.set(prediction.expectedStartDate, "expected");
+        }
+      }
+    }
+    return map;
+  }, [cycleRanges, cyclePredictions, todayISO, visibleFirst, visibleLast]);
 
   return (
     <div>
@@ -221,7 +236,7 @@ export default function MonthCalendar({
                     hasMark={markedDates?.has(cell.iso) ?? false}
                     overflowCount={overflowByIso[cell.iso] ?? 0}
                     disabled={(minDate !== undefined && cell.iso < minDate) || (maxDate !== undefined && cell.iso > maxDate)}
-                    cycleType={cycleDateSet.has(cell.iso) ? "recorded" : null}
+                    cycleType={cycleDateTypeMap.get(cell.iso) ?? null}
                     onClick={() => onSelectDate(cell.iso)}
                   />
                 ))}

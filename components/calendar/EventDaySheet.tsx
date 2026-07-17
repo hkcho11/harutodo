@@ -5,8 +5,14 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import EventList from "@/components/calendar/EventList";
 import { formatDateLabel } from "@/lib/utils/calendar";
+import { cn } from "@/lib/utils/cn";
 import type { Event } from "@/types/event";
-import type { PersonalCycle } from "@/types/cycle";
+import type { CyclePrediction, PersonalCycle } from "@/types/cycle";
+
+export interface CyclePredictionItem {
+  prediction: CyclePrediction;
+  label: string;
+}
 
 interface Props {
   open: boolean;
@@ -16,6 +22,7 @@ interface Props {
   onItemClick: (event: Event) => void;
   cycleEnabled?: boolean;
   myCycle?: PersonalCycle | null;
+  cyclePredictionItems?: CyclePredictionItem[];
   onAddCycle?: () => void;
   onEditCycle?: (cycle: PersonalCycle) => void;
 }
@@ -28,6 +35,7 @@ export default function EventDaySheet({
   onItemClick,
   cycleEnabled = false,
   myCycle,
+  cyclePredictionItems = [],
   onAddCycle,
   onEditCycle,
 }: Props) {
@@ -80,16 +88,36 @@ export default function EventDaySheet({
             >
               <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-haru-cycle" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-haru-text">내 주기 중</p>
-                {myCycle.symptom_tags.length > 0 && (
-                  <p className="mt-0.5 truncate text-xs text-haru-muted">
-                    {myCycle.symptom_tags.join(" · ")}
-                  </p>
-                )}
+                <p className="text-xs font-semibold text-haru-text">생리 기록</p>
+                <p className="mt-0.5 text-xs text-haru-muted">시작일과 종료일을 수정할 수 있어요</p>
               </div>
               <span className="text-xs text-haru-muted">수정</span>
             </button>
           )}
+
+          {cycleEnabled && !myCycle && cyclePredictionItems.map(({ prediction, label }) => {
+            const isExpected = prediction.expectedStartDate === date;
+            const isOvulation = prediction.ovulationDate === date;
+            if (!isExpected && !isOvulation) return null;
+            return (
+              <div
+                key={`${prediction.userId}-${isExpected ? "expected" : "ovulation"}`}
+                className={cn(
+                  "mb-3 rounded-2xl px-4 py-3",
+                  isExpected ? "bg-haru-cycle-soft" : "bg-haru-accent-soft"
+                )}
+              >
+                <p className="text-xs font-semibold text-haru-text">
+                  {label} {isExpected ? "다음 생리 예정일" : "배란예상일"}
+                </p>
+                <p className="mt-0.5 text-xs text-haru-muted">
+                  {prediction.isFallback
+                    ? "기록이 부족해 28일 표준 참고값으로 예상했어요."
+                    : `최근 기록 ${prediction.sampleCount}개 간격을 기준으로 약 ${prediction.cycleLengthDays}일 주기로 예상했어요.`}
+                </p>
+              </div>
+            );
+          })}
 
           {/* 일정 목록 */}
           <EventList events={events} onItemClick={onItemClick} />
@@ -102,7 +130,7 @@ export default function EventDaySheet({
               className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-haru-cycle py-3 text-sm font-medium text-haru-muted active:bg-haru-cycle-soft"
             >
               <span className="h-2 w-2 rounded-full bg-haru-cycle" />
-              내 주기 기록
+              생리 기록
             </button>
           )}
         </div>

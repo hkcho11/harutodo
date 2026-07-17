@@ -467,14 +467,14 @@ export default function MyPage() {
         {/* 내 주기 */}
         <div className="mt-4 border-t border-haru-border pt-4">
           <ToggleRow
-            label="내 주기 기록"
-            description="캘린더에서 개인 주기를 기록할 수 있어요"
+            label="생리 주기 기록"
+            description="캘린더에서 예정일과 배란예상일을 확인할 수 있어요"
             checked={me?.cycle_enabled ?? false}
             onChange={(v) => void handleCycleToggle(v)}
           />
           {me?.cycle_enabled && (
             <p className="mt-3 rounded-xl bg-haru-surface-soft px-3 py-2 text-xs leading-relaxed text-haru-muted">
-              기록은 나만 볼 수 있어요. 파트너 공유는 주기 기록 시 직접 설정할 수 있어요.
+              시작일과 종료일만 기록해요. 기록은 파트너 캘린더에도 기간 중심으로 표시됩니다.
             </p>
           )}
         </div>
