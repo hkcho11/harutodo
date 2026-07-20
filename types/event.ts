@@ -17,6 +17,11 @@ export interface EventFormValues {
   location_provider: string | null;
   location_provider_id: string | null;
   location_url: string | null;
+  recurrence?: {
+    frequency: "weekly";
+    until_date: string;
+    weekdays: number[];
+  } | null;
 }
 
 // 장소 검색 결과 선택 항목

@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Trash2, CalendarDays, Clock } from "lucide-react";
+import { Trash2, CalendarDays, Clock, Repeat } from "lucide-react";
 import BottomSheet from "@/components/common/BottomSheet";
+import CalendarPickerSheet from "@/components/common/CalendarPickerSheet";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DatePickerSheet from "@/components/common/DatePickerSheet";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
@@ -62,6 +63,26 @@ interface Props {
 type Participant = "together" | "me" | "partner";
 type TimePicking = "start" | "end" | null;
 
+const WEEKDAY_OPTIONS = [
+  { value: 0, label: "일" },
+  { value: 1, label: "월" },
+  { value: 2, label: "화" },
+  { value: 3, label: "수" },
+  { value: 4, label: "목" },
+  { value: 5, label: "금" },
+  { value: 6, label: "토" },
+];
+
+function addWeeks(iso: string, weeks: number): string {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + weeks * 7);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function weekdayOf(iso: string): number {
+  return new Date(`${iso}T00:00:00`).getDay();
+}
+
 function addOneHour(time: string): string {
   const [h, m] = time.split(":").map(Number);
   const totalMinutes = Math.min(h * 60 + m + 60, 23 * 60 + 30);
@@ -96,6 +117,10 @@ export default function EventSheet({
   const [endDatePickerOpen, setEndDatePickerOpen] = useState(false);
   const [timePicking, setTimePicking] = useState<TimePicking>(null);
   const [location, setLocation] = useState<SelectedLocation | null>(null);
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
+  const [repeatUntilDate, setRepeatUntilDate] = useState(addWeeks(defaultDate, 4));
+  const [repeatUntilPickerOpen, setRepeatUntilPickerOpen] = useState(false);
+  const [repeatWeekdays, setRepeatWeekdays] = useState<number[]>(() => [weekdayOf(defaultDate)]);
 
   const {
     register,
@@ -157,6 +182,9 @@ export default function EventSheet({
             }
           : null
       );
+      setRepeatWeekly(false);
+      setRepeatUntilDate(addWeeks(event.date, 4));
+      setRepeatWeekdays([weekdayOf(event.date)]);
     } else {
       const st = nearestFutureTime();
       const et = addOneHour(st);
@@ -169,8 +197,18 @@ export default function EventSheet({
         assignee_id: null,
       });
       setLocation(null);
+      setRepeatWeekly(false);
+      setRepeatUntilDate(addWeeks(defaultDate, 4));
+      setRepeatWeekdays([weekdayOf(defaultDate)]);
     }
   }, [open, event, defaultDate, reset]);
+
+  useEffect(() => {
+    if (!open || event || repeatWeekly) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRepeatUntilDate(addWeeks(date, 4));
+    setRepeatWeekdays([weekdayOf(date)]);
+  }, [date, event, open, repeatWeekly]);
 
   const setParticipant = (p: Participant) => {
     if (p === "together") setValue("assignee_id", null, { shouldValidate: true });
@@ -195,6 +233,10 @@ export default function EventSheet({
       location_provider: location?.provider ?? null,
       location_provider_id: location?.providerId ?? null,
       location_url: location?.url ?? null,
+      recurrence:
+        !event && !multiDay && repeatWeekly
+          ? { frequency: "weekly", until_date: repeatUntilDate, weekdays: repeatWeekdays }
+          : null,
     };
     try {
       await onSubmit(payload);
@@ -389,6 +431,104 @@ export default function EventSheet({
             )}
           </div>}
 
+          {!event && !isMultiDay && (
+            <div className="rounded-2xl border border-haru-border bg-haru-surface-soft p-4">
+              <button
+                type="button"
+                onClick={() => setRepeatWeekly((v) => !v)}
+                className="flex w-full items-center gap-3 text-left"
+                aria-pressed={repeatWeekly}
+              >
+                <span
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                    repeatWeekly ? "bg-haru-primary text-haru-text" : "bg-haru-surface text-haru-muted"
+                  )}
+                >
+                  <Repeat className="h-4 w-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-haru-text">
+                    매주 반복
+                  </span>
+                  <span className="mt-0.5 block text-xs text-haru-muted">
+                    선택한 요일과 시간으로 여러 일정을 한 번에 만들어요
+                  </span>
+                </span>
+                <span
+                  className={cn(
+                    "h-5 w-9 rounded-full p-0.5 transition-colors",
+                    repeatWeekly ? "bg-haru-primary" : "bg-haru-border"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "block h-4 w-4 rounded-full bg-haru-surface transition-transform",
+                      repeatWeekly && "translate-x-4"
+                    )}
+                  />
+                </span>
+              </button>
+
+              {repeatWeekly && (
+                <div className="mt-4 border-t border-haru-border pt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-haru-text">반복 기간</p>
+                      <p className="mt-0.5 text-xs text-haru-muted">
+                        선택한 기간 안의 요일마다 등록
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setRepeatUntilPickerOpen(true)}
+                      className="min-h-[40px] rounded-xl border border-haru-border bg-haru-surface px-3 text-sm font-semibold text-haru-text active:bg-haru-primary-soft"
+                    >
+                      {formatDateShort(repeatUntilDate)}까지
+                    </button>
+                  </div>
+
+                  <div className="mt-4">
+                    <p className="mb-2 text-sm font-medium text-haru-text">반복 요일</p>
+                    <div className="grid grid-cols-7 gap-1.5">
+                      {WEEKDAY_OPTIONS.map((weekday) => {
+                        const selected = repeatWeekdays.includes(weekday.value);
+                        return (
+                          <button
+                            key={weekday.value}
+                            type="button"
+                            onClick={() =>
+                              setRepeatWeekdays((prev) =>
+                                selected
+                                  ? prev.length === 1
+                                    ? prev
+                                    : prev.filter((v) => v !== weekday.value)
+                                  : [...prev, weekday.value].sort((a, b) => a - b)
+                              )
+                            }
+                            aria-pressed={selected}
+                            className={cn(
+                              "flex h-10 items-center justify-center rounded-xl border text-sm font-semibold transition-colors",
+                              selected
+                                ? "border-haru-primary bg-haru-primary text-haru-text"
+                                : "border-haru-border bg-haru-surface text-haru-muted active:bg-haru-primary-soft"
+                            )}
+                          >
+                            {weekday.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <p className="mt-3 rounded-xl bg-haru-surface px-3 py-2 text-xs leading-relaxed text-haru-muted">
+                    예: 기간을 5주 뒤까지, 요일을 화·수로 선택하면 해당 기간의 매주 화요일과 수요일 같은 시간에 등록돼요.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 참여 */}
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-haru-text">참여</span>
@@ -481,6 +621,14 @@ export default function EventSheet({
         title={timePicking === "start" ? "시작 시간" : "종료 시간"}
         onConfirm={handleTimeConfirm}
         onClose={() => setTimePicking(null)}
+      />
+
+      <CalendarPickerSheet
+        open={repeatUntilPickerOpen}
+        selectedDate={repeatUntilDate}
+        onSelect={setRepeatUntilDate}
+        onClose={() => setRepeatUntilPickerOpen(false)}
+        minDate={date}
       />
 
       <ConfirmDialog

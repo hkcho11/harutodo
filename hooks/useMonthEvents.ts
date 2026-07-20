@@ -4,13 +4,17 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import { monthRangeISO, gridFirstISO, gridLastISO } from "@/lib/utils/calendar";
+import { addDays } from "@/lib/utils/date";
 import {
   subscribeCoupleTable,
   unsubscribeCouple,
 } from "@/lib/services/realtimeService";
 import { notifyPartner } from "@/lib/services/pushService";
 import { syncEventToNaver } from "@/lib/services/naverCalendarService";
+import type { Database } from "@/types/supabase";
 import type { Event, EventFormValues } from "@/types/event";
+
+type EventInsert = Database["public"]["Tables"]["events"]["Insert"];
 
 // end_date 컬럼 미존재 감지:
 // - 42703: PostgreSQL undefined_column (DB 직접 접근 시)
@@ -27,6 +31,33 @@ function sortEvents(events: Event[]): Event[] {
     if (b.start_time === null) return 1;
     return a.start_time < b.start_time ? -1 : 1;
   });
+}
+
+function expandWeeklyEvents(input: EventFormValues): EventFormValues[] {
+  if (input.recurrence?.frequency !== "weekly") {
+    return [{ ...input, recurrence: null }];
+  }
+
+  const selectedWeekdays = new Set(input.recurrence.weekdays);
+  const untilDate = input.recurrence.until_date < input.date
+    ? input.date
+    : input.recurrence.until_date;
+  const result: EventFormValues[] = [];
+  let cur = input.date;
+  while (cur <= untilDate && result.length < 366) {
+    const weekday = new Date(`${cur}T00:00:00`).getDay();
+    if (selectedWeekdays.has(weekday)) {
+      result.push({
+        ...input,
+        date: cur,
+        end_date: null,
+        recurrence: null,
+      });
+    }
+    cur = addDays(cur, 1);
+  }
+
+  return result.length > 0 ? result : [{ ...input, recurrence: null }];
 }
 
 export function useMonthEvents(year: number, month: number) {
@@ -140,93 +171,114 @@ export function useMonthEvents(year: number, month: number) {
   const add = useCallback(
     async (input: EventFormValues) => {
       if (!coupleId || !me) throw new Error("no_couple");
-      const endForRange = input.end_date ?? input.date;
-      const overlaps = input.date <= last && endForRange >= first;
-      const tempId = `temp-${Date.now()}`;
+      const inputs = expandWeeklyEvents(input);
       const now = new Date().toISOString();
-      const optimistic: Event = {
-        id: tempId,
-        couple_id: coupleId,
-        created_by: me.id,
-        assignee_id: input.assignee_id,
-        title: input.title,
-        date: input.date,
-        end_date: input.end_date ?? null,
-        start_time: input.start_time,
-        end_time: input.end_time,
-        location_name: input.location_name ?? null,
-        location_address: input.location_address ?? null,
-        location_latitude: input.location_latitude ?? null,
-        location_longitude: input.location_longitude ?? null,
-        location_provider: input.location_provider ?? null,
-        location_provider_id: input.location_provider_id ?? null,
-        location_url: input.location_url ?? null,
-        created_at: now,
-        updated_at: now,
-      };
-      if (overlaps) setEvents((prev) => [...prev, optimistic]);
+      const optimisticEvents: Event[] = inputs
+        .filter((item) => {
+          const endForRange = item.end_date ?? item.date;
+          return item.date <= last && endForRange >= first;
+        })
+        .map((item, idx) => ({
+          id: `temp-${Date.now()}-${idx}`,
+          couple_id: coupleId,
+          created_by: me.id,
+          assignee_id: item.assignee_id,
+          title: item.title,
+          date: item.date,
+          end_date: item.end_date ?? null,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          location_name: item.location_name ?? null,
+          location_address: item.location_address ?? null,
+          location_latitude: item.location_latitude ?? null,
+          location_longitude: item.location_longitude ?? null,
+          location_provider: item.location_provider ?? null,
+          location_provider_id: item.location_provider_id ?? null,
+          location_url: item.location_url ?? null,
+          created_at: now,
+          updated_at: now,
+        }));
+      if (optimisticEvents.length > 0) {
+        setEvents((prev) => sortEvents([...prev, ...optimisticEvents]));
+      }
 
       // location 컬럼은 마이그레이션 적용 전 환경을 위해 값이 있을 때만 포함
-      const insertPayload = {
+      const toInsertPayload = (item: EventFormValues): EventInsert => ({
         couple_id: coupleId,
         created_by: me.id,
-        assignee_id: input.assignee_id,
-        title: input.title,
-        date: input.date,
-        end_date: input.end_date ?? null,
-        start_time: input.start_time,
-        end_time: input.end_time,
-        ...(input.location_name != null && {
-          location_name: input.location_name,
-          location_address: input.location_address ?? null,
-          location_latitude: input.location_latitude ?? null,
-          location_longitude: input.location_longitude ?? null,
-          location_provider: input.location_provider ?? null,
-          location_provider_id: input.location_provider_id ?? null,
-          location_url: input.location_url ?? null,
+        assignee_id: item.assignee_id,
+        title: item.title,
+        date: item.date,
+        end_date: item.end_date ?? null,
+        start_time: item.start_time,
+        end_time: item.end_time,
+        ...(item.location_name != null && {
+          location_name: item.location_name,
+          location_address: item.location_address ?? null,
+          location_latitude: item.location_latitude ?? null,
+          location_longitude: item.location_longitude ?? null,
+          location_provider: item.location_provider ?? null,
+          location_provider_id: item.location_provider_id ?? null,
+          location_url: item.location_url ?? null,
         }),
-      };
+      });
+
+      const insertPayloads: EventInsert[] = inputs.map(toInsertPayload);
 
       let { data, error } = await supabase
         .from("events")
-        .insert(insertPayload)
-        .select()
-        .single();
+        .insert(insertPayloads)
+        .select();
 
       // end_date 컬럼 미존재 시 해당 필드 제거 후 재시도
       if (isEndDateMissing(error)) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { end_date: _, ...payloadWithoutEndDate } = insertPayload;
+        const payloadsWithoutEndDate: EventInsert[] = insertPayloads.map((payload) => {
+          const copy: EventInsert = { ...payload };
+          delete copy.end_date;
+          return copy;
+        });
         ({ data, error } = await supabase
           .from("events")
-          .insert(payloadWithoutEndDate)
-          .select()
-          .single());
+          .insert(payloadsWithoutEndDate)
+          .select());
       }
 
       // location 컬럼 미존재 시 (마이그레이션 미적용) 해당 필드 제거 후 재시도
-      if ((error?.code === "PGRST204" || error?.code === "42703") && "location_name" in insertPayload) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { location_name: _ln, location_address: _la, location_latitude: _lat,
-                location_longitude: _lng, location_provider: _lp, location_provider_id: _lpi,
-                location_url: _lu, ...payloadWithoutLocation } = insertPayload;
+      if ((error?.code === "PGRST204" || error?.code === "42703") && insertPayloads.some((payload) => "location_name" in payload)) {
+        const payloadsWithoutLocation: EventInsert[] = insertPayloads.map((payload) => {
+          const copy: EventInsert = { ...payload };
+          delete copy.location_name;
+          delete copy.location_address;
+          delete copy.location_latitude;
+          delete copy.location_longitude;
+          delete copy.location_provider;
+          delete copy.location_provider_id;
+          delete copy.location_url;
+          return copy;
+        });
         ({ data, error } = await supabase
           .from("events")
-          .insert(payloadWithoutLocation)
-          .select()
-          .single());
+          .insert(payloadsWithoutLocation)
+          .select());
       }
 
       if (error || !data) {
         await refetch();
         throw error ?? new Error("insert_failed");
       }
-      if (overlaps) {
+      if (optimisticEvents.length > 0) {
+        const tempIds = new Set(optimisticEvents.map((event) => event.id));
         setEvents((prev) => {
-          const withoutTemp = prev.filter((e) => e.id !== tempId);
-          const next = withoutTemp.some((e) => e.id === data!.id)
-            ? withoutTemp
-            : [...withoutTemp, data!];
+          const withoutTemp = prev.filter((e) => !tempIds.has(e.id));
+          const visibleInserted = data!.filter((event) => {
+            const endForRange = event.end_date ?? event.date;
+            return event.date <= last && endForRange >= first;
+          });
+          const existingIds = new Set(withoutTemp.map((event) => event.id));
+          const next = [
+            ...withoutTemp,
+            ...visibleInserted.filter((event) => !existingIds.has(event.id)),
+          ];
           return sortEvents(next);
         });
       }
@@ -236,20 +288,22 @@ export function useMonthEvents(year: number, month: number) {
           actorName: me.display_name,
           action: "add",
           entityType: "event",
-          entityTitle: input.title,
+          entityTitle: inputs.length > 1 ? `${input.title} 외 ${inputs.length - 1}개` : input.title,
           entityDate: input.date,
           entityTime: input.start_time ?? undefined,
         }).catch((e) => console.error("[notify]", e));
       }
       // 네이버 캘린더 동기화 (fire-and-forget — 실패해도 UI 영향 없음)
-      syncEventToNaver({
-        title: input.title,
-        startDate: input.date,
-        endDate: input.end_date ?? input.date,
-        startTime: input.start_time ?? undefined,
-        endTime: input.end_time ?? undefined,
-        location: input.location_name ?? undefined,
-      }).catch(() => {/* not_connected 포함 모든 오류 무시 */});
+      for (const item of inputs) {
+        syncEventToNaver({
+          title: item.title,
+          startDate: item.date,
+          endDate: item.end_date ?? item.date,
+          startTime: item.start_time ?? undefined,
+          endTime: item.end_time ?? undefined,
+          location: item.location_name ?? undefined,
+        }).catch(() => {/* not_connected 포함 모든 오류 무시 */});
+      }
     },
     [coupleId, me, partner, supabase, first, last, refetch]
   );
@@ -262,11 +316,13 @@ export function useMonthEvents(year: number, month: number) {
       );
 
       // location 컬럼은 마이그레이션 적용 전 환경을 위해 값이 있을 때만 포함
+      const { recurrence, ...inputWithoutRecurrence } = input;
+      void recurrence;
       const {
         location_name, location_address, location_latitude, location_longitude,
         location_provider, location_provider_id, location_url,
         ...baseInput
-      } = input;
+      } = inputWithoutRecurrence;
       const updatePayload = {
         ...baseInput,
         ...(location_name != null && {
