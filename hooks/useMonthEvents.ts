@@ -10,7 +10,6 @@ import {
   unsubscribeCouple,
 } from "@/lib/services/realtimeService";
 import { notifyPartner } from "@/lib/services/pushService";
-import { syncEventToNaver } from "@/lib/services/naverCalendarService";
 import type { Database } from "@/types/supabase";
 import type { Event, EventFormValues } from "@/types/event";
 
@@ -292,17 +291,6 @@ export function useMonthEvents(year: number, month: number) {
           entityDate: input.date,
           entityTime: input.start_time ?? undefined,
         }).catch((e) => console.error("[notify]", e));
-      }
-      // 네이버 캘린더 동기화 (fire-and-forget — 실패해도 UI 영향 없음)
-      for (const item of inputs) {
-        syncEventToNaver({
-          title: item.title,
-          startDate: item.date,
-          endDate: item.end_date ?? item.date,
-          startTime: item.start_time ?? undefined,
-          endTime: item.end_time ?? undefined,
-          location: item.location_name ?? undefined,
-        }).catch(() => {/* not_connected 포함 모든 오류 무시 */});
       }
     },
     [coupleId, me, partner, supabase, first, last, refetch]

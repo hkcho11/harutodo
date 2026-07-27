@@ -1,17 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Link2Off, Download } from "lucide-react";
+import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Download } from "lucide-react";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
 import OptionSheet from "@/components/common/OptionSheet";
 import AvatarColorSheet from "@/components/mypage/AvatarColorSheet";
 import { signOut } from "@/lib/services/authService";
-import {
-  getNaverCalendarStatus,
-  connectNaverCalendar,
-  disconnectNaverCalendar,
-} from "@/lib/services/naverCalendarService";
 import { updateProfile } from "@/lib/services/profileService";
 import { disconnectCouple } from "@/lib/services/coupleService";
 import { getAvatarColor, AVATAR_COLOR_CLASSES, type AvatarColor } from "@/lib/utils/avatarColor";
@@ -225,10 +220,6 @@ export default function MyPage() {
   const [timePickerTarget, setTimePickerTarget] = useState<"morning" | "evening" | null>(null);
   const [leadMinPickerOpen, setLeadMinPickerOpen] = useState(false);
 
-  // 네이버 캘린더 연동 상태
-  const [naverConnected, setNaverConnected] = useState<boolean | null>(null);
-  const [naverLoading, setNaverLoading] = useState(false);
-
   // 위젯 스크립트 프리패치 — 버튼 클릭 시 await 없이 즉시 복사해 유저 제스처 유실 방지
   const [widgetScript, setWidgetScript] = useState<string | null>(null);
   useEffect(() => {
@@ -274,56 +265,6 @@ export default function MyPage() {
       window.location.href = "scriptable:///";
     } catch {
       showToast("복사에 실패했어요. 다시 시도해주세요");
-    }
-  };
-
-  const loadNaverStatus = useCallback(async () => {
-    const connected = await getNaverCalendarStatus();
-    setNaverConnected(connected);
-  }, []);
-
-  // OAuth 콜백 결과 처리 — URL param → localStorage → 토스트
-  // localStorage 경유로 저장해두면 PWA가 재실행된 뒤 마이페이지 재진입 시에도 토스트가 표시됨
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlResult = params.get("naver_calendar");
-    if (urlResult) {
-      localStorage.setItem("naverCalendarResult", urlResult);
-      const url = new URL(window.location.href);
-      url.searchParams.delete("naver_calendar");
-      window.history.replaceState({}, "", url.toString());
-    }
-    const pending = localStorage.getItem("naverCalendarResult");
-    if (pending) {
-      localStorage.removeItem("naverCalendarResult");
-      if (pending === "connected") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setNaverConnected(true);
-        showToast("네이버 캘린더가 연결됐어요");
-      } else if (pending === "error") {
-        showToast("네이버 캘린더 연결에 실패했어요");
-      }
-    } else {
-      void loadNaverStatus();
-    }
-  // 마운트 1회만 실행 (showToast·loadNaverStatus는 안정된 레퍼런스)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleNaverConnect = () => {
-    connectNaverCalendar();
-  };
-
-  const handleNaverDisconnect = async () => {
-    setNaverLoading(true);
-    try {
-      await disconnectNaverCalendar();
-      setNaverConnected(false);
-      showToast("네이버 캘린더 연결이 해제됐어요");
-    } catch {
-      showToast("연결 해제에 실패했어요. 다시 시도해주세요");
-    } finally {
-      setNaverLoading(false);
     }
   };
 
@@ -733,38 +674,6 @@ export default function MyPage() {
           <h2 className="text-sm font-semibold text-haru-text">연동</h2>
         </div>
         <div className="divide-y divide-haru-border">
-          {/* 네이버 캘린더 */}
-          <div className="px-5 py-4">
-            <p className="mb-3 text-xs font-semibold text-haru-muted">네이버 캘린더</p>
-            {naverConnected === null ? (
-              <p className="text-sm text-haru-muted">불러오는 중...</p>
-            ) : naverConnected ? (
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs text-haru-muted">일정 추가 시 네이버 캘린더에 자동 등록돼요</p>
-                <button
-                  type="button"
-                  onClick={() => void handleNaverDisconnect()}
-                  disabled={naverLoading}
-                  className="flex shrink-0 items-center gap-1.5 rounded-xl border border-haru-border px-3 py-2 text-xs font-medium text-haru-muted active:bg-haru-primary-soft disabled:opacity-40"
-                >
-                  <Link2Off className="h-3.5 w-3.5" />
-                  연결 해제
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs text-haru-muted">연결하면 하루투두 일정이 자동으로 등록돼요</p>
-                <button
-                  type="button"
-                  onClick={handleNaverConnect}
-                  className="flex shrink-0 items-center gap-1.5 rounded-xl bg-haru-primary px-3 py-2 text-xs font-semibold text-haru-text active:bg-haru-primary-active"
-                >
-                  <Link2 className="h-3.5 w-3.5" />
-                  연결하기
-                </button>
-              </div>
-            )}
-          </div>
           {/* 홈 화면 위젯 */}
           <div className="px-5 py-4">
             <p className="mb-2 text-xs font-semibold text-haru-muted">홈 화면 위젯</p>
