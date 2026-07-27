@@ -6,6 +6,7 @@ import process from "node:process";
 const ROOT = process.cwd();
 const TEMP = path.join(ROOT, ".tmp-portfolio");
 const CHROME =
+  process.env.PORTFOLIO_BROWSER_PATH ??
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const PAGE_URL =
   "file:///C:/_HK/workspace/harutodo/docs/portfolio/site/index.html";
