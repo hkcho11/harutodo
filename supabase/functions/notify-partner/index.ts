@@ -16,7 +16,7 @@ webpush.setVapidDetails(
 interface NotifyPayload {
   partner_id: string;
   actor_name: string;
-  action: "add" | "update" | "delete";
+  action: "add" | "update" | "complete" | "delete";
   entity_type: "todo" | "event";
   entity_title?: string;
   entity_date?: string;
@@ -26,6 +26,7 @@ interface NotifyPayload {
 const ACTION_LABEL: Record<string, string> = {
   add: "등록했어요",
   update: "수정했어요",
+  complete: "완료했어요",
   delete: "삭제했어요",
 };
 

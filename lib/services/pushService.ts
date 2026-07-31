@@ -58,7 +58,7 @@ export async function unsubscribePush(userId: string): Promise<void> {
   }
 }
 
-export type NotifyAction = "add" | "update" | "delete";
+export type NotifyAction = "add" | "update" | "complete" | "delete";
 export type NotifyEntityType = "todo" | "event";
 
 export async function notifyPartner(params: {

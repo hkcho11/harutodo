@@ -165,6 +165,7 @@ export function useDateTodos(date: string) {
       input: Partial<TodoFormValues> & { is_completed?: boolean }
     ) => {
       if (!coupleId) throw new Error("no_couple");
+      const currentTodo = todos.find((todo) => todo.id === id);
       setTodos((cur) =>
         cur.map((t) => (t.id === id ? { ...t, ...input } : t))
       );
@@ -180,7 +181,16 @@ export function useDateTodos(date: string) {
       if (input.date && input.date !== date) {
         setTodos((cur) => cur.filter((t) => t.id !== id));
       }
-      if (partner && me && input.is_completed === undefined) {
+      if (partner && me && input.is_completed === true) {
+        notifyPartner({
+          partnerId: partner.id,
+          actorName: me.display_name,
+          action: "complete",
+          entityType: "todo",
+          entityTitle: currentTodo?.title,
+          entityDate: currentTodo?.date ?? date,
+        }).catch((e) => console.error("[notify]", e));
+      } else if (partner && me && input.is_completed === undefined) {
         notifyPartner({
           partnerId: partner.id,
           actorName: me.display_name,
@@ -191,7 +201,7 @@ export function useDateTodos(date: string) {
         }).catch((e) => console.error("[notify]", e));
       }
     },
-    [coupleId, me, partner, supabase, date, refetch]
+    [coupleId, me, partner, supabase, date, refetch, todos]
   );
 
   const toggle = useCallback(
