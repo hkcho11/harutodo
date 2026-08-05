@@ -16,6 +16,8 @@ import { todayISO, addDays, formatDateNavLabel } from "@/lib/utils/date";
 import CalendarPickerSheet from "@/components/common/CalendarPickerSheet";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import PushBanner from "@/components/common/PushBanner";
+import { useAppRefresh } from "@/components/layout/PullToRefresh";
+import { getHorizontalSwipeDirection } from "@/lib/utils/swipeGesture";
 import type { Todo } from "@/types/todo";
 
 export default function HomePage() {
@@ -56,7 +58,7 @@ export default function HomePage() {
 
   const { todos, loading, add, update, toggle, remove, refetch } =
     useDateTodos(selectedDate);
-  const { groups: customGroups } = useCustomGroups();
+  const { groups: customGroups, refetch: groupsRefetch } = useCustomGroups();
   const {
     todos: pastTodos,
     count: pastCount,
@@ -70,6 +72,11 @@ export default function HomePage() {
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pastSheetOpen, setPastSheetOpen] = useState(false);
+
+  const refreshPage = useCallback(async () => {
+    await Promise.all([refetch(), groupsRefetch(), pastRefetch()]);
+  }, [groupsRefetch, pastRefetch, refetch]);
+  useAppRefresh(refreshPage);
 
   const isToday = selectedDate === todayStr;
 
@@ -153,17 +160,25 @@ export default function HomePage() {
   const completedCount = todos.filter((t) => t.is_completed).length;
   const allDone = todos.length > 0 && completedCount === todos.length;
 
-  const swipeStartX = useRef<number | null>(null);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const handleTouchStart = (e: React.TouchEvent) => {
-    swipeStartX.current = e.touches[0].clientX;
+    swipeStart.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
   };
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (swipeStartX.current === null) return;
-    const dx = e.changedTouches[0].clientX - swipeStartX.current;
-    swipeStartX.current = null;
-    if (Math.abs(dx) < 50) return;
-    if (dx < 0) goNext();
-    else goPrev();
+    if (swipeStart.current === null) return;
+    const dx = e.changedTouches[0].clientX - swipeStart.current.x;
+    const dy = e.changedTouches[0].clientY - swipeStart.current.y;
+    swipeStart.current = null;
+    const direction = getHorizontalSwipeDirection({
+      deltaX: dx,
+      deltaY: dy,
+    });
+
+    if (direction === "left") goNext();
+    if (direction === "right") goPrev();
   };
 
   if (loading) return <LoadingScreen />;

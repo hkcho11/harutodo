@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Download } from "lucide-react";
 import TimePickerSheet from "@/components/ui/TimePickerSheet";
@@ -22,6 +22,7 @@ import { useCoupleStore } from "@/store/useCoupleStore";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import LoadingScreen from "@/components/common/LoadingScreen";
 import { cn } from "@/lib/utils/cn";
+import { useAppRefresh } from "@/components/layout/PullToRefresh";
 import type { CustomGroup } from "@/types/todo";
 
 function ToggleRow({
@@ -214,8 +215,14 @@ export default function MyPage() {
     settings: notifSettings,
     loading: notifLoading,
     updating: notifUpdating,
+    refetch: notifRefetch,
     update: notifUpdate,
   } = useNotificationSettings(me?.id);
+
+  const refreshPage = useCallback(async () => {
+    await Promise.all([refetch(), notifRefetch()]);
+  }, [notifRefetch, refetch]);
+  useAppRefresh(refreshPage);
 
   const [timePickerTarget, setTimePickerTarget] = useState<"morning" | "evening" | null>(null);
   const [leadMinPickerOpen, setLeadMinPickerOpen] = useState(false);

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import BottomTabBar from "@/components/layout/BottomTabBar";
+import PullToRefresh from "@/components/layout/PullToRefresh";
 import CoupleProvider from "@/components/providers/CoupleProvider";
 import ProfileErrorScreen from "@/components/common/ProfileErrorScreen";
 import ToastContainer from "@/components/common/ToastContainer";
@@ -57,9 +58,9 @@ export default async function MainLayout({
   return (
     <CoupleProvider coupleId={couple.id} me={myProfile} partner={partnerProfile}>
       <div className="flex flex-col min-h-dvh">
-        <main className="flex-1 overflow-y-auto pb-[calc(56px+env(safe-area-inset-bottom,0px))]">
+        <PullToRefresh>
           {children}
-        </main>
+        </PullToRefresh>
         <BottomTabBar />
         <ToastContainer />
       </div>

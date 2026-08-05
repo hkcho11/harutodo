@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { useMonthEvents } from "@/hooks/useMonthEvents";
 import { usePersonalCycles } from "@/hooks/usePersonalCycles";
@@ -18,6 +18,7 @@ import EventList from "@/components/calendar/EventList";
 import EventSheet from "@/components/calendar/EventSheet";
 import type { Event, EventFormValues } from "@/types/event";
 import type { PersonalCycle, CycleFormValues } from "@/types/cycle";
+import { useAppRefresh } from "@/components/layout/PullToRefresh";
 
 function parsePushDate(fallbackYear: number, fallbackMonth: number) {
   if (typeof window === "undefined") return { date: null, year: fallbackYear, month: fallbackMonth };
@@ -41,16 +42,33 @@ export default function CalendarPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
-  const { events, eventsByDate, loading, add, update, remove } = useMonthEvents(
-    viewYear,
-    viewMonth
-  );
+  const {
+    events,
+    eventsByDate,
+    loading,
+    refetch: eventsRefetch,
+    add,
+    update,
+    remove,
+  } = useMonthEvents(viewYear, viewMonth);
   const me = useCoupleStore((s) => s.me);
   const partner = useCoupleStore((s) => s.partner);
   const showToast = useToastStore((s) => s.show);
 
-  const { cycleRanges, cyclePredictions, getCycleForDate, addCycle, updateCycle, deleteCycle } =
-    usePersonalCycles(viewYear, viewMonth);
+  const {
+    cycleRanges,
+    cyclePredictions,
+    refetch: cyclesRefetch,
+    getCycleForDate,
+    addCycle,
+    updateCycle,
+    deleteCycle,
+  } = usePersonalCycles(viewYear, viewMonth);
+
+  const refreshPage = useCallback(async () => {
+    await Promise.all([eventsRefetch(), cyclesRefetch()]);
+  }, [cyclesRefetch, eventsRefetch]);
+  useAppRefresh(refreshPage);
 
   const [cycleSheetOpen, setCycleSheetOpen] = useState(false);
   const [editingCycle, setEditingCycle] = useState<PersonalCycle | null>(null);
