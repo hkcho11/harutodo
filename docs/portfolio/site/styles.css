@@ -133,10 +133,10 @@ h2 { margin-bottom: 0; font-size: clamp(36px, 4.5vw, 58px); line-height: 1.15; l
 .origin-story .eyebrow { margin: 0; color: var(--text); }
 .origin-story blockquote { margin: 0; padding: 0; border: 0; font-size: 19px; }
 .origin-story > p:last-child { margin: 0; color: rgba(51,64,51,.75); font-size: 13px; }
-.problem-grid article { min-height: 260px; padding: 30px; border: 1px solid var(--border); border-radius: 28px; background: rgba(255,255,255,.76); }
-.problem-grid b { display: block; margin-bottom: 70px; color: var(--primary-dark); font-size: 12px; }
-.problem-grid h3 { margin-bottom: 12px; font-size: 20px; letter-spacing: -.03em; }
-.problem-grid p { margin-bottom: 0; color: var(--muted); font-size: 14px; }
+.problem-grid article { display: grid; grid-template-columns: auto minmax(0, 1fr); align-content: start; align-items: baseline; gap: 18px; padding: 30px; border: 1px solid var(--border); border-radius: 28px; background: rgba(255,255,255,.76); }
+.problem-grid b { color: var(--primary-dark); font-size: 12px; }
+.problem-grid h3 { margin-bottom: 0; font-size: 20px; letter-spacing: -.03em; }
+.problem-grid p { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 14px; }
 
 .ai-process { max-width: none; padding-left: max(24px, calc((100vw - var(--max)) / 2)); padding-right: max(24px, calc((100vw - var(--max)) / 2)); background: #f1f6e9; }
 .ai-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
@@ -380,8 +380,6 @@ footer p { margin: 0; }
   .origin-story { grid-template-columns: 1fr; gap: 14px; }
   .feedback-quote { grid-template-columns: 1fr; gap: 14px; }
   .feedback-grid, .security-review { grid-template-columns: 1fr; }
-  .problem-grid article { min-height: auto; }
-  .problem-grid b { margin-bottom: 35px; }
   .system-map { grid-template-columns: 1fr; }
   .map-arrow { transform: rotate(90deg); }
   .case-flow { grid-template-columns: 1fr; }
