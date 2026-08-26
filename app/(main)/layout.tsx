@@ -57,7 +57,7 @@ export default async function MainLayout({
 
   return (
     <CoupleProvider coupleId={couple.id} me={myProfile} partner={partnerProfile}>
-      <div className="flex flex-col min-h-dvh">
+      <div className="flex h-dvh flex-col overflow-hidden">
         <PullToRefresh>
           {children}
         </PullToRefresh>

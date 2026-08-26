@@ -13,6 +13,22 @@ export function calculatePullDistance(args: {
   return Math.min(MAX_PULL_DISTANCE, args.deltaY * PULL_RESISTANCE);
 }
 
+export function calculatePullDistanceFromTop(args: {
+  startScrollTop: number;
+  currentScrollTop: number;
+  deltaX: number;
+  deltaY: number;
+}): number | null {
+  if (args.startScrollTop > 0 || args.currentScrollTop > 0) {
+    return null;
+  }
+
+  return calculatePullDistance({
+    deltaX: args.deltaX,
+    deltaY: args.deltaY,
+  });
+}
+
 export function shouldTriggerRefresh(distance: number): boolean {
   return distance >= REFRESH_THRESHOLD;
 }

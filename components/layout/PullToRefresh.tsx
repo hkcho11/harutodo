@@ -13,7 +13,7 @@ import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import {
   REFRESH_THRESHOLD,
-  calculatePullDistance,
+  calculatePullDistanceFromTop,
   shouldTriggerRefresh,
 } from "@/lib/utils/pullToRefresh";
 
@@ -47,6 +47,7 @@ export default function PullToRefresh({
   const scrollRef = useRef<HTMLElement>(null);
   const handlersRef = useRef(new Set<RefreshHandler>());
   const startRef = useRef({ x: 0, y: 0 });
+  const startScrollTopRef = useRef(0);
   const trackingRef = useRef(false);
   const distanceRef = useRef(0);
   const refreshingRef = useRef(false);
@@ -93,11 +94,17 @@ export default function PullToRefresh({
     const scrollElement = scrollRef.current;
     if (!scrollElement) return;
 
+    const getScrollTop = () =>
+      Math.max(
+        scrollElement.scrollTop,
+        document.scrollingElement?.scrollTop ?? 0
+      );
+
     const handleTouchStart = (event: TouchEvent) => {
       if (
         event.touches.length !== 1 ||
         refreshingRef.current ||
-        scrollElement.scrollTop > 0
+        getScrollTop() > 0
       ) {
         trackingRef.current = false;
         return;
@@ -105,8 +112,9 @@ export default function PullToRefresh({
 
       const touch = event.touches[0];
       startRef.current = { x: touch.clientX, y: touch.clientY };
+      startScrollTopRef.current = getScrollTop();
       trackingRef.current = true;
-      setDragging(true);
+      setDragging(false);
     };
 
     const handleTouchMove = (event: TouchEvent) => {
@@ -115,7 +123,12 @@ export default function PullToRefresh({
       const touch = event.touches[0];
       const deltaX = touch.clientX - startRef.current.x;
       const deltaY = touch.clientY - startRef.current.y;
-      const pullDistance = calculatePullDistance({ deltaX, deltaY });
+      const pullDistance = calculatePullDistanceFromTop({
+        startScrollTop: startScrollTopRef.current,
+        currentScrollTop: getScrollTop(),
+        deltaX,
+        deltaY,
+      });
 
       if (pullDistance === null) {
         trackingRef.current = false;
@@ -124,13 +137,7 @@ export default function PullToRefresh({
         return;
       }
 
-      if (scrollElement.scrollTop > 0) {
-        trackingRef.current = false;
-        setDragging(false);
-        updateDistance(0);
-        return;
-      }
-
+      setDragging(true);
       if (event.cancelable) event.preventDefault();
       updateDistance(pullDistance);
     };
