@@ -31,26 +31,26 @@
       </a>
       <nav aria-label="포트폴리오 목차">
         <a href="#problem">문제</a>
-        <a href="#ai-process">AI 협업</a>
         <a href="#product">실제 화면</a>
-        <a href="#feedback">사용자 의견</a>
-        <a href="#architecture">설계</a>
         <a href="#cases">문제 해결</a>
-        <a href="#reflection">회고</a>
+        <a href="#architecture">설계</a>
+        <a href="#ai-process">AI 협업</a>
+        <a href="#feedback">사용자 의견</a>
       </nav>
     </header>
 
     <main id="main">
       <section class="hero" id="top">
         <div class="hero-copy">
-          <p class="eyebrow">AI-ASSISTED PRODUCT DEVELOPMENT · MOBILE PWA</p>
+          <p class="eyebrow">PROJECT OVERVIEW · MOBILE PWA</p>
           <h1>
             둘의 오늘을<br />
             <span>한눈에 정리하다</span>
           </h1>
           <p class="hero-lead">
-            결혼 준비에서 발견한 문제를 AI 개발 도구와 협업해 약 2주 만에
-            실사용으로 전환한 공유 투두·캘린더 서비스입니다.
+            결혼 준비를 하며 함께 움직여야 할 일정과 각자의 일정·할 일을 한눈에
+            볼 필요가 있었습니다. 필요하지 않은 기능은 덜어내고, 저희에게 필요한
+            흐름만 담은 커플 공유 투두·캘린더를 만들었습니다.
           </p>
           <p class="role-caption">OWNER RESPONSIBILITY</p>
           <div class="role-list" aria-label="담당 역할">
@@ -82,21 +82,12 @@
         <div class="phone-wrap">
           <div class="phone-shadow"></div>
           <figure class="product-screen hero-screen">
-            <a
-              class="screenshot-link"
-              href="../assets/product-home-read.webp"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="하루투두 오늘 화면 원본 크기로 보기"
-            >
-              <img
-                src="../assets/product-home-read.webp"
-                alt="함께, 민서, 지호의 할 일이 구분된 하루투두 오늘 화면"
-                width="780"
-                height="1688"
-              />
-            </a>
-            <figcaption>개발 환경 · 포트폴리오 전용 데모 데이터</figcaption>
+            <img
+              src="../assets/product-home-read.webp"
+              alt="함께, 민서, 지호의 할 일이 구분된 하루투두 오늘 화면"
+              width="780"
+              height="1688"
+            />
           </figure>
         </div>
       </section>
@@ -104,203 +95,49 @@
       <section class="section problem" id="problem">
         <p class="section-number">01 · PROBLEM</p>
         <div class="section-heading">
-          <h2>결혼 준비의 계획은 여러 앱으로 흩어졌습니다</h2>
+          <h2>함께 움직일 일정과 각자의 할 일이 한눈에 보이지 않았습니다</h2>
           <p>
-            일정과 해야 할 일이 동시에 늘었지만 캘린더와 To-do 앱을 번갈아
-            확인해야 했습니다. 서로 연결된 계획이 분리되면서 무엇을 언제, 누가
-            해야 하는지 한눈에 파악하기 어려웠습니다.
+            결혼 준비를 하며 공동 일정, 개인 일정과 각자 맡은 할 일이 동시에
+            늘었습니다. 기존 앱은 광고와 사용하지 않는 기능까지 보여줘, 둘이
+            매일 필요한 내용만 빠르게 확인하기에는 번거로웠습니다.
           </p>
         </div>
-        <article class="origin-story">
-          <p class="eyebrow">WHY I BUILT IT</p>
-          <blockquote>
-            결혼 준비를 하며 당시 여자친구와 여러 공유 앱을 직접 써봤습니다.
-            하지만 유료이거나 필요한 기능이 부족해, 둘이 원하는 흐름을 함께
-            논의하고 직접 제품을 기획해 개발했습니다.
-          </blockquote>
-          <p>
-            2026년 6월 초 개발을 시작해 6월 중순부터 현재까지 배우자와 실제
-            일정과 할 일을 관리하는 데 사용하고 있습니다.
-          </p>
-        </article>
         <div class="problem-grid">
           <article>
             <b>01</b>
-            <h3>여러 앱을 오가는 불편</h3>
+            <h3>함께와 각자의 구분</h3>
             <p>
-              캘린더와 투두를 한 서비스 안에서 확인해 계획을 찾는 시간을
-              줄입니다.
+              공동 일정, 내 일정과 파트너의 일정·할 일을 한눈에 구분하기
+              어려웠습니다.
             </p>
           </article>
           <article>
             <b>02</b>
-            <h3>끊어진 일정과 할 일</h3>
+            <h3>공유하기 어려운 진행 상태</h3>
             <p>
-              일정과 해야할 일이 연결되지 않아, 오늘 무엇을 해야 하는지
-              한눈에 파악하기 어려웠습니다.
+              파트너와 진행 상태를 따로 공유해야 해 변경 내용을 놓치거나 같은
+              내용을 반복해서 확인했습니다.
             </p>
           </article>
           <article>
             <b>03</b>
-            <h3>공유하기 어려운 진행 상태</h3>
+            <h3>확인보다 많은 관리</h3>
             <p>
-              파트너와 진행 상태를 따로 공유해야 해 변경 내용을 놓치거나
-              같은 내용을 반복해서 확인했습니다.
+              광고와 복잡한 설정 때문에 우리에게 필요한 정보만 빠르게 확인하기
+              어려웠습니다.
             </p>
-          </article>
-        </div>
-      </section>
-
-      <section class="section ai-process" id="ai-process">
-        <p class="section-number">02 · AI COLLABORATION SYSTEM</p>
-        <div class="section-heading">
-          <h2>AI의 구현 속도를 제품 완성도로 연결했습니다</h2>
-          <p>
-            AI가 코드를 생성한 사실보다 중요한 것은 올바른 문제와 제약을
-            전달하고 결과를 검증하는 과정이었습니다. 제품 판단은 직접 책임지고,
-            탐색과 구현의 반복 비용은 AI로 줄였습니다.
-          </p>
-        </div>
-
-        <div class="ai-metrics" aria-label="AI 활용 개발 결과">
-          <article>
-            <strong>약 2주</strong>
-            <span>개발 시작에서 부부 실사용까지</span>
-          </article>
-          <article>
-            <strong>31 VIEWPORTS</strong>
-            <span>375·768·1440px 중심 자동 렌더링 검증</span>
-          </article>
-          <article>
-            <strong>4 QUALITY GATES</strong>
-            <span>Lint · Type · Build · Visual review</span>
-          </article>
-        </div>
-
-        <div class="responsibility-grid">
-          <article class="owner-responsibility">
-            <p class="eyebrow">HUMAN OWNERSHIP</p>
-            <h3>제가 책임진 판단</h3>
-            <ul>
-              <li>실사용자와 문제·요구사항·MVP 우선순위 정의</li>
-              <li>모바일 UX 방향과 기능별 완료 조건 결정</li>
-              <li>데이터 신뢰성·보안·기존 기능 영향 기준 검토</li>
-              <li>구현 결과 승인, 보류 또는 제거와 출시 판단</li>
-            </ul>
-          </article>
-          <article class="ai-responsibility">
-            <p class="eyebrow">AI ACCELERATION</p>
-            <h3>AI로 가속한 작업</h3>
-            <ul>
-              <li>저장소 탐색과 변경 영향 범위 분석</li>
-              <li>UI·Hook·Service·API·DB 구현 초안</li>
-              <li>반복적인 수정, 테스트와 문서화 보조</li>
-              <li>기술 대안 비교와 누락 위험 점검</li>
-            </ul>
-          </article>
-        </div>
-
-        <ol class="ai-workflow" id="ai-workflow" aria-label="AI 협업 개발 과정">
-          <li>
-            <small>01 · DEFINE</small>
-            <strong>문제를 완료 조건으로</strong>
-            <p>사용자 요청을 화면·데이터·모바일 기준과 검증 항목으로 구체화합니다.</p>
-          </li>
-          <li>
-            <small>02 · CONTEXT</small>
-            <strong>AI가 지킬 경계를 문서로</strong>
-            <p>프로젝트 규칙, 디자인 토큰과 계층 책임을 반복 가능한 맥락으로 제공합니다.</p>
-          </li>
-          <li>
-            <small>03 · BUILD</small>
-            <strong>탐색과 구현을 빠르게</strong>
-            <p>AI가 관련 코드를 추적하고 최소 범위의 구현안을 만들도록 지시합니다.</p>
-          </li>
-          <li>
-            <small>04 · REVIEW</small>
-            <strong>결과보다 실패 조건을 먼저</strong>
-            <p>권한, 정합성, 수명주기와 기존 기능 영향을 기준으로 구현을 다시 검토합니다.</p>
-          </li>
-          <li>
-            <small>05 · VERIFY</small>
-            <strong>자동 검증 후 시각 확인</strong>
-            <p>lint, type-check, build와 실제 반응형 렌더링을 통과해야 작업을 완료합니다.</p>
-          </li>
-        </ol>
-
-        <article class="ai-evidence" id="ai-evidence">
-          <div>
-            <p class="eyebrow">REPOSITORY EVIDENCE</p>
-            <h3>프롬프트보다 반복 가능한 개발 시스템을 남겼습니다</h3>
-            <p>
-              AI의 답변 품질을 개인의 감각에만 의존하지 않도록 제품 기준,
-              기술 경계와 검증 절차를 저장소 문서와 자동화 스크립트로 관리했습니다.
-            </p>
-          </div>
-          <div class="evidence-links">
-            <a href="https://github.com/hkcho11/harutodo/blob/main/AGENTS.md" target="_blank" rel="noreferrer">제품·작업 기준 ↗</a>
-            <a href="https://github.com/hkcho11/harutodo/blob/main/PROJECT_RULES.md" target="_blank" rel="noreferrer">기술 계층 규칙 ↗</a>
-            <a href="https://github.com/hkcho11/harutodo/blob/main/DESIGN_SYSTEM.md" target="_blank" rel="noreferrer">디자인 시스템 ↗</a>
-            <a href="https://github.com/hkcho11/harutodo/blob/main/scripts/validate-portfolio-layout.mjs" target="_blank" rel="noreferrer">반응형 검증 자동화 ↗</a>
-          </div>
-        </article>
-      </section>
-
-      <section class="section decisions" id="decisions">
-        <p class="section-number">03 · PRODUCT DECISIONS</p>
-        <div class="section-heading">
-          <h2>기능보다 반복 사용의 부담을 줄였습니다</h2>
-          <p>
-            범용 팀 도구가 아닌 두 사람의 생활 협업에 집중했습니다. “오늘 파악 →
-            담당 확인 → 함께 완료”라는 짧은 흐름을 제품 전체의 우선순위로
-            삼았습니다.
-          </p>
-        </div>
-        <div class="decision-list">
-          <article>
-            <span>01</span>
-            <div>
-              <h3>두 명이라는 제약을 장점으로</h3>
-              <p>
-                조직과 역할 설정 없이 함께·본인·파트너라는 생활 언어를 데이터와
-                UI에 일관되게 적용했습니다.
-              </p>
-            </div>
-            <strong>2 USERS</strong>
-          </article>
-          <article>
-            <span>02</span>
-            <div>
-              <h3>관리보다 빠른 파악을 우선</h3>
-              <p>
-                홈 첫 화면에 날짜, 완료 진행률, 지난 미완료, 담당자별 투두를
-                우선 배치했습니다.
-              </p>
-            </div>
-            <strong>TODAY FIRST</strong>
-          </article>
-          <article>
-            <span>03</span>
-            <div>
-              <h3>모바일 사용을 기본 조건으로</h3>
-              <p>
-                375px, 44px 터치 영역, safe area, 바텀시트와 스와이프를 설계
-                기준으로 관리했습니다.
-              </p>
-            </div>
-            <strong>ONE HAND</strong>
           </article>
         </div>
       </section>
 
       <section class="section product-proof" id="product">
-        <p class="section-number">04 · PRODUCT IN ACTION</p>
+        <p class="section-number">02 · PRODUCT IN ACTION</p>
         <div class="section-heading">
-          <h2>실제 핵심 화면을 하나의 흐름으로</h2>
+          <h2>오늘의 할 일부터 함께 움직일 일정까지</h2>
           <p>
-            별도의 목업이 아니라 개발 Supabase의 격리된 데모 커플로 로그인해
-            실제 Auth·RLS·CRUD 경로를 실행했습니다. 투두의 생성부터 삭제,
-            캘린더와 커플 설정까지 실제 서비스 메뉴를 그대로 담았습니다.
+            홈에서 함께·나·파트너의 할 일과 지난 미완료를 확인합니다.
+            캘린더에서는 날짜·시간·반복·참여자와 장소까지 한 흐름으로
+            관리합니다.
           </p>
         </div>
         <div
@@ -313,8 +150,8 @@
         >
           <div class="carousel-toolbar">
             <div>
-              <p class="carousel-kicker">INTERACTIVE SCREEN GALLERY</p>
-              <p>메뉴를 고르고 실제 화면을 한 장씩 확인해 보세요.</p>
+              <p class="carousel-kicker">PRODUCT FLOW</p>
+              <p>오늘과 할 일, 캘린더와 장소 흐름을 확인해 보세요.</p>
             </div>
             <div
               class="carousel-tabs"
@@ -327,7 +164,7 @@
                 data-tab="todo"
                 aria-selected="true"
               >
-                투두 <span>4</span>
+                오늘·할 일 <span>3</span>
               </button>
               <button
                 type="button"
@@ -336,16 +173,7 @@
                 aria-selected="false"
                 tabindex="-1"
               >
-                캘린더 <span>4</span>
-              </button>
-              <button
-                type="button"
-                role="tab"
-                data-tab="mypage"
-                aria-selected="false"
-                tabindex="-1"
-              >
-                마이페이지 <span>1</span>
+                캘린더·장소 <span>4</span>
               </button>
             </div>
           </div>
@@ -353,7 +181,7 @@
             class="carousel-stage"
             id="product-carousel-stage"
             role="tabpanel"
-            aria-label="투두 화면"
+            aria-label="오늘·할 일 3 화면"
             aria-live="polite"
           >
             <button
@@ -364,118 +192,71 @@
             >
               <span aria-hidden="true">←</span>
             </button>
+
             <article
               class="carousel-slide is-active"
               data-slide
               data-group="todo"
             >
               <figure class="carousel-visual">
-                <a
-                  class="screenshot-link"
-                  href="../assets/product-todo-create.webp"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="투두 생성 화면 원본 크기로 보기"
-                >
-                  <img
-                    src="../assets/product-todo-create.webp"
-                    alt="세탁물 찾아오기 할 일을 입력하는 추가 바텀시트"
-                    loading="lazy"
-                    width="780"
-                    height="1688"
-                  />
-                </a>
+                <img
+                  src="../assets/product-home-read.webp"
+                  alt="함께, 나, 파트너의 할 일과 지난 미완료를 구분한 오늘 화면"
+                  loading="lazy"
+                  width="780"
+                  height="1688"
+                />
               </figure>
               <div class="carousel-copy">
-                <p class="carousel-step">01 · CREATE</p>
-                <h3>할 일을 빠르게 추가</h3>
+                <p class="carousel-step">TODAY · OVERVIEW</p>
+                <h3>둘의 오늘을 한눈에</h3>
                 <p>
-                  날짜와 담당 그룹을 화면 이동 없이 같은 바텀시트에서
+                  함께·내 할 일·파트너 할 일과 지난 미완료를 한 화면에서 구분해
+                  확인합니다.
+                </p>
+              </div>
+            </article>
+
+            <article class="carousel-slide" data-slide data-group="todo" hidden>
+              <figure class="carousel-visual">
+                <img
+                  src="../assets/product-todo-create.webp"
+                  alt="날짜와 함께, 사람별, 커스텀 그룹을 지정하는 할 일 추가 화면"
+                  loading="lazy"
+                  width="780"
+                  height="1688"
+                />
+              </figure>
+              <div class="carousel-copy">
+                <p class="carousel-step">TODO · ASSIGN</p>
+                <h3>할 일과 담당을 함께 등록</h3>
+                <p>
+                  화면을 이동하지 않고 날짜와 함께·사람별·커스텀 그룹을
                   지정합니다.
                 </p>
               </div>
             </article>
+
             <article class="carousel-slide" data-slide data-group="todo" hidden>
               <figure class="carousel-visual">
-                <a
-                  class="screenshot-link"
-                  href="../assets/product-todo-update.webp"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="투두 수정 화면 원본 크기로 보기"
-                >
-                  <img
-                    src="../assets/product-todo-update.webp"
-                    alt="할 일 제목을 수정하는 편집 바텀시트"
-                    loading="lazy"
-                    width="780"
-                    height="1688"
-                  />
-                </a>
+                <img
+                  src="../assets/product-carryover.webp"
+                  alt="지난 미완료 할 일을 선택해 오늘로 이동하는 화면"
+                  loading="lazy"
+                  width="780"
+                  height="1688"
+                />
               </figure>
               <div class="carousel-copy">
-                <p class="carousel-step">02 · UPDATE</p>
-                <h3>문맥을 유지한 채 수정</h3>
+                <p class="carousel-step">TODO · CARRY OVER</p>
+                <h3>남은 할 일을 오늘로 다시 정리</h3>
                 <p>
-                  선택한 할 일의 정보와 담당자를 유지한 상태에서 내용을 바로
-                  편집합니다.
+                  지나간 날짜에 남은 할 일을 선택해 오늘로 옮깁니다. 놓친 일을
+                  묻어두지 않고 지금의 계획으로 다시 이어갑니다.
                 </p>
               </div>
             </article>
-            <article class="carousel-slide" data-slide data-group="todo" hidden>
-              <figure class="carousel-visual">
-                <a
-                  class="screenshot-link"
-                  href="../assets/product-todo-completed.webp"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="투두 완료 화면 원본 크기로 보기"
-                >
-                  <img
-                    src="../assets/product-todo-completed.webp"
-                    alt="수정한 할 일을 완료 처리한 오늘 화면"
-                    loading="lazy"
-                    width="780"
-                    height="1688"
-                  />
-                </a>
-              </figure>
-              <div class="carousel-copy">
-                <p class="carousel-step">03 · COMPLETE</p>
-                <h3>완료 상태를 즉시 반영</h3>
-                <p>
-                  체크 한 번으로 진행률과 완료 목록을 갱신해 두 사람이 같은
-                  상태를 봅니다.
-                </p>
-              </div>
-            </article>
-            <article class="carousel-slide" data-slide data-group="todo" hidden>
-              <figure class="carousel-visual">
-                <a
-                  class="screenshot-link"
-                  href="../assets/product-todo-delete.webp"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="투두 삭제 확인 화면 원본 크기로 보기"
-                >
-                  <img
-                    src="../assets/product-todo-delete.webp"
-                    alt="할 일을 삭제하기 전 확인 다이얼로그"
-                    loading="lazy"
-                    width="780"
-                    height="1688"
-                  />
-                </a>
-              </figure>
-              <div class="carousel-copy">
-                <p class="carousel-step">04 · DELETE</p>
-                <h3>삭제 전 한 번 더 확인</h3>
-                <p>
-                  되돌리기 어려운 행동은 확인 단계를 두어 실수로 삭제하는 상황을
-                  방지합니다.
-                </p>
-              </div>
-            </article>
+
             <article
               class="carousel-slide"
               data-slide
@@ -483,31 +264,24 @@
               hidden
             >
               <figure class="carousel-visual">
-                <a
-                  class="screenshot-link"
-                  href="../assets/product-calendar.webp"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="캘린더 일정 상세 화면 원본 크기로 보기"
-                >
-                  <img
-                    src="../assets/product-calendar.webp"
-                    alt="월간 캘린더에서 선택한 날짜의 일정을 확인하는 화면"
-                    loading="lazy"
-                    width="780"
-                    height="1688"
-                  />
-                </a>
+                <img
+                  src="../assets/product-calendar.webp"
+                  alt="월간 캘린더의 날짜 팝업에서 일정과 등록 장소를 확인하는 화면"
+                  loading="lazy"
+                  width="780"
+                  height="1688"
+                />
               </figure>
               <div class="carousel-copy">
                 <p class="carousel-step">CALENDAR · OVERVIEW</p>
                 <h3>월간 일정과 하루를 연결</h3>
                 <p>
-                  월 전체의 일정 밀도를 파악한 뒤 선택한 날짜의 담당자와 시간을
-                  바로 확인합니다.
+                  월 전체의 일정을 파악한 뒤 선택한 날짜의 시간·참여자·등록
+                  장소를 팝업에서 바로 확인합니다.
                 </p>
               </div>
             </article>
+
             <article
               class="carousel-slide"
               data-slide
@@ -515,31 +289,24 @@
               hidden
             >
               <figure class="carousel-visual">
-                <a
-                  class="screenshot-link"
-                  href="../assets/product-calendar-create.webp"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="캘린더 일정 추가 화면 원본 크기로 보기"
-                >
-                  <img
-                    src="../assets/product-calendar-create.webp"
-                    alt="제목과 날짜, 시간, 반복 여부를 입력하는 일정 추가 화면"
-                    loading="lazy"
-                    width="780"
-                    height="1688"
-                  />
-                </a>
+                <img
+                  src="../assets/product-calendar-create.webp"
+                  alt="날짜와 시간, 반복 여부, 참여자를 입력하는 일정 추가 화면"
+                  loading="lazy"
+                  width="780"
+                  height="1688"
+                />
               </figure>
               <div class="carousel-copy">
                 <p class="carousel-step">CALENDAR · CREATE</p>
                 <h3>일정 조건을 한 번에 입력</h3>
                 <p>
-                  날짜와 시간, 반복 여부, 참여자를 하나의 흐름에서 설정해 일정
+                  날짜와 시간, 반복 여부와 참여자를 하나의 흐름에서 설정해 일정
                   등록 부담을 줄였습니다.
                 </p>
               </div>
             </article>
+
             <article
               class="carousel-slide"
               data-slide
@@ -547,31 +314,24 @@
               hidden
             >
               <figure class="carousel-visual">
-                <a
-                  class="screenshot-link"
-                  href="../assets/product-calendar-location-search.webp"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="캘린더 장소 검색 화면 원본 크기로 보기"
-                >
-                  <img
-                    src="../assets/product-calendar-location-search.webp"
-                    alt="일정에 등록할 장소를 검색하고 결과를 선택하는 화면"
-                    loading="lazy"
-                    width="780"
-                    height="1688"
-                  />
-                </a>
+                <img
+                  src="../assets/product-calendar-location-search.webp"
+                  alt="카카오 Local API로 일정에 등록할 장소를 검색하는 화면"
+                  loading="lazy"
+                  width="780"
+                  height="1688"
+                />
               </figure>
               <div class="carousel-copy">
-                <p class="carousel-step">CALENDAR · SEARCH</p>
+                <p class="carousel-step">KAKAO LOCAL API · SEARCH</p>
                 <h3>일정 안에서 바로 장소 검색</h3>
                 <p>
-                  별도의 지도 앱으로 이동하지 않고 장소명과 주소를 검색해 일정에
-                  연결할 수 있습니다.
+                  카카오 Local API의 장소명과 주소 검색 결과를 일정에 바로
+                  연결합니다.
                 </p>
               </div>
             </article>
+
             <article
               class="carousel-slide"
               data-slide
@@ -579,24 +339,16 @@
               hidden
             >
               <figure class="carousel-visual">
-                <a
-                  class="screenshot-link"
-                  href="../assets/product-calendar-location-selected.webp"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="캘린더 장소와 지도 미리보기 화면 원본 크기로 보기"
-                >
-                  <img
-                    src="../assets/product-calendar-location-selected.webp"
-                    alt="선택한 장소의 주소와 지도 미리보기를 확인하는 일정 화면"
-                    loading="lazy"
-                    width="780"
-                    height="1688"
-                  />
-                </a>
+                <img
+                  src="../assets/product-calendar-location-selected.webp"
+                  alt="선택한 장소의 주소와 카카오 지도 미리보기를 확인하는 일정 화면"
+                  loading="lazy"
+                  width="780"
+                  height="1688"
+                />
               </figure>
               <div class="carousel-copy">
-                <p class="carousel-step">CALENDAR · LOCATION</p>
+                <p class="carousel-step">KAKAO MAP · PREVIEW</p>
                 <h3>선택한 장소를 지도에서 확인</h3>
                 <p>
                   장소명과 주소, 지도 미리보기를 함께 제공해 잘못된 장소를
@@ -604,38 +356,7 @@
                 </p>
               </div>
             </article>
-            <article
-              class="carousel-slide"
-              data-slide
-              data-group="mypage"
-              hidden
-            >
-              <figure class="carousel-visual">
-                <a
-                  class="screenshot-link"
-                  href="../assets/product-mypage.webp"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="마이페이지 화면 원본 크기로 보기"
-                >
-                  <img
-                    src="../assets/product-mypage.webp"
-                    alt="두 사람의 프로필과 서비스 설정을 관리하는 마이페이지"
-                    loading="lazy"
-                    width="780"
-                    height="1688"
-                  />
-                </a>
-              </figure>
-              <div class="carousel-copy">
-                <p class="carousel-step">MY PAGE · SETTINGS</p>
-                <h3>두 사람의 연결과 설정 관리</h3>
-                <p>
-                  커플 프로필과 개인화 설정을 한곳에 모아 공유 서비스의 관계
-                  정보를 명확히 보여줍니다.
-                </p>
-              </div>
-            </article>
+
             <button
               class="carousel-edge-arrow carousel-edge-arrow--next"
               type="button"
@@ -645,11 +366,12 @@
               <span aria-hidden="true">→</span>
             </button>
           </div>
+
           <div class="carousel-controls" id="product-carousel-controls">
             <div class="carousel-status">
               <div class="carousel-progress" aria-live="polite">
                 <strong data-current>1</strong
-                ><span>/ <span data-total>4</span></span>
+                ><span>/ <span data-total>3</span></span>
               </div>
               <div
                 class="carousel-dots"
@@ -660,33 +382,26 @@
                   type="button"
                   data-index="0"
                   data-group="todo"
-                  aria-label="1번 생성 화면 보기"
+                  aria-label="1번 오늘 화면 보기"
                   aria-current="true"
                 ></button>
                 <button
                   type="button"
                   data-index="1"
                   data-group="todo"
-                  aria-label="2번 수정 화면 보기"
+                  aria-label="2번 할 일 담당 지정 화면 보기"
                   aria-current="false"
                 ></button>
                 <button
                   type="button"
                   data-index="2"
                   data-group="todo"
-                  aria-label="3번 완료 화면 보기"
+                  aria-label="3번 완료 상태 공유 화면 보기"
                   aria-current="false"
                 ></button>
                 <button
                   type="button"
                   data-index="3"
-                  data-group="todo"
-                  aria-label="4번 삭제 화면 보기"
-                  aria-current="false"
-                ></button>
-                <button
-                  type="button"
-                  data-index="4"
                   data-group="calendar"
                   aria-label="1번 캘린더 조회 화면 보기"
                   aria-current="false"
@@ -694,7 +409,7 @@
                 ></button>
                 <button
                   type="button"
-                  data-index="5"
+                  data-index="4"
                   data-group="calendar"
                   aria-label="2번 일정 추가 화면 보기"
                   aria-current="false"
@@ -702,7 +417,7 @@
                 ></button>
                 <button
                   type="button"
-                  data-index="6"
+                  data-index="5"
                   data-group="calendar"
                   aria-label="3번 장소 검색 화면 보기"
                   aria-current="false"
@@ -710,17 +425,9 @@
                 ></button>
                 <button
                   type="button"
-                  data-index="7"
+                  data-index="6"
                   data-group="calendar"
                   aria-label="4번 장소 선택 화면 보기"
-                  aria-current="false"
-                  hidden
-                ></button>
-                <button
-                  type="button"
-                  data-index="8"
-                  data-group="mypage"
-                  aria-label="마이페이지 화면 보기"
                   aria-current="false"
                   hidden
                 ></button>
@@ -729,68 +436,371 @@
           </div>
           <p class="carousel-hint">
             탭으로 메뉴를 바꾸고, 이전·다음 버튼이나 방향키·스와이프로 화면을
-            넘길 수 있습니다. 이미지를 누르면 원본으로 열립니다.
+            넘길 수 있습니다.
           </p>
         </div>
       </section>
 
-      <section class="section feedback" id="feedback">
-        <p class="section-number">05 · USER FEEDBACK</p>
+      <section class="section decisions" id="decisions">
+        <p class="section-number">03 · PRODUCT DECISIONS</p>
         <div class="section-heading">
-          <h2>실사용자의 말로 제품 가치를 다시 확인했습니다</h2>
+          <h2>두 사람이 함께 쓰는 방식을 먼저 정했습니다</h2>
           <p>
-            함께 서비스를 사용하는 파트너에게 현재 좋은 점과 앞으로 필요한
-            기능을 물었습니다. 구현된 가치와 아이디어 단계의 요청을 구분해 다음
-            제품 판단의 근거로 정리했습니다.
+            기능을 늘리기보다 항목의 담당, 지난 할 일의 처리 방식, 일정과 할
+            일을 나누어 보여주는 기준을 먼저 정했습니다.
+          </p>
+        </div>
+        <div class="decision-list">
+          <article>
+            <span>01</span>
+            <div>
+              <h3>공유해도 담당은 구분했습니다</h3>
+              <p>
+                같은 항목을 함께 보면서도 누가 담당하는지 바로 알 수 있도록
+                함께·나·파트너 구분과 색상 규칙을 모든 화면에 동일하게
+                적용했습니다.
+              </p>
+            </div>
+            <strong>함께 · 나 · 파트너</strong>
+          </article>
+          <article>
+            <span>02</span>
+            <div>
+              <h3>지난 할 일을 자동으로 옮기지 않았습니다</h3>
+              <p>
+                지난 미완료는 홈에서 개수만 알리고, 필요한 항목을 골라 오늘이나
+                다른 날짜로 옮기거나 삭제하도록 했습니다.
+              </p>
+            </div>
+            <strong>선택해서 이동</strong>
+          </article>
+          <article>
+            <span>03</span>
+            <div>
+              <h3>일정과 할 일을 한 화면에 모두 넣지 않았습니다</h3>
+              <p>
+                홈은 오늘 할 일과 지난 미완료 할 일들을, 캘린더는
+                날짜·시간·장소가 있는 일정을 중심으로 보여줍니다. 한 서비스
+                안에서 빠르게 이동하되, 성격이 다른 정보가 한 화면에 겹치지
+                않도록 구분했습니다.
+              </p>
+            </div>
+            <strong>홈 · 캘린더</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="section cases" id="cases">
+        <p class="section-number">04 · ENGINEERING CASES</p>
+        <div class="section-heading">
+          <h2>실제 사용과 구현 과정에서 확인한 문제를 해결했습니다</h2>
+        </div>
+
+        <article class="case-card" id="case-realtime">
+          <div class="case-index">CASE 01</div>
+          <div class="case-title">
+            <h3>여러 곳에서 생성되던 Supabase client를 하나로 통일했습니다</h3>
+            <span>Supabase Realtime · Client 관리</span>
+          </div>
+          <div class="case-flow">
+            <div>
+              <small>실제 증상</small>
+              <p>화면 이동을 반복한 뒤 캘린더가 멈추는 현상이 있었습니다.</p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div>
+              <small>확인한 원인</small>
+              <p>
+                <code>createClient()</code>를 호출할 때마다 별도 client가
+                만들어져 Realtime 연결 관리 주체도 늘어났습니다.
+              </p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div>
+              <small>수정</small>
+              <p>
+                처음 만든 client를 저장하고 이후 호출에서도 같은 client를
+                반환하도록 변경했습니다.
+              </p>
+            </div>
+          </div>
+          <p class="case-result">
+            <strong>현재 방식</strong>
+            하나의 client 안에서 일정·투두 채널을 각각 사용하며, 화면이 전환될
+            때는 해당 화면이 만든 채널의 구독을 해제합니다.
+          </p>
+        </article>
+
+        <article class="case-card" id="case-notifications">
+          <div class="case-index">CASE 02</div>
+          <div class="case-title">
+            <h3>일정 알림을 DB 예약부터 Web Push까지 나눠 구성했습니다</h3>
+            <span>PostgreSQL · Edge Function · Web Push</span>
+          </div>
+          <div class="case-flow">
+            <div>
+              <small>변경 감지</small>
+              <p>
+                일정이 등록되거나 수정되면 DB trigger가 알림 예약을 갱신합니다.
+              </p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div>
+              <small>예약 관리</small>
+              <p>
+                기존 미발송 예약을 취소하고 담당자와 사용자 설정에 맞춰 다시
+                생성합니다.
+              </p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div>
+              <small>발송과 이동</small>
+              <p>
+                pg_cron이 Edge Function을 호출하고, Service Worker가 알림을
+                눌렀을 때 해당 날짜를 엽니다.
+              </p>
+            </div>
+          </div>
+          <p class="case-result">
+            <strong>운영 범위</strong>
+            pg_cron은 5분 간격으로 발송 대상을 확인합니다. 브라우저 Web Push의
+            특성상 정확한 도착 시각과 전달 자체를 보장하는 알림으로 설명하지
+            않습니다.
+          </p>
+        </article>
+
+        <article class="case-card" id="case-external-calendar">
+          <div class="case-index">CASE 03</div>
+          <div class="case-title">
+            <h3>상태가 어긋나는 네이버 캘린더 연동을 제거했습니다</h3>
+            <span>External API · Scriptable · Data Integrity</span>
+          </div>
+          <div class="case-flow">
+            <div>
+              <small>직접 구현</small>
+              <p>
+                iOS 홈 위젯에서 일정을 보려고 OAuth, 토큰 갱신과 네이버 일정
+                자동 등록을 구현했습니다.
+              </p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div>
+              <small>확인한 한계</small>
+              <p>
+                검토 당시 공개 API는 일정 추가만 지원해 수정·삭제와 역방향
+                변경을 맞출 수 없었습니다.
+              </p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div>
+              <small>변경한 방식</small>
+              <p>
+                연동 코드와 토큰 데이터를 제거하고, Scriptable이 하루투두 API의
+                원본을 읽는 조회형 위젯으로 바꿨습니다.
+              </p>
+            </div>
+          </div>
+          <p class="case-result">
+            <strong>남은 제약</strong>
+            Scriptable은 별도 앱이 필요한 보조 화면입니다. 갱신 토큰은 iOS
+            Keychain에 보관하지만 실제 위젯 갱신 시점은 iOS가 결정하므로 실시간
+            화면으로 설명하지 않습니다.
+          </p>
+        </article>
+      </section>
+
+      <section class="section architecture" id="architecture">
+        <p class="section-number">05 · SYSTEM DESIGN</p>
+        <div class="section-heading">
+          <h2>로그인과 데이터 권한을 분리해 관리했습니다</h2>
+          <p>
+            Auth는 사용자를 확인하고 RLS는 커플 공유 데이터에 접근할 수 있는지
+            검사합니다. API 키와 관리자 권한이 필요한 작업은 브라우저 밖에서
+            실행합니다.
+          </p>
+        </div>
+        <div class="system-map">
+          <article class="map-node map-client">
+            <small>CLIENT · MOBILE PWA</small>
+            <h3>Next.js · React</h3>
+            <div class="map-row">
+              <span>Page</span><span>Hook</span><span>Service</span>
+            </div>
+          </article>
+
+          <div class="map-targets">
+            <div class="map-route">
+              <div class="map-link">
+                <span>조회·변경</span><b aria-hidden="true">↕</b>
+              </div>
+              <article class="map-group dark">
+                <small>SUPABASE DATA</small>
+                <h3>Auth · PostgreSQL/RLS · Realtime</h3>
+                <p class="map-note">로그인 · 커플 데이터 · 실시간 반영</p>
+              </article>
+            </div>
+
+            <div class="map-route">
+              <div class="map-link">
+                <span>서버 요청</span><b aria-hidden="true">↓</b>
+              </div>
+              <article class="map-group">
+                <small>NEXT.JS API</small>
+                <h3>카카오 장소 검색 · 위젯 데이터</h3>
+                <p class="map-note">외부 API를 서버에서 호출</p>
+              </article>
+            </div>
+
+            <div class="map-route">
+              <div class="map-link">
+                <span>WEB PUSH</span><b aria-hidden="true">↑</b>
+              </div>
+              <article class="map-group">
+                <small>SUPABASE EDGE</small>
+                <h3>Push 발송 · 예약 알림 처리</h3>
+                <p class="map-note">관리자 권한이 필요한 작업</p>
+              </article>
+            </div>
+          </div>
+        </div>
+        <div class="architecture-points">
+          <article>
+            <small>IDENTITY</small>
+            <h3>사용자 확인</h3>
+            <p>
+              Supabase Auth가 로그인한 사용자의 ID를 확인합니다. 로그인과 데이터
+              접근 권한은 별도로 판단합니다.
+            </p>
+          </article>
+          <article>
+            <small>SHARED DATA</small>
+            <h3>커플 공유 범위</h3>
+            <p>
+              투두와 일정은 couple_id로 묶고, RLS가 요청 사용자가 해당 커플의
+              구성원인지 확인합니다.
+            </p>
+          </article>
+          <article>
+            <small>SERVER-ONLY</small>
+            <h3>민감한 작업은 서버에서</h3>
+            <p>
+              카카오 REST API 키와 Supabase 관리자 권한은 Next.js API와 Edge
+              Function 안에서만 사용합니다.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section ai-process" id="ai-process">
+        <p class="section-number">06 · AI-ASSISTED DEVELOPMENT</p>
+        <div class="section-heading">
+          <h2>Claude Code로 시작한 제품을 Codex와 계속 운영하고 있습니다</h2>
+          <p>
+            초기 MVP는 Claude Code로 빠르게 구축했습니다. 이후에는 Codex가 기존
+            코드의 영향 범위를 확인하고 구현과 검증을 진행하며, 기능 우선순위와
+            최종 결과는 직접 판단하고 있습니다.
+          </p>
+        </div>
+
+        <div class="ai-stages" id="ai-stages" aria-label="AI 활용 개발 단계">
+          <article>
+            <p class="eyebrow">MVP · CLAUDE CODE</p>
+            <h3>초기 제품 구축</h3>
+            <p>
+              결혼 준비에 필요한 일정과 투두 흐름을 정리하고, Claude Code와 초기
+              제품을 구현해 약 2주 만에 사용을 시작했습니다.
+            </p>
+            <ul>
+              <li>필요한 기능과 화면 흐름 정의</li>
+              <li>모바일 중심의 초기 제품 구현</li>
+              <li>부부 실사용 시작</li>
+            </ul>
+          </article>
+          <div class="ai-stage-arrow" aria-hidden="true">→</div>
+          <article>
+            <p class="eyebrow">OPERATE · CODEX</p>
+            <h3>운영과 추가 개발</h3>
+            <p>
+              기존 코드의 영향 범위와 변경 계획을 먼저 확인한 뒤, 승인한 범위만
+              구현하고 자동 검사와 실제 화면으로 결과를 검증하고 있습니다.
+            </p>
+            <ul>
+              <li>저장소와 기존 기능 영향 범위 확인</li>
+              <li>변경 계획 승인 후 구현</li>
+              <li>자동 검사와 반응형 화면 검증</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="ai-role-heading">
+          <p class="eyebrow">ROLE SPLIT</p>
+        </div>
+
+        <div class="responsibility-grid">
+          <article class="owner-responsibility">
+            <p class="eyebrow">DIRECT DECISIONS</p>
+            <h3>직접 결정한 것</h3>
+            <ul>
+              <li>커플에게 필요한 기능과 제외할 기능</li>
+              <li>화면 흐름과 모바일 UX 방향</li>
+              <li>구현 계획의 승인, 수정·보류·삭제 판단</li>
+              <li>실사용을 통한 최종 동작 확인</li>
+            </ul>
+          </article>
+          <article class="ai-responsibility">
+            <p class="eyebrow">AI EXECUTION</p>
+            <h3>AI가 수행한 작업</h3>
+            <ul>
+              <li>저장소 탐색과 변경 영향 범위 분석</li>
+              <li>UI·Hook·Service·API·DB 코드 구현</li>
+              <li>Lint·Type·Test·Build와 화면 검증</li>
+              <li>기술 대안 비교와 누락 위험 확인</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section feedback" id="feedback">
+        <p class="section-number">07 · USER FEEDBACK</p>
+        <div class="section-heading">
+          <h2>함께 사용하며 편했던 점과 바뀐 기능을 정리했습니다</h2>
+          <p>
+            2026년 6월부터 배우자와 실제 일정과 할 일을 관리하고 있습니다. 현재
+            편리하게 사용하는 흐름과, 사용 중 발견한 불편을 반영해 추가한 기능을
+            나눠 정리했습니다.
           </p>
         </div>
 
         <article class="feedback-quote">
-          <p class="eyebrow">REAL USER · INTERVIEW SUMMARY</p>
+          <p class="eyebrow">PARTNER FEEDBACK · 1 USER</p>
           <blockquote>
-            일정과 할 일을 여러 앱에서 따로 확인하지 않아도 되고, 둘이 함께
-            관리할 수 있다는 점이 가장 편했습니다. 중요한 생활 정보까지 안전하게
-            연결할 수 있으면 좋겠습니다.
+            일정과 할 일을 한곳에서 보고, 함께 할 일과 각자 할 일을 바로 구분할
+            수 있어서 편했습니다.
           </blockquote>
           <p>
-            결혼 준비부터 현재까지 하루투두를 함께 사용한 파트너의 의견을
-            요약했습니다.
+            2026년 6월부터 하루투두를 함께 사용하는 배우자의 의견을 요약했습니다.
           </p>
         </article>
 
         <div class="feedback-grid">
           <article class="feedback-card validated">
             <div class="feedback-card-head">
-              <span>VALIDATED</span>
-              <strong>현재 구현·사용 중</strong>
+              <span>IN USE</span>
+              <strong>현재 편리하게 사용하는 흐름</strong>
             </div>
             <ul class="feedback-list">
               <li>
-                <strong>캘린더·To-do 통합</strong>
+                <strong>일정과 투두를 한곳에서</strong>
                 <p>
-                  두 앱을 번갈아 확인하지 않고 한 서비스 안에서 일정과 할 일을
+                  앱을 번갈아 확인하지 않고 하루투두 안에서 일정과 할 일을 함께
                   관리합니다.
                 </p>
               </li>
               <li>
-                <strong>개인·공동 To-do</strong>
+                <strong>함께와 각자의 할 일 구분</strong>
                 <p>
-                  함께, 본인, 파트너 항목을 구분해 두 사람의 책임과 진행 상태를
-                  공유합니다.
-                </p>
-              </li>
-              <li>
-                <strong>커플 맞춤 주기 기록</strong>
-                <p>
-                  개인 주기를 캘린더에서 기록하고 공개 범위에 따라 파트너와
-                  필요한 정보만 공유합니다.
-                </p>
-              </li>
-              <li>
-                <strong>가독성을 고려한 UI</strong>
-                <p>
-                  크기·굵기·색상으로 핵심 정보와 보조 정보를 구분해 반복 확인의
-                  피로를 줄였습니다.
+                  함께, 나, 파트너 항목을 나눠 누가 맡은 일인지 바로 확인하고 완료
+                  상태를 공유합니다.
                 </p>
               </li>
             </ul>
@@ -798,339 +808,29 @@
 
           <article class="feedback-card requested">
             <div class="feedback-card-head">
-              <span>USER REQUEST</span>
-              <strong>검증할 제품 백로그</strong>
+              <span>ADDED AFTER USE</span>
+              <strong>사용하면서 추가한 기능</strong>
             </div>
             <ul class="feedback-list">
               <li>
-                <strong>일정-투두 연결과 공동 템플릿</strong>
+                <strong>지난 미완료 할 일 정리</strong>
                 <p>
-                  결혼 준비 체크리스트나 장보기처럼 반복되는 흐름을 일정과
-                  연결해 재사용합니다.
+                  지난 날짜에 남은 미완료 할 일을 홈에서 알리고, 필요한 항목만
+                  선택해 오늘로 옮길 수 있도록 추가했습니다.
                 </p>
               </li>
               <li>
-                <strong>공동 문서 보관함</strong>
+                <strong>홈 화면 월간 위젯</strong>
                 <p>
-                  계약서, 보험 증권, 차량 서류처럼 두 사람이 함께 확인할 문서를
-                  보관합니다.
-                </p>
-              </li>
-              <li>
-                <strong>일정-문서 연동과 스캔</strong>
-                <p>
-                  계약 갱신일이나 여행 일정에 문서를 붙이고 카메라로 서류를
-                  스캔합니다.
-                </p>
-              </li>
-              <li>
-                <strong>공동 자산·생활 관리</strong>
-                <p>
-                  생활비, 예산, 공동 구매 내역을 일정·투두의 생활 맥락과 함께
-                  관리합니다.
+                  iOS 홈 화면에서 월간 일정과 할 일을 확인할 수 있는 조회형
+                  Scriptable 위젯을 추가했습니다.
                 </p>
               </li>
             </ul>
           </article>
         </div>
-
-        <article class="security-review">
-          <div>
-            <p class="eyebrow">PRODUCT &amp; TECH REVIEW · NOT IMPLEMENTED</p>
-            <h3>문서 기능은 저장보다 신뢰 설계가 먼저입니다</h3>
-            <p>
-              문서는 편의 기능이면서 동시에 고위험 개인정보입니다. 구현에 앞서
-              다음 조건을 제품 요구사항과 완료 기준으로 정의해야 합니다.
-            </p>
-          </div>
-          <div class="security-points">
-            <div>
-              <strong>접근 권한</strong
-              ><span>커플·문서 소유자 범위와 관계 해제 시 권한 회수</span>
-            </div>
-            <div>
-              <strong>안전한 저장</strong
-              ><span
-                >비공개 저장소, 암호화, 짧은 만료 링크와 악성 파일 검사</span
-              >
-            </div>
-            <div>
-              <strong>스캔·OCR</strong
-              ><span
-                >명시적 동의, 최소 수집, 민감정보 마스킹과 처리 후 원본
-                정책</span
-              >
-            </div>
-            <div>
-              <strong>운영 책임</strong
-              ><span>접근 기록, 삭제·보존 기간, 백업과 복구 기준</span>
-            </div>
-          </div>
-        </article>
       </section>
 
-      <section class="section architecture" id="architecture">
-        <p class="section-number">06 · SYSTEM DESIGN</p>
-        <div class="section-heading">
-          <h2>편리한 공유와 안전한 데이터 경계를 함께</h2>
-          <p>
-            화면의 조건문만으로 권한을 처리하지 않았습니다. Supabase Auth가
-            사용자를 인증하고 PostgreSQL RLS가 요청 사용자가 해당 커플의
-            구성원인지 최종 확인합니다.
-          </p>
-        </div>
-        <div class="system-map" role="img" aria-label="하루투두 시스템 구성도">
-          <div class="map-node user-node">
-            <small>CLIENT</small><strong>Mobile PWA</strong
-            ><span>Next.js · React</span>
-          </div>
-          <div class="map-arrow" aria-hidden="true">→</div>
-          <div class="map-group">
-            <small>APPLICATION</small>
-            <div class="map-row">
-              <span>Page</span><span>Hook</span><span>Service</span
-              ><span>Zustand</span>
-            </div>
-          </div>
-          <div class="map-arrow" aria-hidden="true">→</div>
-          <div class="map-group dark">
-            <small>SUPABASE</small>
-            <div class="map-row">
-              <span>Auth</span><span>PostgreSQL + RLS</span><span>Realtime</span
-              ><span>Edge Functions</span>
-            </div>
-          </div>
-        </div>
-        <div class="architecture-points">
-          <article>
-            <small>SHARED BOUNDARY</small>
-            <h3>couple_id</h3>
-            <p>
-              조회 조건, RLS 정책, Realtime 필터를 관통하는 데이터 소유
-              경계입니다.
-            </p>
-          </article>
-          <article>
-            <small>DATA INTEGRITY</small>
-            <h3>RLS + Constraints</h3>
-            <p>
-              RLS는 접근 권한을, FK·unique·trigger는 유효한 상태를 보장합니다.
-            </p>
-          </article>
-          <article>
-            <small>LIVE SYNC</small>
-            <h3>Fetch + Subscribe</h3>
-            <p>
-              최초 조회와 구독 사이의 이벤트 유실까지 별도 refetch로 보완합니다.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section class="section cases" id="cases">
-        <p class="section-number">07 · ENGINEERING CASES</p>
-        <div class="section-heading">
-          <h2>구현뿐 아니라 중단해야 할 기능도 판단했습니다</h2>
-          <p>
-            동시성, 수명주기, 예약 정합성부터 외부 API의 한계까지 확인하고
-            사용자에게 신뢰할 수 있는 상태만 제공하는 방향을 선택했습니다.
-          </p>
-        </div>
-
-        <article class="case-card">
-          <div class="case-index">CASE 01</div>
-          <div class="case-title">
-            <h3>초대 코드를 동시에 사용한다면?</h3>
-            <span>권한 · 동시성</span>
-          </div>
-          <div class="case-flow">
-            <div>
-              <small>문제</small>
-              <p>
-                읽기 후 쓰기 방식에서는 같은 코드가 동시에 사용될 수 있었습니다.
-              </p>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div>
-              <small>결정</small>
-              <p>
-                <code>UPDATE ... RETURNING</code>으로 코드를 원자적으로
-                선점했습니다.
-              </p>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div>
-              <small>보장</small>
-              <p>
-                unique index와 예외 롤백으로 한 사용자·한 커플 규칙을 DB에서
-                강제했습니다.
-              </p>
-            </div>
-          </div>
-        </article>
-        <!-- 알림 사례 옆에 ../assets/product-notifications.webp 삽입 후보 -->
-
-        <article class="case-card">
-          <div class="case-index">CASE 02</div>
-          <div class="case-title">
-            <h3>실시간 연결이 쌓여 캘린더가 멈춘다면?</h3>
-            <span>Realtime · Lifecycle</span>
-          </div>
-          <div class="case-flow">
-            <div>
-              <small>증상</small>
-              <p>
-                화면 이동과 재렌더링 이후 채널이 누적되고 캘린더가 멈췄습니다.
-              </p>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div>
-              <small>원인</small>
-              <p>클라이언트 인스턴스와 구독 cleanup의 수명주기가 달랐습니다.</p>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div>
-              <small>해결</small>
-              <p>
-                싱글턴 client, 공통 구독 함수, unique 채널명과 cleanup으로
-                통합했습니다.
-              </p>
-            </div>
-          </div>
-        </article>
-
-        <article class="case-card">
-          <div class="case-index">CASE 03</div>
-          <div class="case-title">
-            <h3>일정이 바뀌면 예약 알림은?</h3>
-            <span>Database · Web Push</span>
-          </div>
-          <div class="case-flow">
-            <div>
-              <small>이벤트</small>
-              <p>일정 INSERT·UPDATE를 DB trigger가 감지합니다.</p>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div>
-              <small>예약</small>
-              <p>
-                기존 미발송 예약을 취소하고 사용자 설정에 맞게 다시 생성합니다.
-              </p>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div>
-              <small>발송</small>
-              <p>
-                pg_cron과 Edge Function이 Web Push를 보내 관련 날짜로
-                연결합니다.
-              </p>
-            </div>
-          </div>
-        </article>
-
-        <article class="case-card" id="case-naver">
-          <div class="case-index">CASE 04</div>
-          <div class="case-title">
-            <h3>구현한 네이버 캘린더 연동을 왜 제거했나?</h3>
-            <span>External API · Data Integrity</span>
-          </div>
-          <div class="case-flow">
-            <div>
-              <small>목표와 구현</small>
-              <p>
-                네이버 캘린더 홈 위젯을 활용하려 OAuth, 토큰 갱신과 일정 자동
-                등록 흐름을 구성했습니다.
-              </p>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div>
-              <small>검증한 한계</small>
-              <p>
-                공개 API가 일정 추가만 지원해 수정·삭제와 역방향 변경을 동기화할
-                수 없었습니다.
-              </p>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div>
-              <small>제품 결정</small>
-              <p>
-                두 캘린더가 다른 상태를 보여주는 위험이 편의보다 크다고 판단해
-                연동을 제거했습니다.
-              </p>
-            </div>
-          </div>
-          <p class="case-result">
-            마이페이지 UI, OAuth·일정 등록 API, 서비스 호출과 개발·운영 DB의
-            토큰 테이블까지 제거해 사용되지 않는 인증 정보와 불완전한 동기화
-            경로를 남기지 않았습니다.
-          </p>
-        </article>
-
-        <article class="case-card" id="case-widget">
-          <div class="case-index">CASE 05</div>
-          <div class="case-title">
-            <h3>PWA에서 홈 위젯을 어떻게 구현했나?</h3>
-            <span>PWA · Scriptable · Auth</span>
-          </div>
-          <div class="case-flow">
-            <div>
-              <small>제약</small>
-              <p>
-                PWA만으로는 iOS 홈 화면에 네이티브 캘린더 위젯을 직접 제공하기
-                어려웠습니다.
-              </p>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div>
-              <small>대체 설계</small>
-              <p>
-                Scriptable이 하루투두의 월간 일정·오늘 할 일 API를 직접
-                조회하도록 구성했습니다.
-              </p>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div>
-              <small>원본과 권한</small>
-              <p>
-                데이터를 복제하지 않고 JWT, 커플 멤버십과 RLS를 거쳐 같은 원본을
-                읽게 했습니다.
-              </p>
-            </div>
-          </div>
-          <p class="case-result">
-            갱신 토큰은 iOS Keychain에 보관하고 위젯은 5분 뒤 갱신을 요청합니다.
-            실제 실행 시점은 iOS가 결정하므로 실시간이 아닌, 일정 시간이 지나면
-            최신 데이터가 반영되는 보조 화면으로 정의했습니다.
-          </p>
-        </article>
-      </section>
-
-      <section class="section reflection" id="reflection">
-        <p class="section-number">08 · RETROSPECTIVE</p>
-        <div class="section-heading">
-          <h2>완성한 것과 앞으로 검증할 것을 구분했습니다</h2>
-        </div>
-        <div class="reflection-grid">
-          <article class="keep">
-            <small>KEEP</small>
-            <h3>유지할 방향</h3>
-            <ul>
-              <li>두 사람에게 집중한 명확한 제품 경계</li>
-              <li>DB까지 내려간 권한과 무결성</li>
-              <li>모바일을 초기 조건으로 둔 UX</li>
-            </ul>
-          </article>
-          <article class="improve">
-            <small>IMPROVE</small>
-            <h3>다음 개선</h3>
-            <ul>
-              <li>핵심 사용자 흐름 통합 테스트</li>
-              <li>일정-투두 연결과 공동 템플릿 사용성 검증</li>
-              <li>문서 보관 기능 전 보안·권한 모델 설계</li>
-            </ul>
-          </article>
-        </div>
-      </section>
     </main>
 
     <footer>

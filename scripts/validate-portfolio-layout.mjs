@@ -14,6 +14,14 @@ const PAGE_URL =
 const viewports = [
   { name: "desktop", width: 1440, height: 1000, mobile: false, hash: "" },
   { name: "tablet", width: 768, height: 960, mobile: false, hash: "" },
+  {
+    name: "tablet-section-headings",
+    width: 783,
+    height: 960,
+    mobile: false,
+    hash: "#cases",
+    expectSectionHeadingsSideBySide: true,
+  },
   { name: "mobile", width: 375, height: 812, mobile: true, hash: "" },
   {
     name: "desktop-product",
@@ -30,12 +38,28 @@ const viewports = [
     hash: "#product",
   },
   {
+    name: "desktop-carryover",
+    width: 1440,
+    height: 1000,
+    mobile: false,
+    hash: "#product",
+    slideIndex: 2,
+  },
+  {
+    name: "mobile-carryover",
+    width: 375,
+    height: 812,
+    mobile: true,
+    hash: "#product",
+    slideIndex: 2,
+  },
+  {
     name: "desktop-calendar",
     width: 1440,
     height: 1000,
     mobile: false,
     hash: "#product",
-    slideIndex: 4,
+    slideIndex: 3,
   },
   {
     name: "desktop-calendar-create",
@@ -43,7 +67,7 @@ const viewports = [
     height: 1000,
     mobile: false,
     hash: "#product",
-    slideIndex: 5,
+    slideIndex: 4,
   },
   {
     name: "desktop-calendar-location-search",
@@ -51,7 +75,7 @@ const viewports = [
     height: 1000,
     mobile: false,
     hash: "#product",
-    slideIndex: 6,
+    slideIndex: 5,
   },
   {
     name: "desktop-calendar-location-selected",
@@ -59,7 +83,7 @@ const viewports = [
     height: 1000,
     mobile: false,
     hash: "#product",
-    slideIndex: 7,
+    slideIndex: 6,
   },
   {
     name: "mobile-calendar-location-selected",
@@ -67,23 +91,7 @@ const viewports = [
     height: 812,
     mobile: true,
     hash: "#product",
-    slideIndex: 7,
-  },
-  {
-    name: "desktop-mypage",
-    width: 1440,
-    height: 1000,
-    mobile: false,
-    hash: "#product",
-    slideIndex: 8,
-  },
-  {
-    name: "mobile-mypage",
-    width: 375,
-    height: 812,
-    mobile: true,
-    hash: "#product",
-    slideIndex: 8,
+    slideIndex: 6,
   },
   {
     name: "desktop-carousel-controls",
@@ -135,32 +143,25 @@ const viewports = [
     hash: "#ai-process",
   },
   {
-    name: "desktop-ai-workflow",
+    name: "desktop-ai-stages",
     width: 1440,
     height: 1000,
     mobile: false,
-    hash: "#ai-workflow",
+    hash: "#ai-stages",
   },
   {
-    name: "mobile-ai-workflow",
+    name: "mobile-ai-stages",
     width: 375,
     height: 812,
     mobile: true,
-    hash: "#ai-workflow",
+    hash: "#ai-stages",
   },
   {
-    name: "desktop-ai-evidence",
+    name: "desktop-decisions",
     width: 1440,
     height: 1000,
     mobile: false,
-    hash: "#ai-evidence",
-  },
-  {
-    name: "mobile-ai-evidence",
-    width: 375,
-    height: 812,
-    mobile: true,
-    hash: "#ai-evidence",
+    hash: "#decisions",
   },
   {
     name: "mobile-decisions",
@@ -168,6 +169,20 @@ const viewports = [
     height: 812,
     mobile: true,
     hash: "#decisions",
+  },
+  {
+    name: "desktop-architecture",
+    width: 1440,
+    height: 1000,
+    mobile: false,
+    hash: "#architecture",
+  },
+  {
+    name: "tablet-architecture",
+    width: 783,
+    height: 960,
+    mobile: false,
+    hash: "#architecture",
   },
   {
     name: "mobile-architecture",
@@ -184,39 +199,32 @@ const viewports = [
     hash: "#cases",
   },
   {
-    name: "desktop-naver-case",
+    name: "desktop-realtime-case",
     width: 1440,
     height: 1000,
     mobile: false,
-    hash: "#case-naver",
+    hash: "#case-realtime",
   },
   {
-    name: "mobile-naver-case",
+    name: "mobile-notifications-case",
     width: 375,
     height: 812,
     mobile: true,
-    hash: "#case-naver",
+    hash: "#case-notifications",
   },
   {
-    name: "desktop-widget-case",
+    name: "desktop-external-calendar-case",
     width: 1440,
     height: 1000,
     mobile: false,
-    hash: "#case-widget",
+    hash: "#case-external-calendar",
   },
   {
-    name: "mobile-widget-case",
+    name: "mobile-external-calendar-case",
     width: 375,
     height: 812,
     mobile: true,
-    hash: "#case-widget",
-  },
-  {
-    name: "mobile-reflection",
-    width: 375,
-    height: 812,
-    mobile: true,
-    hash: "#reflection",
+    hash: "#case-external-calendar",
   },
 ];
 
@@ -278,6 +286,9 @@ async function render(viewport, index) {
     CHROME,
     [
       "--headless=new",
+      ...(process.env.PORTFOLIO_DISABLE_BROWSER_SANDBOX === "1"
+        ? ["--no-sandbox"]
+        : []),
       "--disable-gpu",
       "--hide-scrollbars",
       "--no-first-run",
@@ -321,6 +332,32 @@ async function render(viewport, index) {
         expression: `document.querySelector('[data-index="${viewport.slideIndex}"]')?.click()`,
       });
       await delay(250);
+    }
+    if (viewport.expectSectionHeadingsSideBySide) {
+      const evaluation = await cdp.send("Runtime.evaluate", {
+        expression: `(() => Array.from(document.querySelectorAll('.section-heading')).map((heading) => {
+          const title = heading.querySelector('h2');
+          const description = heading.querySelector(':scope > p');
+          if (!title || !description) return { id: heading.closest('section')?.id ?? 'unknown', sideBySide: true, skipped: true };
+          const titleRect = title.getBoundingClientRect();
+          const descriptionRect = description.getBoundingClientRect();
+          return {
+            id: heading.closest('section')?.id ?? 'unknown',
+            sideBySide: descriptionRect.left > titleRect.left + 24,
+          };
+        }))()`,
+        returnByValue: true,
+      });
+      const failedHeadings = evaluation.result.value.filter(
+        (heading) => !heading.sideBySide
+      );
+      if (failedHeadings.length > 0) {
+        throw new Error(
+          `Section headings are not side by side at ${viewport.width}px: ${failedHeadings
+            .map((heading) => heading.id)
+            .join(", ")}`
+        );
+      }
     }
     const result = await cdp.send("Page.captureScreenshot", {
       format: "png",
