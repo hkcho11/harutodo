@@ -1,27 +1,35 @@
 # 하루투두 (Harutodo)
 
-커플/부부가 함께 사용하는 공유 투두 + 캘린더 PWA 웹앱
+부부가 실제 일정과 할 일을 함께 관리하는 공유 투두·캘린더 PWA입니다.
+
+**[제품 판단과 기술 문제 해결 과정을 정리한 포트폴리오 보기 →](https://hkcho11.github.io/harutodo/)**
 
 ---
 
 ## 개요
 
-모바일 브라우저에서 바로 사용할 수 있는 PWA로 개발 중이며, 추후 앱스토어 등록을 목표로 한다.
+결혼 준비를 하며 함께 움직여야 할 일정과 각자의 할 일을 한 서비스에서 빠르게
+확인하기 위해 만들었습니다. 2026년 6월 중순부터 부부가 실제로 사용하며 필요한
+기능을 추가하고 운영하고 있습니다.
 
 - 대상: 커플/부부 2인
 - 플랫폼: iOS Safari, Android Chrome (PWA)
 - 방향: 커플 감성보다 실용적인 공유 투두/캘린더 경험
+- 개발 시작 → 실사용: 약 2주
 
 ## 기능
 
 - **투두 관리** — 제목, 날짜, 담당자, 그룹별 분류, 완료 체크
 - **투두 그룹** — 함께 할 일 / 사람별 할 일 / 그 외 할 일 / 커스텀 그룹 (최대 5개)
 - **홈** — 날짜별 투두 리스트, 스와이프 날짜 이동
-- **캘린더** — 월간 캘린더, 날짜별 일정 확인, 스와이프 월 이동
+- **지난 미완료 정리** — 필요한 항목을 선택해 오늘이나 다른 날짜로 이동
+- **캘린더** — 월간 캘린더, 날짜별 일정 확인, 반복 일정
+- **장소 등록** — 카카오 Local API 장소 검색과 지도 미리보기
 - **커플 연결** — 초대 코드 방식
 - **실시간 동기화** — Supabase Realtime
 - **PWA** — 홈화면 추가, 오프라인 캐시
 - **푸시 알림** — 아침 요약 / 저녁 리마인더 / 일정 리마인더 / 파트너 알림
+- **iOS 위젯** — Scriptable을 이용한 월간 일정·투두 조회
 
 ## 기술 스택
 
@@ -31,10 +39,13 @@
 | 언어 | TypeScript |
 | 스타일링 | Tailwind CSS v4 |
 | 상태 관리 | Zustand |
-| 백엔드/DB | Supabase (PostgreSQL + Realtime + Auth) |
+| 백엔드/데이터 | Supabase (PostgreSQL + RLS + Realtime + Auth) |
+| 서버 작업 | Next.js Route Handler, Supabase Edge Functions, pg_cron |
+| 외부 API | Kakao Local API / Map SDK |
 | PWA | @ducanh2912/next-pwa |
 | UI 컴포넌트 | shadcn/ui |
 | 폼 | React Hook Form + Zod |
+| 검증 | ESLint, TypeScript, Vitest, Next.js Build |
 
 ## 시작하기
 
@@ -91,10 +102,14 @@ harutodo/
 │   └── common/            # 공통 컴포넌트
 ├── lib/
 │   ├── supabase/          # Supabase 클라이언트 (client/server)
+│   ├── services/          # 도메인 데이터 접근과 Realtime 구독
 │   └── utils/             # 유틸 함수
 ├── store/                 # Zustand 스토어
-├── types/                 # TypeScript 타입 정의
+├── types/                 # DB 및 도메인 타입 정의
 ├── hooks/                 # 커스텀 훅
+├── supabase/
+│   ├── functions/         # 알림 등 Edge Functions
+│   └── migrations/        # 스키마, RLS, trigger, cron
 └── public/
     ├── icons/             # PWA 아이콘
     └── manifest.json      # PWA 매니페스트

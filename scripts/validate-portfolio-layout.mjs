@@ -24,9 +24,31 @@ const viewports = [
   },
   { name: "mobile", width: 375, height: 812, mobile: true, hash: "" },
   {
+    name: "mobile-navigation",
+    width: 375,
+    height: 812,
+    mobile: true,
+    hash: "#product",
+    openNavigation: true,
+  },
+  {
     name: "desktop-product",
     width: 1440,
     height: 1000,
+    mobile: false,
+    hash: "#product",
+  },
+  {
+    name: "tablet-product-783",
+    width: 783,
+    height: 960,
+    mobile: false,
+    hash: "#product",
+  },
+  {
+    name: "tablet-product-700",
+    width: 700,
+    height: 960,
     mobile: false,
     hash: "#product",
   },
@@ -36,6 +58,22 @@ const viewports = [
     height: 812,
     mobile: true,
     hash: "#product",
+  },
+  {
+    name: "desktop-product-image-dialog",
+    width: 1440,
+    height: 1000,
+    mobile: false,
+    hash: "#product",
+    openImageDialog: true,
+  },
+  {
+    name: "mobile-product-image-dialog",
+    width: 375,
+    height: 812,
+    mobile: true,
+    hash: "#product",
+    openImageDialog: true,
   },
   {
     name: "desktop-carryover",
@@ -332,6 +370,92 @@ async function render(viewport, index) {
         expression: `document.querySelector('[data-index="${viewport.slideIndex}"]')?.click()`,
       });
       await delay(250);
+    }
+    if (viewport.openNavigation) {
+      const navigationResult = await cdp.send("Runtime.evaluate", {
+        expression: `(() => {
+          document.querySelector('.nav-toggle')?.click();
+          const header = document.querySelector('.site-header');
+          const toggle = document.querySelector('.nav-toggle');
+          return {
+            open: header?.classList.contains('nav-open') ?? false,
+            expanded: toggle?.getAttribute('aria-expanded') ?? null,
+          };
+        })()`,
+        returnByValue: true,
+      });
+      if (
+        !navigationResult.result.value.open ||
+        navigationResult.result.value.expanded !== "true"
+      ) {
+        throw new Error(`Mobile navigation did not open at ${viewport.width}px`);
+      }
+      await delay(250);
+    }
+    if (viewport.openImageDialog) {
+      const dialogResult = await cdp.send("Runtime.evaluate", {
+        expression: `(() => {
+          document.querySelector('.carousel-slide:not([hidden]) .carousel-visual')?.click();
+          const dialog = document.querySelector('[data-image-dialog]');
+          const image = dialog?.querySelector('[data-image-dialog-image]');
+          return {
+            open: dialog?.open ?? false,
+            hasImage: Boolean(image?.getAttribute('src')),
+            hasAlt: Boolean(image?.getAttribute('alt')),
+          };
+        })()`,
+        returnByValue: true,
+      });
+      const dialogState = dialogResult.result.value;
+      if (!dialogState.open || !dialogState.hasImage || !dialogState.hasAlt) {
+        throw new Error(`Product image dialog did not open at ${viewport.width}px`);
+      }
+      await delay(250);
+    }
+    const pageAudit = await cdp.send("Runtime.evaluate", {
+      expression: `(() => ({
+        horizontalOverflow: document.documentElement.scrollWidth - window.innerWidth,
+        missingButtonNames: Array.from(document.querySelectorAll('button')).filter(
+          (button) => !button.textContent.trim() && !button.getAttribute('aria-label')
+        ).length,
+        missingNavTargets: Array.from(document.querySelectorAll('#portfolio-nav a[href^="#"]')).filter(
+          (link) => !document.querySelector(link.getAttribute('href'))
+        ).length,
+        missingCarouselNames: Array.from(document.querySelectorAll('[data-index]')).filter(
+          (button) => !button.getAttribute('aria-label')
+        ).length,
+        carouselArrowOverlaps: (() => {
+          const visual = document.querySelector('.carousel-slide:not([hidden]) .carousel-visual');
+          if (!visual) return 0;
+          const visualRect = visual.getBoundingClientRect();
+          return Array.from(document.querySelectorAll('.carousel-edge-arrow')).filter((arrow) => {
+            const arrowRect = arrow.getBoundingClientRect();
+            return !(
+              arrowRect.right <= visualRect.left ||
+              arrowRect.left >= visualRect.right ||
+              arrowRect.bottom <= visualRect.top ||
+              arrowRect.top >= visualRect.bottom
+            );
+          }).length;
+        })(),
+      }))()`,
+      returnByValue: true,
+    });
+    const audit = pageAudit.result.value;
+    if (audit.horizontalOverflow > 1) {
+      throw new Error(
+        `Horizontal overflow of ${audit.horizontalOverflow}px at ${viewport.width}px`,
+      );
+    }
+    if (
+      audit.missingButtonNames > 0 ||
+      audit.missingNavTargets > 0 ||
+      audit.missingCarouselNames > 0 ||
+      audit.carouselArrowOverlaps > 0
+    ) {
+      throw new Error(
+        `Accessibility audit failed at ${viewport.width}px: ${JSON.stringify(audit)}`,
+      );
     }
     if (viewport.expectSectionHeadingsSideBySide) {
       const evaluation = await cdp.send("Runtime.evaluate", {

@@ -7,7 +7,18 @@
       name="description"
       content="커플의 오늘 할 일과 일정을 한눈에 공유하는 모바일 PWA, 하루투두 프로젝트 케이스 스터디"
     />
+    <meta name="theme-color" content="#fafcf5" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="하루투두 — Product Case Study" />
+    <meta
+      property="og:description"
+      content="부부가 실제 사용하는 커플 공유 투두·캘린더 PWA의 제품 판단과 기술 문제 해결 과정"
+    />
+    <meta property="og:url" content="https://hkcho11.github.io/harutodo/" />
+    <meta name="twitter:card" content="summary" />
     <title>하루투두 — Product Case Study</title>
+    <link rel="canonical" href="https://hkcho11.github.io/harutodo/" />
     <link
       rel="icon"
       type="image/png"
@@ -29,40 +40,60 @@
         />
         <span>HARUTODO</span>
       </a>
-      <nav aria-label="포트폴리오 목차">
+      <button
+        class="nav-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="portfolio-nav"
+      >
+        <span>목차</span><span class="nav-toggle-icon" aria-hidden="true"></span>
+      </button>
+      <nav id="portfolio-nav" aria-label="포트폴리오 목차">
         <a href="#problem">문제</a>
         <a href="#product">실제 화면</a>
+        <a href="#decisions">제품 판단</a>
         <a href="#cases">문제 해결</a>
         <a href="#architecture">설계</a>
         <a href="#ai-process">AI 협업</a>
-        <a href="#feedback">사용자 의견</a>
+        <a href="#feedback">실사용</a>
       </nav>
     </header>
 
     <main id="main">
       <section class="hero" id="top">
         <div class="hero-copy">
-          <p class="eyebrow">PROJECT OVERVIEW · MOBILE PWA</p>
+          <p class="eyebrow">FRONTEND DEVELOPER · MOBILE PWA · @HKCHO11</p>
           <h1>
             둘의 오늘을<br />
             <span>한눈에 정리하다</span>
           </h1>
           <p class="hero-lead">
-            결혼 준비를 하며 함께 움직여야 할 일정과 각자의 일정·할 일을 한눈에
-            볼 필요가 있었습니다. 필요하지 않은 기능은 덜어내고, 저희에게 필요한
-            흐름만 담은 커플 공유 투두·캘린더를 만들었습니다.
+            결혼 준비를 하며 함께 움직여야 할 일정과 각자의 일정·할 일을 한
+            서비스에서 빠르게 확인할 필요가 있었습니다. 필요하지 않은 기능은
+            덜어내고, 저희에게 필요한 흐름만 담은 커플 공유 투두·캘린더를
+            만들었습니다.
           </p>
-          <p class="role-caption">OWNER RESPONSIBILITY</p>
+          <p class="role-caption">DIRECT RESPONSIBILITY</p>
           <div class="role-list" aria-label="담당 역할">
             <span>제품 기획</span>
-            <span>UX/UI 설계</span>
-            <span>프론트엔드</span>
-            <span>백엔드·DB</span>
+            <span>UX/UI 방향</span>
+            <span>기술 의사결정</span>
+            <span>구현 검수</span>
             <span>배포·운영</span>
           </div>
           <p class="hero-note">
             Next.js · TypeScript · Supabase · Realtime · Web Push
           </p>
+          <div class="hero-actions">
+            <a
+              href="https://github.com/hkcho11/harutodo"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="하루투두 GitHub 저장소 새 창에서 열기"
+            >
+              GitHub에서 코드 보기 <span aria-hidden="true">↗</span>
+            </a>
+          </div>
           <dl class="project-meta">
             <div>
               <dt>PROJECT</dt>
@@ -97,9 +128,9 @@
         <div class="section-heading">
           <h2>함께 움직일 일정과 각자의 할 일이 한눈에 보이지 않았습니다</h2>
           <p>
-            결혼 준비를 하며 공동 일정, 개인 일정과 각자 맡은 할 일이 동시에
-            늘었습니다. 기존 앱은 광고와 사용하지 않는 기능까지 보여줘, 둘이
-            매일 필요한 내용만 빠르게 확인하기에는 번거로웠습니다.
+            결혼 준비를 하며 공동 일정과 개인 일정, 각자 맡은 할 일이 동시에
+            늘었습니다. 사용해 본 앱들은 광고와 사용하지 않는 기능까지 보여줘,
+            둘이 매일 필요한 내용만 빠르게 확인하기에는 번거로웠습니다.
           </p>
         </div>
         <div class="problem-grid">
@@ -149,10 +180,6 @@
           aria-label="하루투두 핵심 기능 실제 화면"
         >
           <div class="carousel-toolbar">
-            <div>
-              <p class="carousel-kicker">PRODUCT FLOW</p>
-              <p>오늘과 할 일, 캘린더와 장소 흐름을 확인해 보세요.</p>
-            </div>
             <div
               class="carousel-tabs"
               role="tablist"
@@ -208,12 +235,7 @@
                 />
               </figure>
               <div class="carousel-copy">
-                <p class="carousel-step">TODAY · OVERVIEW</p>
                 <h3>둘의 오늘을 한눈에</h3>
-                <p>
-                  함께·내 할 일·파트너 할 일과 지난 미완료를 한 화면에서 구분해
-                  확인합니다.
-                </p>
               </div>
             </article>
 
@@ -228,12 +250,7 @@
                 />
               </figure>
               <div class="carousel-copy">
-                <p class="carousel-step">TODO · ASSIGN</p>
                 <h3>할 일과 담당을 함께 등록</h3>
-                <p>
-                  화면을 이동하지 않고 날짜와 함께·사람별·커스텀 그룹을
-                  지정합니다.
-                </p>
               </div>
             </article>
 
@@ -248,12 +265,7 @@
                 />
               </figure>
               <div class="carousel-copy">
-                <p class="carousel-step">TODO · CARRY OVER</p>
                 <h3>남은 할 일을 오늘로 다시 정리</h3>
-                <p>
-                  지나간 날짜에 남은 할 일을 선택해 오늘로 옮깁니다. 놓친 일을
-                  묻어두지 않고 지금의 계획으로 다시 이어갑니다.
-                </p>
               </div>
             </article>
 
@@ -273,12 +285,7 @@
                 />
               </figure>
               <div class="carousel-copy">
-                <p class="carousel-step">CALENDAR · OVERVIEW</p>
                 <h3>월간 일정과 하루를 연결</h3>
-                <p>
-                  월 전체의 일정을 파악한 뒤 선택한 날짜의 시간·참여자·등록
-                  장소를 팝업에서 바로 확인합니다.
-                </p>
               </div>
             </article>
 
@@ -298,12 +305,7 @@
                 />
               </figure>
               <div class="carousel-copy">
-                <p class="carousel-step">CALENDAR · CREATE</p>
                 <h3>일정 조건을 한 번에 입력</h3>
-                <p>
-                  날짜와 시간, 반복 여부와 참여자를 하나의 흐름에서 설정해 일정
-                  등록 부담을 줄였습니다.
-                </p>
               </div>
             </article>
 
@@ -323,12 +325,7 @@
                 />
               </figure>
               <div class="carousel-copy">
-                <p class="carousel-step">KAKAO LOCAL API · SEARCH</p>
                 <h3>일정 안에서 바로 장소 검색</h3>
-                <p>
-                  카카오 Local API의 장소명과 주소 검색 결과를 일정에 바로
-                  연결합니다.
-                </p>
               </div>
             </article>
 
@@ -348,12 +345,7 @@
                 />
               </figure>
               <div class="carousel-copy">
-                <p class="carousel-step">KAKAO MAP · PREVIEW</p>
                 <h3>선택한 장소를 지도에서 확인</h3>
-                <p>
-                  장소명과 주소, 지도 미리보기를 함께 제공해 잘못된 장소를
-                  등록하는 실수를 줄였습니다.
-                </p>
               </div>
             </article>
 
@@ -396,7 +388,7 @@
                   type="button"
                   data-index="2"
                   data-group="todo"
-                  aria-label="3번 완료 상태 공유 화면 보기"
+                  aria-label="3번 지난 미완료 할 일 정리 화면 보기"
                   aria-current="false"
                 ></button>
                 <button
@@ -434,10 +426,6 @@
               </div>
             </div>
           </div>
-          <p class="carousel-hint">
-            탭으로 메뉴를 바꾸고, 이전·다음 버튼이나 방향키·스와이프로 화면을
-            넘길 수 있습니다.
-          </p>
         </div>
       </section>
 
@@ -468,8 +456,8 @@
             <div>
               <h3>지난 할 일을 자동으로 옮기지 않았습니다</h3>
               <p>
-                지난 미완료는 홈에서 개수만 알리고, 필요한 항목을 골라 오늘이나
-                다른 날짜로 옮기거나 삭제하도록 했습니다.
+                지난 미완료 할 일은 홈에서 개수만 알리고, 필요한 항목을 골라
+                오늘이나 다른 날짜로 옮기거나 삭제하도록 했습니다.
               </p>
             </div>
             <strong>선택해서 이동</strong>
@@ -612,7 +600,7 @@
       <section class="section architecture" id="architecture">
         <p class="section-number">05 · SYSTEM DESIGN</p>
         <div class="section-heading">
-          <h2>로그인과 데이터 권한을 분리해 관리했습니다</h2>
+          <h2>브라우저와 서버의 책임을 나눴습니다</h2>
           <p>
             Auth는 사용자를 확인하고 RLS는 커플 공유 데이터에 접근할 수 있는지
             검사합니다. API 키와 관리자 권한이 필요한 작업은 브라우저 밖에서
@@ -656,7 +644,7 @@
                 <span>WEB PUSH</span><b aria-hidden="true">↑</b>
               </div>
               <article class="map-group">
-                <small>SUPABASE EDGE</small>
+                <small>SUPABASE EDGE FUNCTIONS</small>
                 <h3>Push 발송 · 예약 알림 처리</h3>
                 <p class="map-note">관리자 권한이 필요한 작업</p>
               </article>
@@ -718,7 +706,7 @@
           </article>
           <div class="ai-stage-arrow" aria-hidden="true">→</div>
           <article>
-            <p class="eyebrow">OPERATE · CODEX</p>
+            <p class="eyebrow">ONGOING DEVELOPMENT · CODEX</p>
             <h3>운영과 추가 개발</h3>
             <p>
               기존 코드의 영향 범위와 변경 계획을 먼저 확인한 뒤, 승인한 범위만
@@ -778,76 +766,156 @@
             수 있어서 편했습니다.
           </blockquote>
           <p>
-            2026년 6월부터 하루투두를 함께 사용하는 배우자의 의견을 요약했습니다.
+            결혼 준비 일정과 생활 할 일을 함께 관리하며 나온 의견입니다.
           </p>
         </article>
 
         <div class="feedback-grid">
-          <article class="feedback-card validated">
+          <article class="feedback-card requested">
             <div class="feedback-card-head">
-              <span>IN USE</span>
-              <strong>현재 편리하게 사용하는 흐름</strong>
+              <span>ADDED AFTER USE · 01</span>
+              <strong>지난 할 일을 다시 계획에 넣기</strong>
             </div>
-            <ul class="feedback-list">
-              <li>
-                <strong>일정과 투두를 한곳에서</strong>
+            <div class="feedback-change">
+              <div>
+                <small>사용 중 확인한 점</small>
                 <p>
-                  앱을 번갈아 확인하지 않고 하루투두 안에서 일정과 할 일을 함께
-                  관리합니다.
+                  날짜가 지나면 미완료 항목이 이전 날짜에 남아, 오늘 화면만
+                  보고는 바로 정리하기 어려웠습니다.
                 </p>
-              </li>
-              <li>
-                <strong>함께와 각자의 할 일 구분</strong>
+              </div>
+              <div>
+                <small>추가한 방식</small>
                 <p>
-                  함께, 나, 파트너 항목을 나눠 누가 맡은 일인지 바로 확인하고 완료
-                  상태를 공유합니다.
+                  홈에서 지난 미완료 개수를 알리고, 필요한 항목만 선택해 오늘이나
+                  다른 날짜로 옮길 수 있게 했습니다.
                 </p>
-              </li>
-            </ul>
+              </div>
+            </div>
           </article>
 
           <article class="feedback-card requested">
             <div class="feedback-card-head">
-              <span>ADDED AFTER USE</span>
-              <strong>사용하면서 추가한 기능</strong>
+              <span>ADDED AFTER USE · 02</span>
+              <strong>앱을 열지 않고 월간 일정 확인하기</strong>
             </div>
-            <ul class="feedback-list">
-              <li>
-                <strong>지난 미완료 할 일 정리</strong>
+            <div class="feedback-change">
+              <div>
+                <small>사용 중 확인한 점</small>
                 <p>
-                  지난 날짜에 남은 미완료 할 일을 홈에서 알리고, 필요한 항목만
-                  선택해 오늘로 옮길 수 있도록 추가했습니다.
+                  월간 일정과 할 일을 확인하려면 매번 앱을 열고 캘린더 화면으로
+                  이동해야 했습니다.
                 </p>
-              </li>
-              <li>
-                <strong>홈 화면 월간 위젯</strong>
+              </div>
+              <div>
+                <small>추가한 방식</small>
                 <p>
-                  iOS 홈 화면에서 월간 일정과 할 일을 확인할 수 있는 조회형
+                  iOS 홈 화면에서 월간 일정과 할 일을 바로 확인하는 조회형
                   Scriptable 위젯을 추가했습니다.
                 </p>
-              </li>
-            </ul>
+              </div>
+            </div>
           </article>
         </div>
       </section>
 
     </main>
 
+    <dialog class="image-dialog" data-image-dialog aria-label="제품 화면 확대 보기">
+      <div class="image-dialog-panel">
+        <button
+          class="image-dialog-close"
+          type="button"
+          data-image-dialog-close
+        >
+          닫기 <span aria-hidden="true">×</span>
+        </button>
+        <img data-image-dialog-image alt="" />
+      </div>
+    </dialog>
+
     <footer>
-      <div><strong>HARUTODO</strong><span>Product Case Study</span></div>
+      <div><strong>@HKCHO11</strong><span>Frontend Developer · Harutodo Case Study</span></div>
       <div class="footer-links">
         <a
-          href="https://github.com/hkcho11/harutodo"
+          href="https://github.com/hkcho11"
           target="_blank"
-          rel="noreferrer"
-          aria-label="하루투두 GitHub 저장소 열기"
-          >GitHub 저장소 ↗</a
+          rel="noopener noreferrer"
+          aria-label="GitHub 프로필 새 창에서 열기"
+          >GitHub 프로필 ↗</a
         >
         <span>2026.06 — 현재</span>
       </div>
     </footer>
     <script>
       (() => {
+        const header = document.querySelector(".site-header");
+        const nav = document.querySelector("#portfolio-nav");
+        const navToggle = document.querySelector(".nav-toggle");
+
+        const closeNav = () => {
+          header?.classList.remove("nav-open");
+          navToggle?.setAttribute("aria-expanded", "false");
+        };
+
+        navToggle?.addEventListener("click", () => {
+          const isOpen = header?.classList.toggle("nav-open") ?? false;
+          navToggle.setAttribute("aria-expanded", String(isOpen));
+        });
+        nav?.addEventListener("click", (event) => {
+          if (event.target instanceof Element && event.target.closest("a")) {
+            closeNav();
+          }
+        });
+        document.addEventListener("click", (event) => {
+          if (!header?.contains(event.target)) closeNav();
+        });
+        document.addEventListener("keydown", (event) => {
+          if (
+            event.key !== "Escape" ||
+            !header?.classList.contains("nav-open")
+          ) {
+            return;
+          }
+          closeNav();
+          navToggle?.focus();
+        });
+
+        const sectionLinks = [
+          ...(nav?.querySelectorAll('a[href^="#"]') ?? []),
+        ];
+        const linkedSections = sectionLinks
+          .map((link) => document.querySelector(link.getAttribute("href")))
+          .filter(Boolean);
+        let navigationFrame = 0;
+        const updateCurrentSection = () => {
+          navigationFrame = 0;
+          const marker = window.scrollY + window.innerHeight * 0.3;
+          let currentId = null;
+          linkedSections.forEach((section) => {
+            if (section.offsetTop <= marker) currentId = section.id;
+          });
+          sectionLinks.forEach((link) => {
+            if (link.getAttribute("href") === `#${currentId}`) {
+              link.setAttribute("aria-current", "location");
+            } else {
+              link.removeAttribute("aria-current");
+            }
+          });
+        };
+        const requestNavigationUpdate = () => {
+          if (navigationFrame) return;
+          navigationFrame = window.requestAnimationFrame(updateCurrentSection);
+        };
+        window.addEventListener("scroll", requestNavigationUpdate, {
+          passive: true,
+        });
+        window.addEventListener("resize", () => {
+          closeNav();
+          requestNavigationUpdate();
+        });
+        updateCurrentSection();
+
         const carousel = document.querySelector("[data-carousel]");
         if (!carousel) return;
 
@@ -861,6 +929,52 @@
         const nextButton = carousel.querySelector("[data-next]");
         let currentIndex = 0;
         let touchStartX = 0;
+        let touchStartY = 0;
+        let suppressImageClick = false;
+
+        const imageDialog = document.querySelector("[data-image-dialog]");
+        const dialogImage = imageDialog?.querySelector("[data-image-dialog-image]");
+        const dialogCloseButton = imageDialog?.querySelector(
+          "[data-image-dialog-close]",
+        );
+        let lastImageViewer = null;
+
+        const openImageDialog = (viewer) => {
+          const sourceImage = viewer.querySelector("img");
+          if (!imageDialog || !dialogImage || !sourceImage) return;
+          lastImageViewer = viewer;
+          dialogImage.src = sourceImage.currentSrc || sourceImage.src;
+          dialogImage.alt = sourceImage.alt;
+          imageDialog.showModal();
+        };
+
+        carousel.querySelectorAll(".carousel-visual").forEach((viewer) => {
+          const sourceImage = viewer.querySelector("img");
+          viewer.dataset.imageViewer = "";
+          viewer.tabIndex = 0;
+          viewer.setAttribute("role", "button");
+          viewer.setAttribute(
+            "aria-label",
+            `${sourceImage?.alt ?? "제품 화면"} 크게 보기`,
+          );
+          viewer.addEventListener("click", () => {
+            if (suppressImageClick) return;
+            openImageDialog(viewer);
+          });
+          viewer.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            openImageDialog(viewer);
+          });
+        });
+        dialogCloseButton?.addEventListener("click", () => imageDialog?.close());
+        imageDialog?.addEventListener("click", (event) => {
+          if (event.target === imageDialog) imageDialog.close();
+        });
+        imageDialog?.addEventListener("close", () => {
+          dialogImage?.removeAttribute("src");
+          lastImageViewer?.focus();
+        });
 
         const showSlide = (nextIndex) => {
           const requestedSlide = slides[nextIndex];
@@ -954,15 +1068,26 @@
           "touchstart",
           (event) => {
             touchStartX = event.changedTouches[0].clientX;
+            touchStartY = event.changedTouches[0].clientY;
           },
           { passive: true },
         );
         carousel.addEventListener(
           "touchend",
           (event) => {
-            const distance = event.changedTouches[0].clientX - touchStartX;
-            if (Math.abs(distance) < 40) return;
-            move(distance < 0 ? 1 : -1);
+            const distanceX = event.changedTouches[0].clientX - touchStartX;
+            const distanceY = event.changedTouches[0].clientY - touchStartY;
+            if (
+              Math.abs(distanceX) < 40 ||
+              Math.abs(distanceX) <= Math.abs(distanceY)
+            ) {
+              return;
+            }
+            suppressImageClick = true;
+            window.setTimeout(() => {
+              suppressImageClick = false;
+            }, 400);
+            move(distanceX < 0 ? 1 : -1);
           },
           { passive: true },
         );
