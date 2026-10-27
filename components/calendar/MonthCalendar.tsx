@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { getMonthDays, type DayCell as DayCellData } from "@/lib/utils/calendar";
 import { cn } from "@/lib/utils/cn";
 import { getAvatarColor, AVATAR_COLOR_CLASSES, type AvatarColor } from "@/lib/utils/avatarColor";
-import { isHoliday } from "holiday-kr";
+import { useKoreanHolidays } from "@/hooks/useKoreanHolidays";
 import DayCell from "./DayCell";
 import type { Event } from "@/types/event";
 
@@ -135,13 +135,11 @@ export default function MonthCalendar({
 
   const cells = useMemo(() => getMonthDays(year, month), [year, month]);
 
-  const holidaySet = useMemo(() => {
-    const set = new Set<string>();
-    for (const cell of cells) {
-      if (isHoliday(cell.date)) set.add(cell.iso);
-    }
-    return set;
-  }, [cells]);
+  const holidayYears = useMemo(
+    () => [...new Set(cells.map((cell) => cell.date.getFullYear()))],
+    [cells]
+  );
+  const holidayMap = useKoreanHolidays(holidayYears);
 
   const weeks = useMemo(() => {
     const result: DayCellData[][] = [];
@@ -196,7 +194,7 @@ export default function MonthCalendar({
                     isSelected={cell.iso === selectedDate}
                     isSunday={colIdx === 0}
                     isSaturday={colIdx === 6}
-                    isHoliday={holidaySet.has(cell.iso)}
+                    holiday={holidayMap.get(cell.iso) ?? null}
                     hasMark={markedDates?.has(cell.iso) ?? false}
                     overflowCount={overflowByIso[cell.iso] ?? 0}
                     disabled={(minDate !== undefined && cell.iso < minDate) || (maxDate !== undefined && cell.iso > maxDate)}

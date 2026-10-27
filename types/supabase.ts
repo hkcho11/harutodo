@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      korean_holidays: {
+        Row: {
+          holiday_date: string
+          is_substitute: boolean
+          names: string[]
+          source: string
+          synced_at: string
+        }
+        Insert: {
+          holiday_date: string
+          is_substitute?: boolean
+          names: string[]
+          source?: string
+          synced_at?: string
+        }
+        Update: {
+          holiday_date?: string
+          is_substitute?: boolean
+          names?: string[]
+          source?: string
+          synced_at?: string
+        }
+        Relationships: []
+      }
       couples: {
         Row: {
           created_at: string
