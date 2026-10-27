@@ -77,15 +77,6 @@ export default function MyPage() {
   const reset = useCoupleStore((s) => s.reset);
   const { groups, loading, error, refetch, add, remove } = useCustomGroups();
 
-  const handleCycleToggle = async (enabled: boolean) => {
-    if (!me) return;
-    try {
-      await updateProfile(me.id, { cycle_enabled: enabled });
-      updateMe({ cycle_enabled: enabled });
-    } catch {
-      showToast("설정 저장에 실패했어요. 다시 시도해주세요");
-    }
-  };
   const showToast = useToastStore((s) => s.show);
 
   // 프로필 수정
@@ -412,20 +403,6 @@ export default function MyPage() {
           </div>
         )}
 
-        {/* 내 주기 */}
-        <div className="mt-4 border-t border-haru-border pt-4">
-          <ToggleRow
-            label="생리 주기 기록"
-            description="캘린더에서 예정일과 배란예상일을 확인할 수 있어요"
-            checked={me?.cycle_enabled ?? false}
-            onChange={(v) => void handleCycleToggle(v)}
-          />
-          {me?.cycle_enabled && (
-            <p className="mt-3 rounded-xl bg-haru-surface-soft px-3 py-2 text-xs leading-relaxed text-haru-muted">
-              시작일과 종료일만 기록해요. 기록은 파트너 캘린더에도 기간 중심으로 표시됩니다.
-            </p>
-          )}
-        </div>
       </section>
 
       {/* 커스텀 그룹 카드 */}

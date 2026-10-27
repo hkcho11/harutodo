@@ -7,7 +7,7 @@ import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { signUp } from "@/lib/services/authService";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
@@ -64,26 +64,23 @@ export default function SignupPage() {
 
   const onSubmit = async (values: FormValues) => {
     setServerError("");
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.signUp({
-      email: values.email,
-      password: values.password,
-      options: { data: { display_name: values.display_name } },
-    });
-
-    if (error) {
-      if (error.message.toLowerCase().includes("already registered")) {
-        setServerError("이미 가입된 이메일입니다");
+    try {
+      const result = await signUp({
+        email: values.email,
+        password: values.password,
+        displayName: values.display_name,
+      });
+      if (result.status === "signed_in") {
+        router.push("/couple/connect");
       } else {
-        setServerError("회원가입에 실패했습니다. 다시 시도해주세요");
+        setEmailSent(true);
       }
-      return;
-    }
-
-    if (data.session) {
-      router.push("/couple/connect");
-    } else {
-      setEmailSent(true);
+    } catch (error) {
+      setServerError(
+        error instanceof Error
+          ? error.message
+          : "회원가입에 실패했습니다. 다시 시도해주세요"
+      );
     }
   };
 
@@ -171,7 +168,7 @@ export default function SignupPage() {
               error={errors.confirmPassword?.message}
             />
             {serverError && (
-              <p className="text-sm text-haru-danger">{serverError}</p>
+              <p role="alert" className="text-sm text-haru-danger">{serverError}</p>
             )}
             <Button type="submit" isLoading={isSubmitting} className="mt-1">
               회원가입

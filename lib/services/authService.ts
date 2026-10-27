@@ -1,5 +1,38 @@
 import { createClient } from "@/lib/supabase/client";
 import { useCoupleStore } from "@/store/useCoupleStore";
+import type { SignupInput, SignupResult } from "@/types/domain/auth";
+
+export async function signUp(input: SignupInput): Promise<SignupResult> {
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email: input.email,
+    password: input.password,
+    options: { data: { display_name: input.displayName } },
+  });
+
+  const duplicateMessage = "이미 가입된 이메일입니다. 로그인해주세요";
+  if (error) {
+    if (
+      error.code === "user_already_exists" ||
+      error.code === "email_exists" ||
+      error.message.toLowerCase().includes("already registered")
+    ) {
+      throw new Error(duplicateMessage);
+    }
+    throw new Error("회원가입에 실패했습니다. 다시 시도해주세요");
+  }
+
+  // 이메일 인증이 활성화된 경우 기존 인증 계정은 오류 대신
+  // identities가 비어 있는 가짜 사용자 응답을 반환한다.
+  if (!data.session && data.user?.identities?.length === 0) {
+    throw new Error(duplicateMessage);
+  }
+  if (!data.user) {
+    throw new Error("회원가입에 실패했습니다. 다시 시도해주세요");
+  }
+
+  return { status: data.session ? "signed_in" : "confirmation_required" };
+}
 
 export async function signOut(): Promise<void> {
   const supabase = createClient();

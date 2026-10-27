@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils/cn";
-import type { CycleDayType } from "@/types/cycle";
 
 interface Props {
   date: Date;
@@ -15,7 +14,6 @@ interface Props {
   hasMark?: boolean;
   overflowCount?: number;
   disabled?: boolean;
-  cycleType?: CycleDayType | null;
   onClick: () => void;
 }
 
@@ -31,7 +29,6 @@ export default function DayCell({
   hasMark = false,
   overflowCount = 0,
   disabled = false,
-  cycleType,
   onClick,
 }: Props) {
   const dayNum = date.getDate();
@@ -54,7 +51,6 @@ export default function DayCell({
         <span
           className={cn(
             "relative flex h-7 w-7 items-center justify-center rounded-full text-xs leading-none",
-            cycleType === "expected" && inMonth && "border border-dashed border-haru-cycle/70",
             isToday && isSelected
               ? "bg-haru-primary/25 ring-2 ring-haru-primary-active"
               : isToday
@@ -69,12 +65,6 @@ export default function DayCell({
           )}
         >
           {dayNum}
-          {cycleType === "recorded" && inMonth && (
-            <span className="absolute bottom-0 h-0.5 w-3 rounded-full bg-haru-cycle/70" />
-          )}
-          {cycleType === "ovulation" && inMonth && (
-            <span className="absolute -right-1 top-1 h-1 w-1 rounded-full bg-haru-accent" />
-          )}
         </span>
         {overflowCount > 0 && (
           <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[8px] leading-none text-haru-muted">
