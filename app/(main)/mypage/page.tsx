@@ -1,22 +1,19 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Clock, Link2, Download } from "lucide-react";
-import TimePickerSheet from "@/components/ui/TimePickerSheet";
-import OptionSheet from "@/components/common/OptionSheet";
+import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Link2, Download } from "lucide-react";
 import AvatarColorSheet from "@/components/mypage/AvatarColorSheet";
 import { signOut } from "@/lib/services/authService";
 import { updateProfile } from "@/lib/services/profileService";
 import { disconnectCouple } from "@/lib/services/coupleService";
 import { getAvatarColor, AVATAR_COLOR_CLASSES, type AvatarColor } from "@/lib/utils/avatarColor";
-import { subscribePush } from "@/lib/services/pushService";
 import {
   MAX_CUSTOM_GROUPS_PER_COUPLE,
   ERR_GROUP_LIMIT_EXCEEDED,
 } from "@/lib/services/customGroupService";
 import { useCustomGroups } from "@/hooks/useCustomGroups";
-import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import { useToastStore } from "@/store/useToastStore";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -24,49 +21,6 @@ import LoadingScreen from "@/components/common/LoadingScreen";
 import { cn } from "@/lib/utils/cn";
 import { useAppRefresh } from "@/components/layout/PullToRefresh";
 import type { CustomGroup } from "@/types/todo";
-
-function ToggleRow({
-  label,
-  description,
-  checked,
-  onChange,
-  disabled,
-}: {
-  label: string;
-  description?: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-haru-text">{label}</p>
-        {description && (
-          <p className="mt-0.5 text-xs leading-relaxed text-haru-muted">{description}</p>
-        )}
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        disabled={disabled}
-        className={cn(
-          "relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-40",
-          checked ? "bg-haru-primary" : "bg-haru-border"
-        )}
-      >
-        <span
-          className={cn(
-            "absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200",
-            checked ? "translate-x-[22px]" : "translate-x-[2px]"
-          )}
-        />
-      </button>
-    </div>
-  );
-}
 
 export default function MyPage() {
   const router = useRouter();
@@ -202,21 +156,7 @@ export default function MyPage() {
     }
   };
 
-  const {
-    settings: notifSettings,
-    loading: notifLoading,
-    updating: notifUpdating,
-    refetch: notifRefetch,
-    update: notifUpdate,
-  } = useNotificationSettings(me?.id);
-
-  const refreshPage = useCallback(async () => {
-    await Promise.all([refetch(), notifRefetch()]);
-  }, [notifRefetch, refetch]);
-  useAppRefresh(refreshPage);
-
-  const [timePickerTarget, setTimePickerTarget] = useState<"morning" | "evening" | null>(null);
-  const [leadMinPickerOpen, setLeadMinPickerOpen] = useState(false);
+  useAppRefresh(refetch);
 
   // 위젯 스크립트 프리패치 — 버튼 클릭 시 await 없이 즉시 복사해 유저 제스처 유실 방지
   const [widgetScript, setWidgetScript] = useState<string | null>(null);
@@ -265,34 +205,6 @@ export default function MyPage() {
       showToast("복사에 실패했어요. 다시 시도해주세요");
     }
   };
-
-  // M1: Push 권한 상태 — SSR과 초기 클라이언트 렌더 일치를 위해 "unavailable"로 초기화
-  const [pushPermission, setPushPermission] = useState<NotificationPermission | "unavailable">("unavailable");
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !("Notification" in window)) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPushPermission(Notification.permission);
-  }, []);
-
-  const handleRequestPush = async () => {
-    if (!me?.id) return;
-    const ok = await subscribePush(me.id);
-    setPushPermission(typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unavailable");
-    if (ok) showToast("이 기기에서 알림이 허용됐어요");
-    else showToast("알림 허용이 필요해요");
-  };
-
-  // M2: 설정 저장 실패 toast
-  const saveNotif = (patch: Parameters<typeof notifUpdate>[0]) => {
-    notifUpdate(patch).catch(() => showToast("알림 설정 저장에 실패했어요. 다시 시도해주세요"));
-  };
-
-  const LEAD_MIN_OPTIONS: { label: string; value: number }[] = [
-    { label: "15분 전", value: 15 },
-    { label: "30분 전", value: 30 },
-    { label: "1시간 전", value: 60 },
-  ];
 
   const meInitial = me?.display_name?.charAt(0)?.toUpperCase() ?? "?";
   const partnerInitial = partner?.display_name?.charAt(0)?.toUpperCase() ?? "?";
@@ -517,138 +429,17 @@ export default function MyPage() {
 
       {/* 알림 설정 */}
       <section className="overflow-hidden rounded-2xl bg-haru-surface shadow-card">
-        <div className="flex items-center gap-2 border-b border-haru-border px-5 py-4">
-          <Bell className="h-4 w-4 text-haru-muted" />
-          <h2 className="text-sm font-semibold text-haru-text">알림 설정</h2>
-        </div>
-
-        {/* M1: Push 권한 상태 배너 */}
-        {pushPermission === "denied" && (
-          <div className="flex items-start gap-2 border-b border-haru-border bg-haru-danger/5 px-5 py-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-haru-danger" />
-            <p className="text-xs leading-relaxed text-haru-danger">
-              이 기기에서 알림이 차단됐어요. 브라우저 설정에서 알림을 허용해주세요.
-            </p>
+        <Link
+          href="/mypage/notifications"
+          className="flex min-h-14 items-center gap-3 px-5 py-4 active:bg-haru-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-haru-primary"
+        >
+          <Bell className="h-4 w-4 shrink-0 text-haru-muted" />
+          <div className="min-w-0 flex-1">
+            <h2 className="text-sm font-semibold text-haru-text">알림 설정</h2>
+            <p className="mt-0.5 text-xs text-haru-muted">알림 종류와 받는 시간을 관리해요</p>
           </div>
-        )}
-        {pushPermission === "default" && (
-          <div className="flex items-center justify-between gap-3 border-b border-haru-border bg-haru-primary-soft/50 px-5 py-3">
-            <p className="text-xs leading-relaxed text-haru-text">
-              알림을 받으려면 이 기기에서 허용이 필요해요
-            </p>
-            <button
-              type="button"
-              onClick={() => void handleRequestPush()}
-              className="shrink-0 rounded-xl bg-haru-primary px-3 py-1.5 text-xs font-semibold text-haru-text active:bg-haru-primary-active"
-            >
-              허용
-            </button>
-          </div>
-        )}
-
-        {notifLoading ? (
-          <p className="px-5 py-4 text-sm text-haru-muted">불러오는 중...</p>
-        ) : !notifSettings ? (
-          <p className="px-5 py-4 text-sm text-haru-muted">설정을 불러오지 못했어요</p>
-        ) : (
-          <div className="divide-y divide-haru-border">
-            {/* 아침 알림 */}
-            <div className="flex flex-col gap-2 px-5 py-4">
-              <ToggleRow
-                label="아침 알림"
-                description="오늘의 할 일·일정 요약을 보내드려요"
-                checked={notifSettings.morning_enabled}
-                onChange={(v) => saveNotif({ morning_enabled: v })}
-                disabled={notifUpdating}
-              />
-              {notifSettings.morning_enabled && (
-                <div className="flex items-center gap-2 pl-1">
-                  <label className="text-xs text-haru-muted">알림 시각</label>
-                  <button
-                    type="button"
-                    onClick={() => setTimePickerTarget("morning")}
-                    disabled={notifUpdating}
-                    className="flex items-center gap-1.5 rounded-xl border border-haru-border bg-haru-surface px-3 py-1.5 text-sm text-haru-text active:bg-haru-primary-soft disabled:opacity-40"
-                  >
-                    <Clock className="h-3.5 w-3.5 text-haru-muted" />
-                    {notifSettings.morning_time.slice(0, 5)}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* 일정 알림 */}
-            <div className="flex flex-col gap-2 px-5 py-4">
-              <ToggleRow
-                label="일정 알림"
-                description="일정 시작 전 미리 알려드려요"
-                checked={notifSettings.event_enabled}
-                onChange={(v) => saveNotif({ event_enabled: v })}
-                disabled={notifUpdating}
-              />
-              {notifSettings.event_enabled && (
-                <div className="flex items-center gap-2 pl-1">
-                  <label className="text-xs text-haru-muted">미리 알림</label>
-                  <button
-                    type="button"
-                    onClick={() => setLeadMinPickerOpen(true)}
-                    disabled={notifUpdating}
-                    className="flex items-center gap-1 rounded-xl border border-haru-border bg-haru-surface px-3 py-1.5 text-sm text-haru-text active:bg-haru-primary-soft disabled:opacity-40"
-                  >
-                    {LEAD_MIN_OPTIONS.find((o) => o.value === notifSettings.event_lead_min)?.label ?? "30분 전"}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* 저녁 알림 */}
-            <div className="flex flex-col gap-2 px-5 py-4">
-              <ToggleRow
-                label="저녁 알림"
-                description="남은 할 일을 저녁에 다시 알려드려요"
-                checked={notifSettings.evening_enabled}
-                onChange={(v) => saveNotif({ evening_enabled: v })}
-                disabled={notifUpdating}
-              />
-              {notifSettings.evening_enabled && (
-                <div className="flex items-center gap-2 pl-1">
-                  <label className="text-xs text-haru-muted">알림 시각</label>
-                  <button
-                    type="button"
-                    onClick={() => setTimePickerTarget("evening")}
-                    disabled={notifUpdating}
-                    className="flex items-center gap-1.5 rounded-xl border border-haru-border bg-haru-surface px-3 py-1.5 text-sm text-haru-text active:bg-haru-primary-soft disabled:opacity-40"
-                  >
-                    <Clock className="h-3.5 w-3.5 text-haru-muted" />
-                    {notifSettings.evening_time.slice(0, 5)}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* 파트너 활동 알림 */}
-            <div className="px-5 py-4">
-              <ToggleRow
-                label="파트너 활동 알림"
-                description="파트너가 할 일·일정을 추가·수정하면 알려드려요"
-                checked={notifSettings.partner_enabled}
-                onChange={(v) => saveNotif({ partner_enabled: v })}
-                disabled={notifUpdating}
-              />
-            </div>
-
-            {/* 내용 표시 */}
-            <div className="px-5 py-4">
-              <ToggleRow
-                label="알림에 내용 표시"
-                description="알림 배너에 일정·할 일 제목과 날짜가 표시돼요"
-                checked={notifSettings.show_content}
-                onChange={(v) => saveNotif({ show_content: v })}
-                disabled={notifUpdating}
-              />
-            </div>
-          </div>
-        )}
+          <ChevronRight className="h-4 w-4 shrink-0 text-haru-muted" />
+        </Link>
       </section>
 
       {/* 연동 */}
@@ -717,34 +508,6 @@ export default function MyPage() {
         isSaving={isSavingColor}
         onSelect={handleColorSelect}
         onClose={() => setColorSheetOpen(false)}
-      />
-
-      {/* 일정 알림 미리 알림 선택 */}
-      <OptionSheet
-        open={leadMinPickerOpen}
-        title="미리 알림"
-        options={LEAD_MIN_OPTIONS}
-        value={notifSettings?.event_lead_min ?? 30}
-        onSelect={(v) => saveNotif({ event_lead_min: v })}
-        onClose={() => setLeadMinPickerOpen(false)}
-      />
-
-      {/* 알림 시각 선택 */}
-      <TimePickerSheet
-        open={timePickerTarget !== null}
-        value={
-          timePickerTarget === "morning"
-            ? notifSettings?.morning_time.slice(0, 5) ?? null
-            : notifSettings?.evening_time.slice(0, 5) ?? null
-        }
-        title={timePickerTarget === "morning" ? "아침 알림 시각" : "저녁 알림 시각"}
-        allowClear={false}
-        onConfirm={(v) => {
-          if (!v) return;
-          if (timePickerTarget === "morning") saveNotif({ morning_time: v });
-          else saveNotif({ evening_time: v });
-        }}
-        onClose={() => setTimePickerTarget(null)}
       />
 
       {/* 다이얼로그: 커스텀 그룹 삭제 */}

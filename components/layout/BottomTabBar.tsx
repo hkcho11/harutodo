@@ -23,7 +23,7 @@ export default function BottomTabBar() {
     >
       <div className="flex h-14">
         {tabs.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href;
+          const isActive = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
           return (
             <Link
               key={href}
