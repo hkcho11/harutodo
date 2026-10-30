@@ -5,6 +5,7 @@ import PullToRefresh from "@/components/layout/PullToRefresh";
 import CoupleProvider from "@/components/providers/CoupleProvider";
 import ProfileErrorScreen from "@/components/common/ProfileErrorScreen";
 import ToastContainer from "@/components/common/ToastContainer";
+import ReleaseNotice from "@/components/common/ReleaseNotice";
 
 export default async function MainLayout({
   children,
@@ -63,6 +64,7 @@ export default async function MainLayout({
         </PullToRefresh>
         <BottomTabBar />
         <ToastContainer />
+        <ReleaseNotice />
       </div>
     </CoupleProvider>
   );

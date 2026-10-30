@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import SplashScreen from "@/components/common/SplashScreen";
+import FeedbackIndicatorsProvider from "@/components/feedback/FeedbackIndicatorsProvider";
 
 export const metadata: Metadata = {
   title: "Harutodo",
@@ -38,7 +39,7 @@ export default function RootLayout({
     <html lang="ko" style={{ backgroundColor: "#FAFCF5" }}>
       <body style={{ backgroundColor: "#FAFCF5" }}>
         <SplashScreen />
-        {children}
+        <FeedbackIndicatorsProvider>{children}</FeedbackIndicatorsProvider>
       </body>
     </html>
   );

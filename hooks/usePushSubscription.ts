@@ -8,8 +8,7 @@ const DISMISSED_KEY = "harutodo_push_dismissed";
 
 export type PushState = "idle" | "prompt" | "granted" | "denied";
 
-function getInitialPushState(): PushState {
-  if (typeof window === "undefined") return "idle";
+function getBrowserPushState(): PushState {
   if (!("Notification" in window) || !("serviceWorker" in navigator)) return "denied";
   const perm = Notification.permission;
   if (perm === "granted") return "granted";
@@ -19,7 +18,14 @@ function getInitialPushState(): PushState {
 
 export function usePushSubscription() {
   const me = useCoupleStore((s) => s.me);
-  const [state, setState] = useState<PushState>(() => getInitialPushState());
+  // 서버와 브라우저의 첫 렌더를 동일하게 유지해 hydration mismatch를 방지한다.
+  const [state, setState] = useState<PushState>("idle");
+
+  useEffect(() => {
+    // 브라우저 전용 API는 hydration이 끝난 뒤에만 읽는다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setState(getBrowserPushState());
+  }, []);
 
   // 이미 권한이 있는 경우 me 로드 시 구독 등록
   useEffect(() => {

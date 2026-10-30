@@ -9,7 +9,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import { createClient } from "@/lib/supabase/client";
+import { signIn } from "@/lib/services/authService";
+import { safeFeedbackReturnPath } from "@/lib/utils/feedback";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import LoadingScreen from "@/components/common/LoadingScreen";
@@ -57,19 +58,13 @@ export default function LoginPage() {
       localStorage.removeItem(REMEMBER_KEY);
     }
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: values.email,
-      password: values.password,
-    });
-
-    if (error) {
+    try { await signIn(values.email, values.password); } catch {
       setServerError("이메일 또는 비밀번호를 확인해주세요");
       return;
     }
 
     setIsNavigating(true);
-    router.push("/");
+    router.push(safeFeedbackReturnPath(new URLSearchParams(window.location.search).get("next")), { scroll: false });
   };
 
   if (isSubmitting || isNavigating) return <LoadingScreen />;
