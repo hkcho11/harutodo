@@ -6,6 +6,7 @@ import { Copy, Check, LogOut, Share2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/services/authService";
 import Button from "@/components/ui/Button";
+import FeedbackLinks from "@/components/feedback/FeedbackLinks";
 import Input from "@/components/ui/Input";
 
 type InviteCode = {
@@ -224,6 +225,7 @@ export default function CoupleConnectPage() {
         <div className="h-px flex-1 bg-haru-border" />
       </div>
 
+      <FeedbackLinks />
       {/* 상대 코드 입력 */}
       <section>
         <h2 className="mb-3 text-sm font-semibold text-haru-muted uppercase tracking-wide">

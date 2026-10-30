@@ -2,6 +2,11 @@ import { createClient } from "@/lib/supabase/client";
 import { useCoupleStore } from "@/store/useCoupleStore";
 import type { SignupInput, SignupResult } from "@/types/domain/auth";
 
+export async function signIn(email: string, password: string): Promise<void> {
+  const { error } = await createClient().auth.signInWithPassword({ email, password });
+  if (error) throw new Error("이메일 또는 비밀번호를 확인해주세요");
+}
+
 export async function signUp(input: SignupInput): Promise<SignupResult> {
   const supabase = createClient();
   const { data, error } = await supabase.auth.signUp({

@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Link2, Download } from "lucide-react";
+import { Plus, Trash2, Check, X, Pencil, LogOut, ChevronRight, AlertTriangle, Bell, Link2, Download, Smartphone } from "lucide-react";
 import AvatarColorSheet from "@/components/mypage/AvatarColorSheet";
+import AppVersion from "@/components/mypage/AppVersion";
+import FeedbackLinks from "@/components/feedback/FeedbackLinks";
 import { signOut } from "@/lib/services/authService";
 import { updateProfile } from "@/lib/services/profileService";
 import { disconnectCouple } from "@/lib/services/coupleService";
@@ -442,6 +444,18 @@ export default function MyPage() {
         </Link>
       </section>
 
+      {/* 의견 및 문의 */}
+      <Link href="/mypage/install" className="flex min-h-14 items-center gap-3 rounded-2xl bg-haru-surface px-5 py-4 shadow-card active:bg-haru-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-haru-primary">
+        <Smartphone className="h-5 w-5 shrink-0 text-haru-muted" aria-hidden="true" />
+        <div className="flex-1">
+          <h2 className="text-sm font-semibold text-haru-text">홈 화면에 추가하기</h2>
+          <p className="mt-1 text-xs text-haru-muted">아이폰·안드로이드에서 앱처럼 사용해요</p>
+        </div>
+        <ChevronRight className="h-4 w-4 shrink-0 text-haru-muted" aria-hidden="true" />
+      </Link>
+
+      <FeedbackLinks />
+
       {/* 연동 */}
       <section className="overflow-hidden rounded-2xl bg-haru-surface shadow-card">
         <div className="flex items-center gap-2 border-b border-haru-border px-5 py-4">
@@ -499,6 +513,8 @@ export default function MyPage() {
           <ChevronRight className="h-4 w-4 text-haru-danger" />
         </button>
       </section>
+
+      <AppVersion />
 
       {/* 아바타 색상 선택 */}
       <AvatarColorSheet

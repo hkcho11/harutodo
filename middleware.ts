@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseUrl, supabaseAnonKey } from "@/lib/supabase/config";
+import { safeFeedbackReturnPath } from "@/lib/utils/feedback";
 
 const AUTH_PAGES = ["/login", "/signup", "/forgot-password"];
 
@@ -30,7 +31,7 @@ export async function middleware(request: NextRequest) {
 
   // /login, /signup: 로그인 상태면 홈으로
   if (isAuthPage && user) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL(safeFeedbackReturnPath(request.nextUrl.searchParams.get("next")), request.url));
   }
 
   // /couple/connect: 세션 없으면 로그인으로, 있으면 통과
@@ -40,7 +41,9 @@ export async function middleware(request: NextRequest) {
 
   // (main) 경로: 세션 없으면 로그인으로 (커플 체크는 레이아웃에서)
   if (!isAuthPage && !isCoupleConnect && !user) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    if (safeFeedbackReturnPath(pathname) !== "/") loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return response;
